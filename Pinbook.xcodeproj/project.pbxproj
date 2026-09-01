@@ -24,6 +24,7 @@
 		B1000000000000000000000F /* StatementAndReminderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000F /* StatementAndReminderViews.swift */; };
 		B10000000000000000000010 /* BackupRecoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000010 /* BackupRecoveryService.swift */; };
 		B10000000000000000000011 /* BackupRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* BackupRecoveryView.swift */; };
+		B10000000000000000000012 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* OnboardingView.swift */; };
 		B20000000000000000000001 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* Records.swift */; };
 		B20000000000000000000002 /* Backup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* Backup.swift */; };
 		B20000000000000000000003 /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Money.swift */; };
@@ -32,6 +33,9 @@
 		B20000000000000000000006 /* BackupRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* BackupRecovery.swift */; };
 		B30000000000000000000001 /* PinbookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000001 /* PinbookTests.swift */; };
 		B40000000000000000000001 /* PinbookUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* PinbookUITests.swift */; };
+		B50000000000000000000001 /* PinbookWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000001 /* PinbookWidgets.swift */; };
+		B50000000000000000000002 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* Localizable.xcstrings */; };
+		B50000000000000000000003 /* PinbookWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = P50000000000000000000001 /* PinbookWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,7 +53,28 @@
 			remoteGlobalIDString = T10000000000000000000001;
 			remoteInfo = Pinbook;
 		};
+		D50000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T50000000000000000000001;
+			remoteInfo = PinbookWidgets;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		X10000000000000000000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B50000000000000000000003 /* PinbookWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* PinbookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookApp.swift; sourceTree = "<group>"; };
@@ -69,6 +94,7 @@
 		A1000000000000000000000F /* StatementAndReminderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAndReminderViews.swift; sourceTree = "<group>"; };
 		A10000000000000000000010 /* BackupRecoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecoveryService.swift; sourceTree = "<group>"; };
 		A10000000000000000000011 /* BackupRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecoveryView.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A20000000000000000000001 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* Backup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backup.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
@@ -77,9 +103,12 @@
 		A20000000000000000000006 /* BackupRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecovery.swift; sourceTree = "<group>"; };
 		A30000000000000000000001 /* PinbookTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000001 /* PinbookUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookUITests.swift; sourceTree = "<group>"; };
+		A50000000000000000000001 /* PinbookWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookWidgets.swift; sourceTree = "<group>"; };
+		A50000000000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		P10000000000000000000001 /* Pinbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pinbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		P30000000000000000000001 /* PinbookTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PinbookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		P40000000000000000000001 /* PinbookUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PinbookUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		P50000000000000000000001 /* PinbookWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PinbookWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +133,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F50000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -111,6 +147,7 @@
 			isa = PBXGroup;
 			children = (
 				G10000000000000000000001 /* Pinbook */,
+				G50000000000000000000001 /* PinbookWidgets */,
 				G20000000000000000000001 /* PinbookCore */,
 				G30000000000000000000001 /* PinbookTests */,
 				G40000000000000000000001 /* PinbookUITests */,
@@ -138,6 +175,7 @@
 				A1000000000000000000000F /* StatementAndReminderViews.swift */,
 				A10000000000000000000010 /* BackupRecoveryService.swift */,
 				A10000000000000000000011 /* BackupRecoveryView.swift */,
+				A10000000000000000000012 /* OnboardingView.swift */,
 			);
 			path = Pinbook;
 			sourceTree = "<group>";
@@ -171,12 +209,22 @@
 			path = PinbookUITests;
 			sourceTree = "<group>";
 		};
+		G50000000000000000000001 /* PinbookWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				A50000000000000000000001 /* PinbookWidgets.swift */,
+				A50000000000000000000002 /* Info.plist */,
+			);
+			path = PinbookWidgets;
+			sourceTree = "<group>";
+		};
 		G90000000000000000000001 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				P10000000000000000000001 /* Pinbook.app */,
 				P30000000000000000000001 /* PinbookTests.xctest */,
 				P40000000000000000000001 /* PinbookUITests.xctest */,
+				P50000000000000000000001 /* PinbookWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -191,10 +239,12 @@
 				S10000000000000000000001 /* Sources */,
 				F10000000000000000000001 /* Frameworks */,
 				R10000000000000000000001 /* Resources */,
+				X10000000000000000000001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D50000000000000000000002 /* PBXTargetDependency */,
 			);
 			name = Pinbook;
 			productName = Pinbook;
@@ -237,6 +287,23 @@
 			productReference = P40000000000000000000001 /* PinbookUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		T50000000000000000000001 /* PinbookWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L50000000000000000000001 /* Build configuration list for PBXNativeTarget "PinbookWidgets" */;
+			buildPhases = (
+				S50000000000000000000001 /* Sources */,
+				F50000000000000000000001 /* Frameworks */,
+				R50000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PinbookWidgets;
+			productName = PinbookWidgets;
+			productReference = P50000000000000000000001 /* PinbookWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -250,6 +317,7 @@
 					T10000000000000000000001 = { CreatedOnToolsVersion = 26.6; };
 					T30000000000000000000001 = { CreatedOnToolsVersion = 26.6; TestTargetID = T10000000000000000000001; };
 					T40000000000000000000001 = { CreatedOnToolsVersion = 26.6; TestTargetID = T10000000000000000000001; };
+					T50000000000000000000001 = { CreatedOnToolsVersion = 26.6; };
 				};
 			};
 			buildConfigurationList = L00000000000000000000001 /* Build configuration list for PBXProject "Pinbook" */;
@@ -259,6 +327,7 @@
 				ar,
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = G00000000000000000000001;
 			productRefGroup = G90000000000000000000001 /* Products */;
@@ -268,6 +337,7 @@
 				T10000000000000000000001 /* Pinbook */,
 				T30000000000000000000001 /* PinbookTests */,
 				T40000000000000000000001 /* PinbookUITests */,
+				T50000000000000000000001 /* PinbookWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -295,6 +365,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		R50000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B50000000000000000000002 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -318,6 +396,7 @@
 				B1000000000000000000000F /* StatementAndReminderViews.swift in Sources */,
 				B10000000000000000000010 /* BackupRecoveryService.swift in Sources */,
 				B10000000000000000000011 /* BackupRecoveryView.swift in Sources */,
+				B10000000000000000000012 /* OnboardingView.swift in Sources */,
 				B20000000000000000000001 /* Records.swift in Sources */,
 				B20000000000000000000002 /* Backup.swift in Sources */,
 				B20000000000000000000003 /* Money.swift in Sources */,
@@ -343,6 +422,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		S50000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B50000000000000000000001 /* PinbookWidgets.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -355,6 +442,11 @@
 			isa = PBXTargetDependency;
 			target = T10000000000000000000001 /* Pinbook */;
 			targetProxy = D40000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		D50000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T50000000000000000000001 /* PinbookWidgets */;
+			targetProxy = D50000000000000000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -396,7 +488,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Pinbook/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Pinbook;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -422,7 +515,8 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Pinbook/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Pinbook;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -498,6 +592,48 @@
 			};
 			name = Release;
 		};
+		C50000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PinbookWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C50000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PinbookWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -533,6 +669,15 @@
 			buildConfigurations = (
 				C40000000000000000000001 /* Debug */,
 				C40000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L50000000000000000000001 /* Build configuration list for PBXNativeTarget "PinbookWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C50000000000000000000001 /* Debug */,
+				C50000000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

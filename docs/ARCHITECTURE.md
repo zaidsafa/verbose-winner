@@ -9,7 +9,8 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 ## Layers
 
 - `PinbookCore`: platform-neutral records, backup decoding/validation, currency-safe money, deterministic merge plans with per-entity previews, and service ports.
-- `Pinbook`: SwiftUI app, SwiftData persistence, local preferences, and feature presentation.
+- `Pinbook`: SwiftUI app, SwiftData persistence, local preferences, versioned onboarding, deep-link routing, and feature presentation.
+- `PinbookWidgets`: two privacy-safe WidgetKit entry points. Quick Expense routes to a new expense sheet and Balance Overview routes to Summary; neither reads or displays financial data.
 - Platform services: implemented native Files backup documents, transactional local restore/recovery, private receipt files, local PDF/CSV statements, and local notifications, plus future adapters for Google Drive `appDataFolder`, CloudKit, and Vision OCR.
 
 ## Book and currency invariants
@@ -18,7 +19,7 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 - Expenses, Summary, and Noted are filtered by `AppearanceSettingsItem.activeBookID`; records from another book never contribute to counts or currency totals.
 - The active book cannot be archived. Archived books remain recoverable and can be renamed or restored.
 - Production bootstrap creates one unarchived `Pinbook` book and repairs an invalid active-book reference without creating sample financial records.
-- Favorite currencies start empty. Users explicitly enable currencies and choose the preferred currency used to seed new expense entry.
+- Favorite currencies start empty. Users search Foundation's complete common ISO currency catalog and see a deterministic symbol tile, ISO code, and localized name before explicitly enabling currencies and choosing the preferred currency used to seed new expense entry. Ambiguous symbols never replace the ISO code.
 - Expense Favorites and templates are separate concepts, matching the backup model: starring an expense makes it a Quick Add source, while a named template stores reusable expense fields. Both are isolated to the active book.
 - Quick Add always creates a fresh, unstarred, open expense with a new identifier and current occurrence timestamp; it never mutates the source favorite or template and never copies reminder delivery state.
 - SwiftData models use `isTombstoned` for soft-deletion state because `isDeleted` collides with SwiftData model lifecycle state. Backup records continue to encode the Android-compatible `isDeleted` field at the serialization boundary.
@@ -44,6 +45,12 @@ Drive, CloudKit, OAuth, and OCR adapters remain unavailable. The implemented Bac
 
 ## Localization and accessibility
 
-SwiftUI strings use localized keys with English and Arabic coverage for the implemented workflows. Layout code uses semantic leading/trailing alignment and system Dynamic Type. The validation plan requires RTL, VoiceOver, Reduce Transparency, Increase Contrast, light/dark, and accessibility-size checks before release.
+SwiftUI strings use localized keys with complete English, Arabic, and Simplified Chinese coverage for the implemented workflows, onboarding, accessibility labels, and widgets. Layout code uses semantic leading/trailing alignment and system Dynamic Type. The validation plan requires RTL, VoiceOver, Reduce Transparency, Increase Contrast, Reduce Motion, light/dark, and accessibility-size checks before release.
+
+The onboarding completion flag is versioned (`pinbook.onboarding.completed.v1`), so a new user receives four short task-oriented pages while a returning user's financial store is preserved. Skip and completion persist the flag; Options can clear only that presentation flag to replay the introduction. Debug UI fixtures remain ephemeral and explicitly skip onboarding unless a test override requests it.
+
+All five skins resolve accent, content surface, and backdrop colors from the active light/dark trait. Primary text stays semantic, the selector uses distinct SF Symbols plus palette previews and descriptions, and native transitions become static when Reduce Motion is enabled. Widget layouts use system families, tint-compatible SwiftUI content, and privacy-safe copy.
+
+Live widget balances would require a separately approved App Group plus a carefully versioned shared snapshot boundary. No App Group, iCloud container, or developer-account capability is enabled in this milestone.
 
 Scrollable Forms and Lists that end behind the floating Liquid Glass tab bar reserve a shared 128-point content clearance. UI automation verifies the final Books row, Statements help card, and Backup & Recovery privacy footer can be scrolled to a hittable frame fully above the tab bar.

@@ -1,8 +1,36 @@
 import SwiftData
 import SwiftUI
 
+struct PinbookCurrencyOption: Identifiable, Equatable {
+    let code: String
+    let symbol: String
+    let localizedName: String
+
+    var id: String { code }
+}
+
+enum PinbookCurrencyCatalog {
+    static func options(locale: Locale = .current) -> [PinbookCurrencyOption] {
+        Locale.commonISOCurrencyCodes
+            .map { code in
+                let formatter = NumberFormatter()
+                formatter.locale = locale
+                formatter.numberStyle = .currency
+                formatter.currencyCode = code
+                let symbol = formatter.currencySymbol?.trimmingCharacters(in: .whitespacesAndNewlines)
+                return PinbookCurrencyOption(
+                    code: code,
+                    symbol: symbol?.isEmpty == false ? symbol! : code,
+                    localizedName: locale.localizedString(forCurrencyCode: code) ?? code
+                )
+            }
+            .sorted { $0.code < $1.code }
+    }
+}
+
 struct OptionsView: View {
     @Environment(\.pinbookSkin) private var skin
+    @AppStorage(PinbookOnboardingState.completionKey) private var hasCompletedOnboarding = false
     @Query private var appearances: [AppearanceSettingsItem]
     @Query private var allTemplates: [ExpenseTemplateItem]
 
@@ -78,6 +106,19 @@ struct OptionsView: View {
                     OptionsRow(title: "Receipt OCR", subtitle: "Later enhancement", symbol: "text.viewfinder")
                 }
             }
+
+            Section("Help") {
+                Button {
+                    hasCompletedOnboarding = false
+                } label: {
+                    OptionsRow(
+                        title: "View introduction",
+                        subtitle: "Replay the quick Pinbook tour",
+                        symbol: "rectangle.stack.badge.play"
+                    )
+                }
+                .buttonStyle(.plain)
+            }
         }
         .scrollContentBackground(.hidden)
         .background(skin.backdrop.ignoresSafeArea())
@@ -118,6 +159,8 @@ private struct OptionsRow: View {
 
 private struct AppearanceOptionsView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.pinbookSkin) private var activeSkin
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var appearances: [AppearanceSettingsItem]
 
     var body: some View {
@@ -127,15 +170,13 @@ private struct AppearanceOptionsView: View {
                     Button {
                         updateSkin(skin)
                     } label: {
-                        HStack {
-                            Label(skin.title, systemImage: skin == .nightInk ? "moon.stars" : "paintpalette")
-                            Spacer()
-                            if appearances.first?.interfaceSkin == skin.rawValue {
-                                Image(systemName: "checkmark").foregroundStyle(.tint)
-                            }
-                        }
+                        SkinPreviewRow(
+                            skin: skin,
+                            isSelected: appearances.first?.interfaceSkin == skin.rawValue
+                        )
                     }
                     .buttonStyle(.plain)
+                    .listRowBackground(activeSkin.contentSurface)
                 }
             }
 
@@ -149,12 +190,29 @@ private struct AppearanceOptionsView: View {
             }
 
             Section {
+                Text(themeModeDescription)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 Text("Pinbook uses native Liquid Glass for tabs, toolbars, sheets, and important interactive controls. Expense cards retain a stable themed surface for readability.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(activeSkin.backdrop.ignoresSafeArea())
         .navigationTitle("Appearance")
+        .animation(reduceMotion ? nil : .smooth(duration: 0.45), value: activeSkin)
+    }
+
+    private var themeModeDescription: LocalizedStringKey {
+        switch appearances.first?.themeMode {
+        case "light": "Light keeps every skin bright with dark, high-contrast text."
+        case "dark": "Dark adapts every surface and accent for comfortable low-light reading."
+        default: "System follows the appearance selected in iPhone Settings."
+        }
     }
 
     private var themeModeBinding: Binding<String> {
@@ -169,10 +227,63 @@ private struct AppearanceOptionsView: View {
     }
 
     private func updateSkin(_ skin: PinbookSkin) {
-        appearances.first?.interfaceSkin = skin.rawValue
-        appearances.first?.colorTheme = "default"
-        appearances.first?.updatedAt = .nowMilliseconds
-        try? modelContext.save()
+        let changes = {
+            appearances.first?.interfaceSkin = skin.rawValue
+            appearances.first?.colorTheme = "default"
+            appearances.first?.updatedAt = .nowMilliseconds
+            try? modelContext.save()
+        }
+        if reduceMotion {
+            changes()
+        } else {
+            withAnimation(.snappy(duration: 0.4)) { changes() }
+        }
+    }
+}
+
+private struct SkinPreviewRow: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let skin: PinbookSkin
+    let isSelected: Bool
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(skin.backdrop)
+                    .frame(width: 58, height: 58)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(skin.accent.opacity(0.34), lineWidth: 1)
+                    }
+                Image(systemName: skin.symbol)
+                    .font(.title2.weight(.semibold))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(skin.accent)
+                    .symbolEffect(.bounce, value: isSelected && !reduceMotion)
+            }
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(skin.title)
+                    .font(.headline)
+                Text(skin.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 8)
+
+            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                .font(.title3)
+                .foregroundStyle(isSelected ? skin.accent : Color.secondary.opacity(0.4))
+                .contentTransition(.symbolEffect(.replace))
+                .accessibilityLabel(isSelected ? "Selected" : "Not selected")
+        }
+        .padding(.vertical, 5)
+        .contentShape(.rect)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -183,7 +294,6 @@ private struct BooksAndCurrenciesView: View {
     @State private var showingNewBook = false
     @State private var editingBook: BookItem?
     @State private var operationError: String?
-    private let availableCurrencies = ["AED", "CNY", "EUR", "GBP", "IQD", "JPY", "KWD", "SAR", "USD"]
 
     private var settings: AppearanceSettingsItem? { appearances.first }
     private var activeBooks: [BookItem] { books.filter { !$0.isArchived } }
@@ -246,8 +356,16 @@ private struct BooksAndCurrenciesView: View {
             }
 
             Section("Favorite currencies") {
-                ForEach(availableCurrencies, id: \.self) { currency in
-                    Toggle(currency, isOn: currencyBinding(currency))
+                if let settings {
+                    NavigationLink {
+                        CurrencySelectionView(settings: settings)
+                    } label: {
+                        OptionsRow(
+                            title: "Choose currencies",
+                            subtitle: Text("\(settings.favoriteCurrencies.count) favorite currencies"),
+                            symbol: "coloncurrencysign.circle"
+                        )
+                    }
                 }
                 Text("No favorites are selected by default. Expense entry only shows the currencies you choose.")
                     .font(.footnote)
@@ -312,24 +430,6 @@ private struct BooksAndCurrenciesView: View {
         }
     }
 
-    private func currencyBinding(_ currency: String) -> Binding<Bool> {
-        Binding(
-            get: { appearances.first?.favoriteCurrencies.contains(currency) == true },
-            set: { isSelected in
-                guard let settings = appearances.first else { return }
-                var values = settings.favoriteCurrencies
-                if isSelected {
-                    if !values.contains(currency) { values.append(currency); values.sort() }
-                } else {
-                    values.removeAll { $0 == currency }
-                }
-                settings.favoriteCurrencies = values
-                if settings.preferredCurrency == nil { settings.preferredCurrency = values.first }
-                try? modelContext.save()
-            }
-        )
-    }
-
     private func preferredCurrencyBinding(_ settings: AppearanceSettingsItem) -> Binding<String?> {
         Binding(
             get: { settings.preferredCurrency ?? settings.favoriteCurrencies.first },
@@ -357,6 +457,84 @@ private struct BooksAndCurrenciesView: View {
         } catch {
             operationError = error.localizedDescription
         }
+    }
+}
+
+private struct CurrencySelectionView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Bindable var settings: AppearanceSettingsItem
+    @State private var searchText = ""
+    @State private var allCurrencies = PinbookCurrencyCatalog.options()
+
+    private var currencies: [PinbookCurrencyOption] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return allCurrencies }
+        return allCurrencies.filter {
+            $0.code.localizedCaseInsensitiveContains(query)
+                || $0.symbol.localizedCaseInsensitiveContains(query)
+                || $0.localizedName.localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    var body: some View {
+        List(currencies) { currency in
+            Toggle(isOn: currencyBinding(currency.code)) {
+                HStack(spacing: 14) {
+                    Group {
+                        if currency.symbol == currency.code {
+                            Image(systemName: "coloncurrencysign")
+                                .font(.headline)
+                        } else {
+                            Text(currency.symbol)
+                                .font(.headline)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                        }
+                    }
+                    .frame(width: 46, height: 38)
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(currency.code)
+                            .font(.headline.monospaced())
+                        Text(currency.localizedName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                }
+            }
+            .tint(.accentColor)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("currency-\(currency.code)")
+        }
+        .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
+        .searchable(
+            text: $searchText,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: Text("Choose currencies")
+        )
+        .navigationTitle("Favorite currencies")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func currencyBinding(_ currency: String) -> Binding<Bool> {
+        Binding(
+            get: { settings.favoriteCurrencies.contains(currency) },
+            set: { isSelected in
+                var values = settings.favoriteCurrencies
+                if isSelected {
+                    if !values.contains(currency) { values.append(currency); values.sort() }
+                } else {
+                    values.removeAll { $0 == currency }
+                }
+                settings.favoriteCurrencies = values
+                if settings.preferredCurrency == nil { settings.preferredCurrency = values.first }
+                settings.updatedAt = .nowMilliseconds
+                try? modelContext.save()
+            }
+        )
     }
 }
 

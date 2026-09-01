@@ -11,7 +11,7 @@ struct PinbookApp: App {
         let schema = Schema(PinbookSchema.models)
         let configuration: ModelConfiguration
 #if DEBUG
-        if launchConfiguration.usesFixtures {
+        if launchConfiguration.usesEphemeralStore {
             configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         } else {
             configuration = ModelConfiguration("Pinbook", schema: schema)

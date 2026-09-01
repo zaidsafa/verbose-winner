@@ -23,71 +23,122 @@ enum PinbookSkin: String, CaseIterable, Identifiable {
         }
     }
 
-    var accent: Color {
+    var subtitle: LocalizedStringKey {
         switch self {
-        case .paperGlass: Color(red: 0.20, green: 0.39, blue: 0.34)
-        case .cleanLedger: Color(red: 0.12, green: 0.36, blue: 0.62)
-        case .softPastel: Color(red: 0.64, green: 0.35, blue: 0.52)
-        case .editorial: Color(red: 0.63, green: 0.23, blue: 0.18)
-        case .nightInk: Color(red: 0.47, green: 0.64, blue: 0.96)
+        case .paperGlass: "Warm paper with calm jade glass"
+        case .cleanLedger: "Crisp blue structure for focused work"
+        case .softPastel: "Gentle color with a softer rhythm"
+        case .editorial: "Confident typography and warm contrast"
+        case .nightInk: "Deep navy designed for low light"
         }
     }
 
-    var backdrop: LinearGradient {
-        let colors: [Color] = switch self {
-        case .paperGlass: [
-            adaptiveColor(
-                light: UIColor(red: 0.97, green: 0.94, blue: 0.86, alpha: 1),
-                dark: UIColor(red: 0.11, green: 0.10, blue: 0.08, alpha: 1)
-            ),
-            adaptiveColor(
-                light: UIColor(red: 0.87, green: 0.93, blue: 0.88, alpha: 1),
-                dark: UIColor(red: 0.08, green: 0.14, blue: 0.12, alpha: 1)
-            ),
-        ]
-        case .cleanLedger: [
-            adaptiveColor(
-                light: UIColor(red: 0.91, green: 0.96, blue: 0.99, alpha: 1),
-                dark: UIColor(red: 0.04, green: 0.10, blue: 0.17, alpha: 1)
-            ),
-            adaptiveColor(
-                light: UIColor(red: 0.82, green: 0.91, blue: 0.96, alpha: 1),
-                dark: UIColor(red: 0.06, green: 0.16, blue: 0.24, alpha: 1)
-            ),
-        ]
-        case .softPastel: [
-            adaptiveColor(
-                light: UIColor(red: 0.98, green: 0.90, blue: 0.94, alpha: 1),
-                dark: UIColor(red: 0.18, green: 0.08, blue: 0.14, alpha: 1)
-            ),
-            adaptiveColor(
-                light: UIColor(red: 0.90, green: 0.92, blue: 0.99, alpha: 1),
-                dark: UIColor(red: 0.10, green: 0.11, blue: 0.22, alpha: 1)
-            ),
-        ]
-        case .editorial: [
-            adaptiveColor(
-                light: UIColor(red: 0.96, green: 0.92, blue: 0.85, alpha: 1),
-                dark: UIColor(red: 0.17, green: 0.10, blue: 0.07, alpha: 1)
-            ),
-            adaptiveColor(
-                light: UIColor(red: 0.92, green: 0.84, blue: 0.76, alpha: 1),
-                dark: UIColor(red: 0.23, green: 0.12, blue: 0.09, alpha: 1)
-            ),
-        ]
-        case .nightInk: [Color(red: 0.05, green: 0.07, blue: 0.13), Color(red: 0.12, green: 0.17, blue: 0.28)]
+    var symbol: String {
+        switch self {
+        case .paperGlass: "doc.richtext"
+        case .cleanLedger: "tablecells"
+        case .softPastel: "sparkles"
+        case .editorial: "newspaper"
+        case .nightInk: "moon.stars.fill"
         }
+    }
+
+    var accent: Color {
+        let colors = accentColors
+        return adaptiveColor(light: colors.light, dark: colors.dark)
+    }
+
+    var backdrop: LinearGradient {
+        let stops = backdropColors
+        let colors = [
+            adaptiveColor(light: stops.light.0, dark: stops.dark.0),
+            adaptiveColor(light: stops.light.1, dark: stops.dark.1),
+        ]
         return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
     var contentSurface: Color {
-        switch self {
-        case .nightInk: Color(red: 0.11, green: 0.14, blue: 0.22).opacity(0.94)
-        default: Color(uiColor: .secondarySystemGroupedBackground).opacity(0.92)
-        }
+        let colors = surfaceColors
+        return adaptiveColor(light: colors.light, dark: colors.dark)
     }
 
     var preferredScheme: ColorScheme? { self == .nightInk ? .dark : nil }
+
+    func resolvedAccent(for style: UIUserInterfaceStyle) -> UIColor {
+        style == .dark ? accentColors.dark : accentColors.light
+    }
+
+    func resolvedSurface(for style: UIUserInterfaceStyle) -> UIColor {
+        style == .dark ? surfaceColors.dark : surfaceColors.light
+    }
+
+    func resolvedBackdrop(for style: UIUserInterfaceStyle) -> [UIColor] {
+        let colors = backdropColors
+        return style == .dark ? [colors.dark.0, colors.dark.1] : [colors.light.0, colors.light.1]
+    }
+
+    private var accentColors: (light: UIColor, dark: UIColor) {
+        switch self {
+        case .paperGlass:
+            (UIColor(red: 0.10, green: 0.37, blue: 0.30, alpha: 1), UIColor(red: 0.45, green: 0.86, blue: 0.73, alpha: 1))
+        case .cleanLedger:
+            (UIColor(red: 0.06, green: 0.37, blue: 0.68, alpha: 1), UIColor(red: 0.46, green: 0.75, blue: 1.00, alpha: 1))
+        case .softPastel:
+            (UIColor(red: 0.62, green: 0.25, blue: 0.48, alpha: 1), UIColor(red: 0.98, green: 0.64, blue: 0.84, alpha: 1))
+        case .editorial:
+            (UIColor(red: 0.62, green: 0.20, blue: 0.13, alpha: 1), UIColor(red: 1.00, green: 0.66, blue: 0.48, alpha: 1))
+        case .nightInk:
+            (UIColor(red: 0.23, green: 0.34, blue: 0.70, alpha: 1), UIColor(red: 0.58, green: 0.74, blue: 1.00, alpha: 1))
+        }
+    }
+
+    private var surfaceColors: (light: UIColor, dark: UIColor) {
+        switch self {
+        case .paperGlass:
+            (UIColor(red: 1.00, green: 0.99, blue: 0.96, alpha: 1), UIColor(red: 0.12, green: 0.12, blue: 0.10, alpha: 1))
+        case .cleanLedger:
+            (UIColor(red: 0.98, green: 0.995, blue: 1.00, alpha: 1), UIColor(red: 0.08, green: 0.13, blue: 0.19, alpha: 1))
+        case .softPastel:
+            (UIColor(red: 1.00, green: 0.97, blue: 0.99, alpha: 1), UIColor(red: 0.16, green: 0.10, blue: 0.16, alpha: 1))
+        case .editorial:
+            (UIColor(red: 1.00, green: 0.98, blue: 0.94, alpha: 1), UIColor(red: 0.18, green: 0.12, blue: 0.09, alpha: 1))
+        case .nightInk:
+            (UIColor(red: 0.97, green: 0.98, blue: 1.00, alpha: 1), UIColor(red: 0.10, green: 0.13, blue: 0.21, alpha: 1))
+        }
+    }
+
+    private var backdropColors: (
+        light: (UIColor, UIColor),
+        dark: (UIColor, UIColor)
+    ) {
+        switch self {
+        case .paperGlass:
+            (
+                (UIColor(red: 0.97, green: 0.94, blue: 0.86, alpha: 1), UIColor(red: 0.87, green: 0.93, blue: 0.88, alpha: 1)),
+                (UIColor(red: 0.11, green: 0.10, blue: 0.08, alpha: 1), UIColor(red: 0.08, green: 0.14, blue: 0.12, alpha: 1))
+            )
+        case .cleanLedger:
+            (
+                (UIColor(red: 0.91, green: 0.96, blue: 0.99, alpha: 1), UIColor(red: 0.82, green: 0.91, blue: 0.96, alpha: 1)),
+                (UIColor(red: 0.04, green: 0.10, blue: 0.17, alpha: 1), UIColor(red: 0.06, green: 0.16, blue: 0.24, alpha: 1))
+            )
+        case .softPastel:
+            (
+                (UIColor(red: 0.98, green: 0.90, blue: 0.94, alpha: 1), UIColor(red: 0.90, green: 0.92, blue: 0.99, alpha: 1)),
+                (UIColor(red: 0.18, green: 0.08, blue: 0.14, alpha: 1), UIColor(red: 0.10, green: 0.11, blue: 0.22, alpha: 1))
+            )
+        case .editorial:
+            (
+                (UIColor(red: 0.96, green: 0.92, blue: 0.85, alpha: 1), UIColor(red: 0.92, green: 0.84, blue: 0.76, alpha: 1)),
+                (UIColor(red: 0.17, green: 0.10, blue: 0.07, alpha: 1), UIColor(red: 0.23, green: 0.12, blue: 0.09, alpha: 1))
+            )
+        case .nightInk:
+            (
+                (UIColor(red: 0.92, green: 0.94, blue: 0.99, alpha: 1), UIColor(red: 0.79, green: 0.85, blue: 0.96, alpha: 1)),
+                (UIColor(red: 0.05, green: 0.07, blue: 0.13, alpha: 1), UIColor(red: 0.12, green: 0.17, blue: 0.28, alpha: 1))
+            )
+        }
+    }
 }
 
 private func adaptiveColor(light: UIColor, dark: UIColor) -> Color {

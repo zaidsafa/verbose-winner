@@ -1,224 +1,4072 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "%lld" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld" } } } },
-    "%lld favorite currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld عملات مفضلة" } } } },
-    "%lld templates" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld قوالب" } } } },
-    "1 template" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "قالب واحد" } } } },
-    "Active book" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الدفتر النشط" } } } },
-    "Add" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة" } } } },
-    "Add an expense before creating a statement." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أضف مصروفاً قبل إنشاء كشف." } } } },
-    "Add a periodic expense, then track what remains until it is noted." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أضف مصروفاً دورياً، ثم تابع المبلغ المتبقي حتى أرشفته." } } } },
-    "Add expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة مصروف" } } } },
-    "Add different expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة مصروف مختلف" } } } },
-    "Add to Favorites" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة إلى المفضلة" } } } },
-    "Amount" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المبلغ" } } } },
-    "Amount must be greater than zero." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يجب أن يكون المبلغ أكبر من صفر." } } } },
-    "Appearance" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المظهر" } } } },
-    "Archive" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أرشفة" } } } },
-    "Archived books" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الدفاتر المؤرشفة" } } } },
-    "Attach a receipt photo to keep it with this expense." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أرفق صورة إيصال للاحتفاظ بها مع هذا المصروف." } } } },
-    "Attached receipts" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإيصالات المرفقة" } } } },
-    "Books" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الدفاتر" } } } },
-    "Books & currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الدفاتر والعملات" } } } },
-    "Book name" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "اسم الدفتر" } } } },
-    "Cancel" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إلغاء" } } } },
-    "Cancel reminder" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إلغاء التذكير" } } } },
-    "Cancel this reminder?" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "هل تريد إلغاء هذا التذكير؟" } } } },
-    "Category (optional)" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الفئة (اختياري)" } } } },
-    "Choose currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "اختيار العملات" } } } },
-    "Choose currencies first" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "اختر العملات أولاً" } } } },
-    "Clean ledger" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "سجل واضح" } } } },
-    "Copying to private storage…" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ النسخ إلى التخزين الخاص…" } } } },
-    "Create files" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إنشاء الملفات" } } } },
-    "Currency" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "العملة" } } } },
-    "Dark" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "داكن" } } } },
-    "Data" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "البيانات" } } } },
-    "Date" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التاريخ" } } } },
-    "Delete" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف" } } } },
-    "Delete receipt" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف الإيصال" } } } },
-    "Delete this receipt?" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف هذا الإيصال؟" } } } },
-    "Dates stored; delivery planned" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التواريخ محفوظة؛ الإشعارات لاحقاً" } } } },
-    "Details" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التفاصيل" } } } },
-    "Default for new expenses" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الافتراضي للمصروفات الجديدة" } } } },
-    "Device" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الجهاز" } } } },
-    "Done" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم" } } } },
-    "Editorial" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحريري" } } } },
-    "Edit template" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعديل القالب" } } } },
-    "Enable a reminder when adding an expense. Permission is requested only when you save it." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "فعّل تذكيراً عند إضافة مصروف. لا يُطلب الإذن إلا عند حفظه." } } } },
-    "Enter a valid amount for this currency." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أدخل مبلغاً صالحاً لهذه العملة." } } } },
-    "Enter an amount up to the remaining balance." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أدخل مبلغاً لا يتجاوز الرصيد المتبقي." } } } },
-    "Enter a book name." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أدخل اسم الدفتر." } } } },
-    "Expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصروف" } } } },
-    "Expense reminder" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تذكير بمصروف" } } } },
-    "Expenses" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصروفات" } } } },
-    "Expenses you mark as noted stay recoverable here." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تبقى المصروفات التي تؤرشفها قابلة للاستعادة هنا." } } } },
-    "Every statement contains exactly one person and one currency. CSV stores exact minor-unit integers; PDF formats values for reading. Files are generated locally in temporary storage." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يحتوي كل كشف على شخص واحد وعملة واحدة فقط. يحفظ CSV القيم الصحيحة بوحداتها الصغرى، بينما ينسق PDF القيم للقراءة. تُنشأ الملفات محلياً في تخزين مؤقت." } } } },
-    "Favorite currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "العملات المفضلة" } } } },
-    "Favorites" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المفضلة" } } } },
-    "Generated locally by Pinbook. No exchange rate was applied." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أُنشئ محلياً بواسطة Pinbook. لم يُطبّق أي سعر صرف." } } } },
-    "Interface skin" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "نمط الواجهة" } } } },
-    "Import receipt photo" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "استيراد صورة إيصال" } } } },
-    "Keep reminder" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الاحتفاظ بالتذكير" } } } },
-    "Later enhancement" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحسين لاحق" } } } },
-    "Light" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "فاتح" } } } },
-    "Local store unavailable" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التخزين المحلي غير متاح" } } } },
-    "Local delivery" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تنبيه محلي" } } } },
-    "Mark noted" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أرشفة" } } } },
-    "Name" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الاسم" } } } },
-    "Name, purpose, and person are required." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الاسم والغرض والشخص مطلوبة." } } } },
-    "New book" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "دفتر جديد" } } } },
-    "New template" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "قالب جديد" } } } },
-    "New expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصروف جديد" } } } },
-    "Night ink" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حبر ليلي" } } } },
-    "No favorites are selected by default. Expense entry only shows the currencies you choose." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا تُحدد عملات مفضلة افتراضياً. تعرض شاشة إضافة المصروف العملات التي تختارها فقط." } } } },
-    "No open balances yet." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد أرصدة مفتوحة بعد." } } } },
-    "No receipts" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد إيصالات" } } } },
-    "No scheduled reminders" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد تذكيرات مجدولة" } } } },
-    "No statement data" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد بيانات للكشف" } } } },
-    "No templates" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد قوالب" } } } },
-    "Note (optional)" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ملاحظة (اختياري)" } } } },
-    "Not connected" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "غير متصل" } } } },
-    "Noted" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المؤرشف" } } } },
-    "Nothing noted" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد مصروفات مؤرشفة" } } } },
-    "Notification permission will be requested only when reminder delivery is implemented." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لن يُطلب إذن الإشعارات إلا بعد تنفيذ إرسال التذكيرات." } } } },
-    "Notification text is intentionally generic so financial details do not appear on the Lock Screen." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "نص الإشعار عام عمداً حتى لا تظهر التفاصيل المالية على شاشة القفل." } } } },
-    "Notifications are disabled. Turn off the reminder or enable notifications in Settings." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإشعارات معطلة. أوقف التذكير أو فعّل الإشعارات من الإعدادات." } } } },
-    "OK" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حسناً" } } } },
-    "of" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "من" } } } },
-    "On-device receipt text recognition is a later enhancement and is not available in this build." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التعرّف على نصوص الإيصالات على الجهاز تحسين لاحق وغير متاح في هذا الإصدار." } } } },
-    "Only the selected book appears in Expenses, Summary, Noted, templates, and exports." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يظهر الدفتر المحدد فقط في المصروفات والملخص والمؤرشف والقوالب والتصدير." } } } },
-    "Open" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مفتوح" } } } },
-    "Open Pinbook to review a scheduled expense." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "افتح Pinbook لمراجعة مصروف مجدول." } } } },
-    "Opens the new expense form" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يفتح نموذج المصروف الجديد" } } } },
-    "Options" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الخيارات" } } } },
-    "Original: %@ · Paid: %@ · Remaining: %@" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الأصلي: %1$@ · المدفوع: %2$@ · المتبقي: %3$@" } } } },
-    "Paper glass" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "زجاج ورقي" } } } },
-    "PDF and CSV" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "PDF وCSV" } } } },
-    "Payment" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "دفعة" } } } },
-    "Person or customer" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الشخص أو العميل" } } } },
-    "Permission is requested only when you save an expense with a reminder." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا يُطلب الإذن إلا عند حفظ مصروف يحتوي على تذكير." } } } },
-    "Pinbook statement" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "كشف Pinbook" } } } },
-    "Personalize" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التخصيص" } } } },
-    "Pinbook never assumes a default favorite currency. Choose one in Options, then add the expense." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا يفترض Pinbook عملة مفضلة افتراضية. اختر عملة من الخيارات ثم أضف المصروف." } } } },
-    "Pinbook receives only the photo you choose and copies it into app-private storage. It does not request access to your full photo library." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يستلم Pinbook الصورة التي تختارها فقط وينسخها إلى مساحة تخزين خاصة بالتطبيق. لا يطلب الوصول إلى مكتبة الصور كاملة." } } } },
-    "Pinbook uses native Liquid Glass for tabs, toolbars, sheets, and important interactive controls. Expense cards retain a stable themed surface for readability." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يستخدم Pinbook تأثير الزجاج السائل الأصلي للتبويبات وأشرطة الأدوات والنوافذ وعناصر التحكم المهمة. تحتفظ بطاقات المصروفات بخلفية ثابتة وواضحة للقراءة." } } } },
-    "Planned" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مخطط له" } } } },
-    "Preferred currency" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "العملة المفضلة" } } } },
-    "Prepare CSV" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إعداد CSV" } } } },
-    "Prepare PDF" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إعداد PDF" } } } },
-    "Private note (optional)" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ملاحظة خاصة (اختياري)" } } } },
-    "Private receipts available" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإيصالات الخاصة متاحة" } } } },
-    "Private receipt storage and per-person, per-currency PDF/CSV statements are planned. No files are imported or exported yet." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تخزين الإيصالات الخاصة وكشوف PDF وCSV لكل شخص ولكل عملة مخطط له. لا يتم استيراد أو تصدير أي ملفات حالياً." } } } },
-    "Purpose" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الغرض" } } } },
-    "Purpose and person are required." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الغرض والشخص مطلوبان." } } } },
-    "Quick Add" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة سريعة" } } } },
-    "Ready to share" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "جاهز للمشاركة" } } } },
-    "Receipt OCR" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "قراءة الإيصال" } } } },
-    "Receipt photo" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "صورة إيصال" } } } },
-    "Receipt photos can be imported from each expense and are copied into app-private storage. Per-person, per-currency PDF/CSV statements are the next local workflow." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يمكن استيراد صور الإيصالات من كل مصروف وتُنسخ إلى تخزين خاص بالتطبيق. كشوف PDF وCSV لكل شخص ولكل عملة هي سير العمل المحلي التالي." } } } },
-    "Receipts" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإيصالات" } } } },
-    "Receipts & statements" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإيصالات والكشوف" } } } },
-    "Record payment" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تسجيل دفعة" } } } },
-    "Remaining" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المتبقي" } } } },
-    "Remaining balance" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الرصيد المتبقي" } } } },
-    "Remaining by currency" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المتبقي حسب العملة" } } } },
-    "Remove from Favorites" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إزالة من المفضلة" } } } },
-    "Rename" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إعادة تسمية" } } } },
-    "Rename book" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إعادة تسمية الدفتر" } } } },
-    "Reminder" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التذكير" } } } },
-    "Reminder must be in the future." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يجب أن يكون موعد التذكير في المستقبل." } } } },
-    "Reminder dates are stored locally. Notification authorization and delivery are not implemented yet." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تُحفظ تواريخ التذكير محلياً. إذن الإشعارات وإرسالها غير منفذين بعد." } } } },
-    "Reminders" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التذكيرات" } } } },
-    "Restore" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "استعادة" } } } },
-    "Save" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حفظ" } } } },
-    "Save repeated expense details once, then use them from Quick Add." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "احفظ تفاصيل المصروف المتكرر مرة واحدة ثم استخدمها من الإضافة السريعة." } } } },
-    "Scheduled reminders" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التذكيرات المجدولة" } } } },
-    "Set a reminder date" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحديد تاريخ تذكير" } } } },
-    "Share CSV" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مشاركة CSV" } } } },
-    "Share PDF" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مشاركة PDF" } } } },
-    "Soft pastel" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ألوان هادئة" } } } },
-    "Star an expense or create a template to make it appear here." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أضف مصروفاً إلى المفضلة أو أنشئ قالباً ليظهر هنا." } } } },
-    "Statement scope" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "نطاق الكشف" } } } },
-    "Statement values exceed the supported range." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تتجاوز قيم الكشف النطاق المدعوم." } } } },
-    "Statements" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الكشوف" } } } },
-    "Summary" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الملخص" } } } },
-    "System" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "النظام" } } } },
-    "Tags (comma separated)" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الوسوم (مفصولة بفواصل)" } } } },
-    "Template" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "القالب" } } } },
-    "Template name" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "اسم القالب" } } } },
-    "Templates" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "القوالب" } } } },
-    "Templates belong only to the active book and are available from Quick Add." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تنتمي القوالب إلى الدفتر النشط فقط وتتوفر من الإضافة السريعة." } } } },
-    "Templates use the favorite currencies you explicitly choose in Options." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تستخدم القوالب العملات المفضلة التي تختارها صراحةً في الخيارات." } } } },
-    "The private file and its attachment record will be removed from this device." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "سيُزال الملف الخاص وسجل المرفق من هذا الجهاز." } } } },
-    "The selected photo could not be read." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذرت قراءة الصورة المحددة." } } } },
-    "Theme mode" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "وضع المظهر" } } } },
-    "Total remaining: %@" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إجمالي المتبقي: %@" } } } },
-    "Totals stay separated by currency. Pinbook never applies an implicit exchange rate." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تبقى الإجماليات منفصلة حسب العملة. لا يطبق Pinbook سعر صرف ضمنياً." } } } },
-    "Unable to create statement" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر إنشاء الكشف" } } } },
-    "Unable to cancel reminder" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر إلغاء التذكير" } } } },
-    "Unable to save this expense." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر حفظ هذا المصروف." } } } },
-    "Unable to update books" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر تحديث الدفاتر" } } } },
-    "Unable to add expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذرت إضافة المصروف" } } } },
-    "Unable to update receipts" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر تحديث الإيصالات" } } } },
-    "Unable to update templates" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر تحديث القوالب" } } } },
-    "Apply restore" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تطبيق الاستعادة" } } } },
-    "Apply this restore?" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تطبيق هذه الاستعادة؟" } } } },
-    "Applying creates a recoverable local snapshot first. No records change until you confirm." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ينشئ التطبيق أولاً لقطة محلية قابلة للاستعادة. لن تتغير أي سجلات حتى تؤكد." } } } },
-    "Backup" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "النسخة الاحتياطية" } } } },
-    "Backup & Recovery" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "النسخ الاحتياطي والاستعادة" } } } },
-    "Backup export" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تصدير النسخة الاحتياطية" } } } },
-    "Backup exported" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم تصدير النسخة الاحتياطية" } } } },
-    "Backup format" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تنسيق النسخة" } } } },
-    "Backup health" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حالة النسخ الاحتياطي" } } } },
-    "Backup operation failed" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "فشلت عملية النسخ الاحتياطي" } } } },
-    "Changes by entity" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التغييرات حسب النوع" } } } },
-    "Conflict" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعارض" } } } },
-    "Conflicts are equal-timestamp differences. Pinbook keeps the local record on ties. Currency codes remain attached to each record and are never converted or combined." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التعارضات هي اختلافات لها التوقيت نفسه. يحتفظ Pinbook بالسجل المحلي عند التعادل. تبقى رموز العملات مرتبطة بكل سجل ولا تُحوّل أو تُدمج أبداً." } } } },
-    "Current financial records will be replaced with the exact pre-restore snapshot. Backup history and snapshots remain available." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ستُستبدل السجلات المالية الحالية بلقطة ما قبل الاستعادة تماماً. يبقى سجل النسخ واللقطات متاحاً." } } } },
-    "Export and import use the system Files workflow. No cloud provider is connected, and no data leaves this device unless you choose a destination." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يستخدم التصدير والاستيراد تطبيق الملفات في النظام. لا توجد خدمة سحابية متصلة، ولا تغادر البيانات هذا الجهاز إلا إذا اخترت وجهة." } } } },
-    "Export backup" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تصدير نسخة احتياطية" } } } },
-    "Exported" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تاريخ التصدير" } } } },
-    "Failed" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "فشل" } } } },
-    "Format" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التنسيق" } } } },
-    "Healthy local export" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تصدير محلي سليم" } } } },
-    "History stores only action, status, time, format, and counts. It never stores people, purposes, amounts, filenames, or receipt contents." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يحفظ السجل الإجراء والحالة والوقت والتنسيق والأعداد فقط. ولا يحفظ الأشخاص أو الأغراض أو المبالغ أو أسماء الملفات أو محتوى الإيصالات." } } } },
-    "Import and preview" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "استيراد ومعاينة" } } } },
-    "Incoming records" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "السجلات الواردة" } } } },
-    "Keep current data" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الاحتفاظ بالبيانات الحالية" } } } },
-    "Last export" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "آخر تصدير" } } } },
-    "Local activity" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "النشاط المحلي" } } } },
-    "Local data changed after the preview. Preview the backup again." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تغيرت البيانات المحلية بعد المعاينة. عاين النسخة الاحتياطية مرة أخرى." } } } },
-    "Local Files and restore history" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ملفات محلية وسجل الاستعادة" } } } },
-    "Local records" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "السجلات المحلية" } } } },
-    "Manual backup" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "نسخ احتياطي يدوي" } } } },
-    "No backup activity yet" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا يوجد نشاط نسخ احتياطي بعد" } } } },
-    "Not exported yet" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لم يُصدّر بعد" } } } },
-    "Payments" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الدفعات" } } } },
-    "Pinbook creates a local snapshot before every applied restore. Recovery replaces financial records with that exact pre-restore state." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ينشئ Pinbook لقطة محلية قبل كل استعادة مطبقة. يعيد الاسترداد السجلات المالية إلى حالة ما قبل الاستعادة تماماً." } } } },
-    "Pinbook will save the current state as a recovery snapshot, then apply only newer and new records. Equal-timestamp conflicts stay local." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "سيحفظ Pinbook الحالة الحالية كلقطة استرداد، ثم يطبق السجلات الجديدة والأحدث فقط. تبقى تعارضات التوقيت المتساوي محلية." } } } },
-    "Recover snapshot" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "استعادة اللقطة" } } } },
-    "Recover this snapshot?" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "استعادة هذه اللقطة؟" } } } },
-    "Recovered" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تمت الاستعادة" } } } },
-    "Recovery completed" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "اكتملت الاستعادة" } } } },
-    "Recovery snapshots" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لقطات الاسترداد" } } } },
-    "Restore applied" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم تطبيق الاستعادة" } } } },
-    "Restore applied. A recovery snapshot was saved." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم تطبيق الاستعادة وحفظ لقطة استرداد." } } } },
-    "Restore failed" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "فشلت الاستعادة" } } } },
-    "Restore preview" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "معاينة الاستعادة" } } } },
-    "Snapshot recovery" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "استرداد اللقطة" } } } },
-    "Status" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الحالة" } } } },
-    "Succeeded" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "نجح" } } } },
-    "The selected backup file could not be read." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذرت قراءة ملف النسخة الاحتياطية المحدد." } } } },
-    "This backup contains broken record references." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحتوي هذه النسخة الاحتياطية على مراجع سجلات غير صالحة." } } } },
-    "This backup is corrupt or contains invalid data." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "هذه النسخة الاحتياطية تالفة أو تحتوي على بيانات غير صالحة." } } } },
-    "This backup version is not supported." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إصدار النسخة الاحتياطية هذا غير مدعوم." } } } },
-    "This recovery snapshot is invalid." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لقطة الاسترداد هذه غير صالحة." } } } },
-    "Unchanged" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "دون تغيير" } } } },
-    "Update" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحديث" } } } },
-    "v%lld · %lld records" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإصدار %1$lld · %2$lld سجلاً" } } } },
-    "v%lld · %lld records · %lld changes · %lld conflicts" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإصدار %1$lld · %2$lld سجلاً · %3$lld تغييرات · %4$lld تعارضات" } } } },
-    "Your open expenses" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصروفاتك المفتوحة" } } } }
+  "sourceLanguage": "en",
+  "strings": {
+    "%lld": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        }
+      }
+    },
+    "%lld favorite currencies": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld عملات مفضلة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 种常用货币"
+          }
+        }
+      }
+    },
+    "%lld templates": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld قوالب"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个模板"
+          }
+        }
+      }
+    },
+    "1 template": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قالب واحد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 个模板"
+          }
+        }
+      }
+    },
+    "Active book": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الدفتر النشط"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账本"
+          }
+        }
+      }
+    },
+    "Add": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إضافة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加"
+          }
+        }
+      }
+    },
+    "Add an expense before creating a statement.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أضف مصروفاً قبل إنشاء كشف."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先添加支出，再创建对账单。"
+          }
+        }
+      }
+    },
+    "Add a periodic expense, then track what remains until it is noted.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أضف مصروفاً دورياً، ثم تابع المبلغ المتبقي حتى أرشفته."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加一笔定期支出，并持续跟踪剩余金额，直到结清。"
+          }
+        }
+      }
+    },
+    "Add expense": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إضافة مصروف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加支出"
+          }
+        }
+      }
+    },
+    "Add different expense": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إضافة مصروف مختلف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加其他支出"
+          }
+        }
+      }
+    },
+    "Add to Favorites": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إضافة إلى المفضلة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加到常用"
+          }
+        }
+      }
+    },
+    "Amount": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المبلغ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额"
+          }
+        }
+      }
+    },
+    "Amount must be greater than zero.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يجب أن يكون المبلغ أكبر من صفر."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额必须大于零。"
+          }
+        }
+      }
+    },
+    "Appearance": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المظهر"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观"
+          }
+        }
+      }
+    },
+    "Archive": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أرشفة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归档"
+          }
+        }
+      }
+    },
+    "Archived books": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الدفاتر المؤرشفة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已归档账本"
+          }
+        }
+      }
+    },
+    "Attach a receipt photo to keep it with this expense.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أرفق صورة إيصال للاحتفاظ بها مع هذا المصروف."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附上收据照片，与此支出一起保存。"
+          }
+        }
+      }
+    },
+    "Attached receipts": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإيصالات المرفقة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已附收据"
+          }
+        }
+      }
+    },
+    "Books": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الدفاتر"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账本"
+          }
+        }
+      }
+    },
+    "Books & currencies": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الدفاتر والعملات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账本与货币"
+          }
+        }
+      }
+    },
+    "Book name": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اسم الدفتر"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账本名称"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إلغاء"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "Cancel reminder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إلغاء التذكير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消提醒"
+          }
+        }
+      }
+    },
+    "Cancel this reminder?": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هل تريد إلغاء هذا التذكير؟"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要取消此提醒吗？"
+          }
+        }
+      }
+    },
+    "Category (optional)": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الفئة (اختياري)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类别（可选）"
+          }
+        }
+      }
+    },
+    "Choose currencies": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختيار العملات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择货币"
+          }
+        }
+      }
+    },
+    "Choose currencies first": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر العملات أولاً"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先选择货币"
+          }
+        }
+      }
+    },
+    "Clean ledger": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سجل واضح"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清晰账簿"
+          }
+        }
+      }
+    },
+    "Copying to private storage…": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ النسخ إلى التخزين الخاص…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在复制到私有存储…"
+          }
+        }
+      }
+    },
+    "Create files": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إنشاء الملفات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建文件"
+          }
+        }
+      }
+    },
+    "Currency": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العملة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "货币"
+          }
+        }
+      }
+    },
+    "Dark": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "داكن"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深色"
+          }
+        }
+      }
+    },
+    "Data": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البيانات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据"
+          }
+        }
+      }
+    },
+    "Date": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التاريخ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "Delete receipt": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف الإيصال"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除收据"
+          }
+        }
+      }
+    },
+    "Delete this receipt?": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف هذا الإيصال؟"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要删除此收据吗？"
+          }
+        }
+      }
+    },
+    "Dates stored; delivery planned": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التواريخ محفوظة؛ الإشعارات لاحقاً"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期已保存；提醒推送待实现"
+          }
+        }
+      }
+    },
+    "Details": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التفاصيل"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "详情"
+          }
+        }
+      }
+    },
+    "Default for new expenses": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الافتراضي للمصروفات الجديدة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新支出的默认设置"
+          }
+        }
+      }
+    },
+    "Device": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الجهاز"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "Editorial": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحريري"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杂志排版"
+          }
+        }
+      }
+    },
+    "Edit template": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعديل القالب"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑模板"
+          }
+        }
+      }
+    },
+    "Enable a reminder when adding an expense. Permission is requested only when you save it.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فعّل تذكيراً عند إضافة مصروف. لا يُطلب الإذن إلا عند حفظه."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加支出时可启用提醒。仅在保存时请求权限。"
+          }
+        }
+      }
+    },
+    "Enter a valid amount for this currency.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أدخل مبلغاً صالحاً لهذه العملة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入此货币的有效金额。"
+          }
+        }
+      }
+    },
+    "Enter an amount up to the remaining balance.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أدخل مبلغاً لا يتجاوز الرصيد المتبقي."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入的金额不能超过剩余余额。"
+          }
+        }
+      }
+    },
+    "Enter a book name.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أدخل اسم الدفتر."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入账本名称。"
+          }
+        }
+      }
+    },
+    "Expense": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المصروف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支出"
+          }
+        }
+      }
+    },
+    "Expense reminder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تذكير بمصروف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支出提醒"
+          }
+        }
+      }
+    },
+    "Expenses": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المصروفات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支出"
+          }
+        }
+      }
+    },
+    "Expenses you mark as noted stay recoverable here.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تبقى المصروفات التي تؤرشفها قابلة للاستعادة هنا."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记为已结清的支出会保留在这里，可随时恢复。"
+          }
+        }
+      }
+    },
+    "Every statement contains exactly one person and one currency. CSV stores exact minor-unit integers; PDF formats values for reading. Files are generated locally in temporary storage.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحتوي كل كشف على شخص واحد وعملة واحدة فقط. يحفظ CSV القيم الصحيحة بوحداتها الصغرى، بينما ينسق PDF القيم للقراءة. تُنشأ الملفات محلياً في تخزين مؤقت."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每份对账单仅包含一位人员和一种货币。CSV 保存精确的最小货币单位整数，PDF 则以便于阅读的格式显示金额。文件会在本地临时存储中生成。"
+          }
+        }
+      }
+    },
+    "Favorite currencies": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العملات المفضلة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常用货币"
+          }
+        }
+      }
+    },
+    "Favorites": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المفضلة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常用"
+          }
+        }
+      }
+    },
+    "Generated locally by Pinbook. No exchange rate was applied.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أُنشئ محلياً بواسطة Pinbook. لم يُطبّق أي سعر صرف."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由 Pinbook 在本地生成，未应用任何汇率。"
+          }
+        }
+      }
+    },
+    "Interface skin": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نمط الواجهة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面皮肤"
+          }
+        }
+      }
+    },
+    "Import receipt photo": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استيراد صورة إيصال"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入收据照片"
+          }
+        }
+      }
+    },
+    "Keep reminder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاحتفاظ بالتذكير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留提醒"
+          }
+        }
+      }
+    },
+    "Later enhancement": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحسين لاحق"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续增强"
+          }
+        }
+      }
+    },
+    "Light": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فاتح"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浅色"
+          }
+        }
+      }
+    },
+    "Local store unavailable": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التخزين المحلي غير متاح"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地存储不可用"
+          }
+        }
+      }
+    },
+    "Local delivery": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنبيه محلي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地提醒"
+          }
+        }
+      }
+    },
+    "Mark noted": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أرشفة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记为已结清"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاسم"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "Name, purpose, and person are required.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاسم والغرض والشخص مطلوبة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称、用途和人员为必填项。"
+          }
+        }
+      }
+    },
+    "New book": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دفتر جديد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建账本"
+          }
+        }
+      }
+    },
+    "New template": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قالب جديد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建模板"
+          }
+        }
+      }
+    },
+    "New expense": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مصروف جديد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建支出"
+          }
+        }
+      }
+    },
+    "Night ink": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حبر ليلي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜墨"
+          }
+        }
+      }
+    },
+    "No favorites are selected by default. Expense entry only shows the currencies you choose.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا تُحدد عملات مفضلة افتراضياً. تعرض شاشة إضافة المصروف العملات التي تختارها فقط."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认不选择任何常用货币。添加支出时只显示你选择的货币。"
+          }
+        }
+      }
+    },
+    "No open balances yet.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد أرصدة مفتوحة بعد."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无未结余额。"
+          }
+        }
+      }
+    },
+    "No receipts": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد إيصالات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无收据"
+          }
+        }
+      }
+    },
+    "No scheduled reminders": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد تذكيرات مجدولة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无计划提醒"
+          }
+        }
+      }
+    },
+    "No statement data": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد بيانات للكشف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无对账单数据"
+          }
+        }
+      }
+    },
+    "No templates": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد قوالب"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无模板"
+          }
+        }
+      }
+    },
+    "Note (optional)": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ملاحظة (اختياري)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备注（可选）"
+          }
+        }
+      }
+    },
+    "Not connected": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "غير متصل"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未连接"
+          }
+        }
+      }
+    },
+    "Noted": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المؤرشف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已结清"
+          }
+        }
+      }
+    },
+    "Nothing noted": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد مصروفات مؤرشفة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已结清项目"
+          }
+        }
+      }
+    },
+    "Notification permission will be requested only when reminder delivery is implemented.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لن يُطلب إذن الإشعارات إلا بعد تنفيذ إرسال التذكيرات."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在提醒推送功能实现后才会请求通知权限。"
+          }
+        }
+      }
+    },
+    "Notification text is intentionally generic so financial details do not appear on the Lock Screen.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نص الإشعار عام عمداً حتى لا تظهر التفاصيل المالية على شاشة القفل."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知文本会刻意保持概括，避免财务详情显示在锁定屏幕上。"
+          }
+        }
+      }
+    },
+    "Notifications are disabled. Turn off the reminder or enable notifications in Settings.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإشعارات معطلة. أوقف التذكير أو فعّل الإشعارات من الإعدادات."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知已关闭。请关闭该提醒，或在“设置”中启用通知。"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حسناً"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        }
+      }
+    },
+    "of": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "من"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共"
+          }
+        }
+      }
+    },
+    "On-device receipt text recognition is a later enhancement and is not available in this build.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التعرّف على نصوص الإيصالات على الجهاز تحسين لاحق وغير متاح في هذا الإصدار."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备端收据文字识别是后续增强功能，此版本暂不提供。"
+          }
+        }
+      }
+    },
+    "Only the selected book appears in Expenses, Summary, Noted, templates, and exports.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يظهر الدفتر المحدد فقط في المصروفات والملخص والمؤرشف والقوالب والتصدير."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“支出”“汇总”“已结清”、模板和导出中只会显示当前选中的账本。"
+          }
+        }
+      }
+    },
+    "Open": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مفتوح"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开"
+          }
+        }
+      }
+    },
+    "Open Pinbook to review a scheduled expense.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح Pinbook لمراجعة مصروف مجدول."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 Pinbook 查看计划支出。"
+          }
+        }
+      }
+    },
+    "Opens the new expense form": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يفتح نموذج المصروف الجديد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开新建支出表单"
+          }
+        }
+      }
+    },
+    "Options": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الخيارات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项"
+          }
+        }
+      }
+    },
+    "Original: %@ · Paid: %@ · Remaining: %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأصلي: %1$@ · المدفوع: %2$@ · المتبقي: %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始金额：%@ · 已支付：%@ · 剩余：%@"
+          }
+        }
+      }
+    },
+    "Paper glass": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "زجاج ورقي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纸感玻璃"
+          }
+        }
+      }
+    },
+    "PDF and CSV": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF وCSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF 和 CSV"
+          }
+        }
+      }
+    },
+    "Payment": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دفعة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "付款"
+          }
+        }
+      }
+    },
+    "Person or customer": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الشخص أو العميل"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人员或客户"
+          }
+        }
+      }
+    },
+    "Permission is requested only when you save an expense with a reminder.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يُطلب الإذن إلا عند حفظ مصروف يحتوي على تذكير."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在保存带提醒的支出时请求权限。"
+          }
+        }
+      }
+    },
+    "Pinbook statement": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كشف Pinbook"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinbook 对账单"
+          }
+        }
+      }
+    },
+    "Personalize": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التخصيص"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个性化"
+          }
+        }
+      }
+    },
+    "Pinbook never assumes a default favorite currency. Choose one in Options, then add the expense.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يفترض Pinbook عملة مفضلة افتراضية. اختر عملة من الخيارات ثم أضف المصروف."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinbook 不会自动设定常用货币。请先在“选项”中选择，然后再添加支出。"
+          }
+        }
+      }
+    },
+    "Pinbook receives only the photo you choose and copies it into app-private storage. It does not request access to your full photo library.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستلم Pinbook الصورة التي تختارها فقط وينسخها إلى مساحة تخزين خاصة بالتطبيق. لا يطلب الوصول إلى مكتبة الصور كاملة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinbook 只接收你选择的照片并将其复制到应用私有存储中，不会请求访问整个照片图库。"
+          }
+        }
+      }
+    },
+    "Pinbook uses native Liquid Glass for tabs, toolbars, sheets, and important interactive controls. Expense cards retain a stable themed surface for readability.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم Pinbook تأثير الزجاج السائل الأصلي للتبويبات وأشرطة الأدوات والنوافذ وعناصر التحكم المهمة. تحتفظ بطاقات المصروفات بخلفية ثابتة وواضحة للقراءة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinbook 在标签栏、工具栏、表单和重要交互控件中使用原生 Liquid Glass。支出卡片保留稳定的主题表面，以确保清晰易读。"
+          }
+        }
+      }
+    },
+    "Planned": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مخطط له"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计划中"
+          }
+        }
+      }
+    },
+    "Preferred currency": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العملة المفضلة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首选货币"
+          }
+        }
+      }
+    },
+    "Prepare CSV": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعداد CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备 CSV"
+          }
+        }
+      }
+    },
+    "Prepare PDF": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعداد PDF"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备 PDF"
+          }
+        }
+      }
+    },
+    "Private note (optional)": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ملاحظة خاصة (اختياري)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私人备注（可选）"
+          }
+        }
+      }
+    },
+    "Private receipts available": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإيصالات الخاصة متاحة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持私有收据"
+          }
+        }
+      }
+    },
+    "Private receipt storage and per-person, per-currency PDF/CSV statements are planned. No files are imported or exported yet.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تخزين الإيصالات الخاصة وكشوف PDF وCSV لكل شخص ولكل عملة مخطط له. لا يتم استيراد أو تصدير أي ملفات حالياً."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已规划私有收据存储，以及按人员、按货币生成 PDF/CSV 对账单。当前尚未导入或导出任何文件。"
+          }
+        }
+      }
+    },
+    "Purpose": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الغرض"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用途"
+          }
+        }
+      }
+    },
+    "Purpose and person are required.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الغرض والشخص مطلوبان."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用途和人员为必填项。"
+          }
+        }
+      }
+    },
+    "Quick Add": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إضافة سريعة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速添加"
+          }
+        }
+      }
+    },
+    "Ready to share": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جاهز للمشاركة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可分享"
+          }
+        }
+      }
+    },
+    "Receipt OCR": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قراءة الإيصال"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收据文字识别"
+          }
+        }
+      }
+    },
+    "Receipt photo": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صورة إيصال"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收据照片"
+          }
+        }
+      }
+    },
+    "Receipt photos can be imported from each expense and are copied into app-private storage. Per-person, per-currency PDF/CSV statements are the next local workflow.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن استيراد صور الإيصالات من كل مصروف وتُنسخ إلى تخزين خاص بالتطبيق. كشوف PDF وCSV لكل شخص ولكل عملة هي سير العمل المحلي التالي."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可为每笔支出导入收据照片，照片会复制到应用私有存储中。下一步本地流程是按人员、按货币生成 PDF/CSV 对账单。"
+          }
+        }
+      }
+    },
+    "Receipts": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإيصالات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收据"
+          }
+        }
+      }
+    },
+    "Receipts & statements": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإيصالات والكشوف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收据与对账单"
+          }
+        }
+      }
+    },
+    "Record payment": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تسجيل دفعة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录付款"
+          }
+        }
+      }
+    },
+    "Remaining": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المتبقي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余"
+          }
+        }
+      }
+    },
+    "Remaining balance": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الرصيد المتبقي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余余额"
+          }
+        }
+      }
+    },
+    "Remaining by currency": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المتبقي حسب العملة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按货币查看剩余金额"
+          }
+        }
+      }
+    },
+    "Remove from Favorites": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إزالة من المفضلة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从常用中移除"
+          }
+        }
+      }
+    },
+    "Rename": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة تسمية"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重命名"
+          }
+        }
+      }
+    },
+    "Rename book": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة تسمية الدفتر"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重命名账本"
+          }
+        }
+      }
+    },
+    "Reminder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التذكير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提醒"
+          }
+        }
+      }
+    },
+    "Reminder must be in the future.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يجب أن يكون موعد التذكير في المستقبل."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提醒时间必须在未来。"
+          }
+        }
+      }
+    },
+    "Reminder dates are stored locally. Notification authorization and delivery are not implemented yet.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تُحفظ تواريخ التذكير محلياً. إذن الإشعارات وإرسالها غير منفذين بعد."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提醒日期保存在本地。通知授权和推送功能尚未实现。"
+          }
+        }
+      }
+    },
+    "Reminders": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التذكيرات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提醒"
+          }
+        }
+      }
+    },
+    "Restore": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حفظ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
+        }
+      }
+    },
+    "Save repeated expense details once, then use them from Quick Add.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "احفظ تفاصيل المصروف المتكرر مرة واحدة ثم استخدمها من الإضافة السريعة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只需保存一次重复支出的详情，之后即可从“快速添加”中使用。"
+          }
+        }
+      }
+    },
+    "Scheduled reminders": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التذكيرات المجدولة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计划提醒"
+          }
+        }
+      }
+    },
+    "Set a reminder date": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحديد تاريخ تذكير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置提醒日期"
+          }
+        }
+      }
+    },
+    "Share CSV": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مشاركة CSV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享 CSV"
+          }
+        }
+      }
+    },
+    "Share PDF": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مشاركة PDF"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享 PDF"
+          }
+        }
+      }
+    },
+    "Soft pastel": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ألوان هادئة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "柔和粉彩"
+          }
+        }
+      }
+    },
+    "Star an expense or create a template to make it appear here.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أضف مصروفاً إلى المفضلة أو أنشئ قالباً ليظهر هنا."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将支出加入常用或创建模板，即可在这里显示。"
+          }
+        }
+      }
+    },
+    "Statement scope": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نطاق الكشف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对账单范围"
+          }
+        }
+      }
+    },
+    "Statement values exceed the supported range.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتجاوز قيم الكشف النطاق المدعوم."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对账单金额超出支持范围。"
+          }
+        }
+      }
+    },
+    "Statements": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الكشوف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对账单"
+          }
+        }
+      }
+    },
+    "Summary": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الملخص"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "汇总"
+          }
+        }
+      }
+    },
+    "System": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "النظام"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
+          }
+        }
+      }
+    },
+    "Tags (comma separated)": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الوسوم (مفصولة بفواصل)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签（用逗号分隔）"
+          }
+        }
+      }
+    },
+    "Template": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القالب"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板"
+          }
+        }
+      }
+    },
+    "Template name": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اسم القالب"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板名称"
+          }
+        }
+      }
+    },
+    "Templates": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القوالب"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板"
+          }
+        }
+      }
+    },
+    "Templates belong only to the active book and are available from Quick Add.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنتمي القوالب إلى الدفتر النشط فقط وتتوفر من الإضافة السريعة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板仅属于当前账本，可从“快速添加”中使用。"
+          }
+        }
+      }
+    },
+    "Templates use the favorite currencies you explicitly choose in Options.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تستخدم القوالب العملات المفضلة التي تختارها صراحةً في الخيارات."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板使用你在“选项”中明确选择的常用货币。"
+          }
+        }
+      }
+    },
+    "The private file and its attachment record will be removed from this device.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سيُزال الملف الخاص وسجل المرفق من هذا الجهاز."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私有文件及其附件记录将从此设备中移除。"
+          }
+        }
+      }
+    },
+    "The selected photo could not be read.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذرت قراءة الصورة المحددة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取所选照片。"
+          }
+        }
+      }
+    },
+    "Theme mode": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وضع المظهر"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题模式"
+          }
+        }
+      }
+    },
+    "Total remaining: %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إجمالي المتبقي: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余总额：%@"
+          }
+        }
+      }
+    },
+    "Totals stay separated by currency. Pinbook never applies an implicit exchange rate.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تبقى الإجماليات منفصلة حسب العملة. لا يطبق Pinbook سعر صرف ضمنياً."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "总额始终按货币分别计算。Pinbook 不会隐式应用汇率。"
+          }
+        }
+      }
+    },
+    "Unable to create statement": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر إنشاء الكشف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法创建对账单"
+          }
+        }
+      }
+    },
+    "Unable to cancel reminder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر إلغاء التذكير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法取消提醒"
+          }
+        }
+      }
+    },
+    "Unable to save this expense.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر حفظ هذا المصروف."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存此支出。"
+          }
+        }
+      }
+    },
+    "Unable to update books": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر تحديث الدفاتر"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法更新账本"
+          }
+        }
+      }
+    },
+    "Unable to add expense": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذرت إضافة المصروف"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法添加支出"
+          }
+        }
+      }
+    },
+    "Unable to update receipts": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر تحديث الإيصالات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法更新收据"
+          }
+        }
+      }
+    },
+    "Unable to update templates": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر تحديث القوالب"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法更新模板"
+          }
+        }
+      }
+    },
+    "Apply restore": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تطبيق الاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用恢复"
+          }
+        }
+      }
+    },
+    "Apply this restore?": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تطبيق هذه الاستعادة؟"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要应用此恢复吗？"
+          }
+        }
+      }
+    },
+    "Applying creates a recoverable local snapshot first. No records change until you confirm.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ينشئ التطبيق أولاً لقطة محلية قابلة للاستعادة. لن تتغير أي سجلات حتى تؤكد."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用前会先创建可恢复的本地快照。确认之前不会更改任何记录。"
+          }
+        }
+      }
+    },
+    "Backup": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "النسخة الاحتياطية"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份"
+          }
+        }
+      }
+    },
+    "Backup & Recovery": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "النسخ الاحتياطي والاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份与恢复"
+          }
+        }
+      }
+    },
+    "Backup export": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تصدير النسخة الاحتياطية"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出备份"
+          }
+        }
+      }
+    },
+    "Backup exported": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم تصدير النسخة الاحتياطية"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份已导出"
+          }
+        }
+      }
+    },
+    "Backup format": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنسيق النسخة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份格式"
+          }
+        }
+      }
+    },
+    "Backup health": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حالة النسخ الاحتياطي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份状态"
+          }
+        }
+      }
+    },
+    "Backup operation failed": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فشلت عملية النسخ الاحتياطي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份操作失败"
+          }
+        }
+      }
+    },
+    "Changes by entity": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التغييرات حسب النوع"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按项目查看更改"
+          }
+        }
+      }
+    },
+    "Conflict": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعارض"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冲突"
+          }
+        }
+      }
+    },
+    "Conflicts are equal-timestamp differences. Pinbook keeps the local record on ties. Currency codes remain attached to each record and are never converted or combined.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التعارضات هي اختلافات لها التوقيت نفسه. يحتفظ Pinbook بالسجل المحلي عند التعادل. تبقى رموز العملات مرتبطة بكل سجل ولا تُحوّل أو تُدمج أبداً."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冲突是时间戳相同但内容不同的记录。遇到冲突时，Pinbook 会保留本地记录。货币代码始终与各条记录关联，不会转换或合并。"
+          }
+        }
+      }
+    },
+    "Current financial records will be replaced with the exact pre-restore snapshot. Backup history and snapshots remain available.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ستُستبدل السجلات المالية الحالية بلقطة ما قبل الاستعادة تماماً. يبقى سجل النسخ واللقطات متاحاً."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前财务记录将被恢复前的完整快照替换。备份历史和快照仍会保留。"
+          }
+        }
+      }
+    },
+    "Export and import use the system Files workflow. No cloud provider is connected, and no data leaves this device unless you choose a destination.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم التصدير والاستيراد تطبيق الملفات في النظام. لا توجد خدمة سحابية متصلة، ولا تغادر البيانات هذا الجهاز إلا إذا اخترت وجهة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出和导入使用系统“文件”流程。应用未连接任何云服务；只有在你选择目标位置后，数据才会离开此设备。"
+          }
+        }
+      }
+    },
+    "Export backup": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تصدير نسخة احتياطية"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出备份"
+          }
+        }
+      }
+    },
+    "Exported": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تاريخ التصدير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已导出"
+          }
+        }
+      }
+    },
+    "Failed": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فشل"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败"
+          }
+        }
+      }
+    },
+    "Format": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التنسيق"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格式"
+          }
+        }
+      }
+    },
+    "Healthy local export": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تصدير محلي سليم"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地导出正常"
+          }
+        }
+      }
+    },
+    "History stores only action, status, time, format, and counts. It never stores people, purposes, amounts, filenames, or receipt contents.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحفظ السجل الإجراء والحالة والوقت والتنسيق والأعداد فقط. ولا يحفظ الأشخاص أو الأغراض أو المبالغ أو أسماء الملفات أو محتوى الإيصالات."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史记录仅保存操作、状态、时间、格式和数量，不会保存人员、用途、金额、文件名或收据内容。"
+          }
+        }
+      }
+    },
+    "Import and preview": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استيراد ومعاينة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入并预览"
+          }
+        }
+      }
+    },
+    "Incoming records": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السجلات الواردة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传入记录"
+          }
+        }
+      }
+    },
+    "Keep current data": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاحتفاظ بالبيانات الحالية"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留当前数据"
+          }
+        }
+      }
+    },
+    "Last export": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر تصدير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次导出"
+          }
+        }
+      }
+    },
+    "Local activity": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "النشاط المحلي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地活动"
+          }
+        }
+      }
+    },
+    "Local data changed after the preview. Preview the backup again.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تغيرت البيانات المحلية بعد المعاينة. عاين النسخة الاحتياطية مرة أخرى."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览后本地数据已更改，请重新预览备份。"
+          }
+        }
+      }
+    },
+    "Local Files and restore history": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ملفات محلية وسجل الاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地文件与恢复历史"
+          }
+        }
+      }
+    },
+    "Local records": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السجلات المحلية"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地记录"
+          }
+        }
+      }
+    },
+    "Manual backup": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نسخ احتياطي يدوي"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动备份"
+          }
+        }
+      }
+    },
+    "No backup activity yet": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يوجد نشاط نسخ احتياطي بعد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无备份活动"
+          }
+        }
+      }
+    },
+    "Not exported yet": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم يُصدّر بعد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未导出"
+          }
+        }
+      }
+    },
+    "Payments": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الدفعات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "付款"
+          }
+        }
+      }
+    },
+    "Pinbook creates a local snapshot before every applied restore. Recovery replaces financial records with that exact pre-restore state.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ينشئ Pinbook لقطة محلية قبل كل استعادة مطبقة. يعيد الاسترداد السجلات المالية إلى حالة ما قبل الاستعادة تماماً."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次应用恢复前，Pinbook 都会创建本地快照。恢复操作会将财务记录替换为恢复前的完整状态。"
+          }
+        }
+      }
+    },
+    "Pinbook will save the current state as a recovery snapshot, then apply only newer and new records. Equal-timestamp conflicts stay local.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سيحفظ Pinbook الحالة الحالية كلقطة استرداد، ثم يطبق السجلات الجديدة والأحدث فقط. تبقى تعارضات التوقيت المتساوي محلية."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinbook 会先将当前状态保存为恢复快照，然后仅应用新增或更新的记录。时间戳相同的冲突会保留本地版本。"
+          }
+        }
+      }
+    },
+    "Recover snapshot": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استعادة اللقطة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复快照"
+          }
+        }
+      }
+    },
+    "Recover this snapshot?": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استعادة هذه اللقطة؟"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要恢复此快照吗？"
+          }
+        }
+      }
+    },
+    "Recovered": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تمت الاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已恢复"
+          }
+        }
+      }
+    },
+    "Recovery completed": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اكتملت الاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复完成"
+          }
+        }
+      }
+    },
+    "Recovery snapshots": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لقطات الاسترداد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复快照"
+          }
+        }
+      }
+    },
+    "Restore applied": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم تطبيق الاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复已应用"
+          }
+        }
+      }
+    },
+    "Restore applied. A recovery snapshot was saved.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم تطبيق الاستعادة وحفظ لقطة استرداد."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复已应用，并已保存恢复快照。"
+          }
+        }
+      }
+    },
+    "Restore failed": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فشلت الاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复失败"
+          }
+        }
+      }
+    },
+    "Restore preview": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معاينة الاستعادة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复预览"
+          }
+        }
+      }
+    },
+    "Snapshot recovery": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استرداد اللقطة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快照恢复"
+          }
+        }
+      }
+    },
+    "Status": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الحالة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态"
+          }
+        }
+      }
+    },
+    "Succeeded": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نجح"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成功"
+          }
+        }
+      }
+    },
+    "The selected backup file could not be read.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذرت قراءة ملف النسخة الاحتياطية المحدد."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取所选备份文件。"
+          }
+        }
+      }
+    },
+    "This backup contains broken record references.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحتوي هذه النسخة الاحتياطية على مراجع سجلات غير صالحة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此备份包含无效的记录引用。"
+          }
+        }
+      }
+    },
+    "This backup is corrupt or contains invalid data.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذه النسخة الاحتياطية تالفة أو تحتوي على بيانات غير صالحة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此备份已损坏或包含无效数据。"
+          }
+        }
+      }
+    },
+    "This backup version is not supported.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إصدار النسخة الاحتياطية هذا غير مدعوم."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不支持此备份版本。"
+          }
+        }
+      }
+    },
+    "This recovery snapshot is invalid.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لقطة الاسترداد هذه غير صالحة."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此恢复快照无效。"
+          }
+        }
+      }
+    },
+    "Unchanged": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دون تغيير"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未更改"
+          }
+        }
+      }
+    },
+    "Update": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحديث"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        }
+      }
+    },
+    "v%lld · %lld records": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإصدار %1$lld · %2$lld سجلاً"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %1$lld · %2$lld 条记录"
+          }
+        }
+      }
+    },
+    "v%lld · %lld records · %lld changes · %lld conflicts": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإصدار %1$lld · %2$lld سجلاً · %3$lld تغييرات · %4$lld تعارضات"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %1$lld · %2$lld 条记录 · %3$lld 项更改 · %4$lld 个冲突"
+          }
+        }
+      }
+    },
+    "Your open expenses": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مصروفاتك المفتوحة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的未结支出"
+          }
+        }
+      }
+    },
+    "Help": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المساعدة"
+          }
+        }
+      }
+    },
+    "View introduction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看介绍"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عرض المقدمة"
+          }
+        }
+      }
+    },
+    "Replay the quick Pinbook tour": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新查看 Pinbook 快速介绍"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة الجولة السريعة في Pinbook"
+          }
+        }
+      }
+    },
+    "Warm paper with calm jade glass": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "温暖纸感与沉静玉色玻璃"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ورق دافئ مع زجاج يشمي هادئ"
+          }
+        }
+      }
+    },
+    "Crisp blue structure for focused work": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清爽蓝色结构，帮助专注记录"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنظيم أزرق واضح للعمل بتركيز"
+          }
+        }
+      }
+    },
+    "Gentle color with a softer rhythm": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "柔和色彩与舒缓节奏"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ألوان لطيفة بإيقاع أكثر هدوءًا"
+          }
+        }
+      }
+    },
+    "Confident typography and warm contrast": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鲜明排版与温暖对比"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خطوط واثقة وتباين دافئ"
+          }
+        }
+      }
+    },
+    "Deep navy designed for low light": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为低光环境设计的深海军蓝"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كحلي عميق مصمم للإضاءة الخافتة"
+          }
+        }
+      }
+    },
+    "Selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محدد"
+          }
+        }
+      }
+    },
+    "Not selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "غير محدد"
+          }
+        }
+      }
+    },
+    "Light keeps every skin bright with dark, high-contrast text.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浅色模式让每款皮肤保持明亮，并使用高对比度深色文字。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحافظ النمط الفاتح على إشراق كل واجهة مع نص داكن عالي التباين."
+          }
+        }
+      }
+    },
+    "Dark adapts every surface and accent for comfortable low-light reading.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深色模式会调整所有表面和强调色，便于在低光环境中阅读。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يكيّف النمط الداكن كل الأسطح والألوان لقراءة مريحة في الإضاءة الخافتة."
+          }
+        }
+      }
+    },
+    "System follows the appearance selected in iPhone Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统会使用 iPhone“设置”中选择的外观。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتبع النظام المظهر المحدد في إعدادات iPhone."
+          }
+        }
+      }
+    },
+    "Welcome to Pinbook": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎使用 Pinbook"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مرحبًا بك في Pinbook"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تخطي"
+          }
+        }
+      }
+    },
+    "Page %lld of %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 页，共 %2$lld 页"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الصفحة %1$lld من %2$lld"
+          }
+        }
+      }
+    },
+    "Back": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رجوع"
+          }
+        }
+      }
+    },
+    "Start fresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全新开始"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابدأ من جديد"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متابعة"
+          }
+        }
+      }
+    },
+    "Remember every expense": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记住每一笔支出"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تذكّر كل مصروف"
+          }
+        }
+      }
+    },
+    "Keep periodic expenses organized by book, person, date, and currency—without mixing balances.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按账本、人员、日期和货币整理定期支出，不混合不同余额。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نظّم المصروفات الدورية حسب الدفتر والشخص والتاريخ والعملة من دون خلط الأرصدة."
+          }
+        }
+      }
+    },
+    "See what remains": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清楚掌握剩余金额"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اعرف المتبقي بوضوح"
+          }
+        }
+      }
+    },
+    "Record partial payments, keep currencies separate, and move completed expenses to Noted when you are done.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录部分付款，分别管理不同货币；完成后将支出移至“已结清”。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سجّل الدفعات الجزئية، وافصل العملات، وانقل المصروفات المكتملة إلى المدوّنة عند الانتهاء."
+          }
+        }
+      }
+    },
+    "Private by default": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认保护隐私"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خصوصية افتراضية"
+          }
+        }
+      }
+    },
+    "Your records stay on this device. Export a backup through Files only when you choose a destination.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录保存在此设备上。只有在你选择目标位置时，才会通过“文件”导出备份。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تبقى سجلاتك على هذا الجهاز. لا تُصدّر نسخة احتياطية عبر الملفات إلا عندما تختار وجهة."
+          }
+        }
+      }
+    },
+    "Choose your currencies": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择你的货币"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر عملاتك"
+          }
+        }
+      }
+    },
+    "Select only the currencies you use. Pinbook keeps every balance separate and never guesses an exchange rate.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只选择你使用的货币。Pinbook 会分别保留每种余额，绝不猜测汇率。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر فقط العملات التي تستخدمها. يفصل Pinbook كل رصيد ولا يفترض أي سعر صرف."
+          }
+        }
+      }
+    },
+    "Pinbook": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinbook"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinbook"
+          }
+        }
+      }
+    },
+    "Open a clean expense form": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开简洁的支出表单"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح نموذج مصروف واضحًا"
+          }
+        }
+      }
+    },
+    "Quick Expense": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速添加支出"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مصروف سريع"
+          }
+        }
+      }
+    },
+    "Open a new expense without showing financial details on the Home Screen.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开新建支出，主屏幕不会显示财务详情。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح مصروفًا جديدًا من دون إظهار التفاصيل المالية على الشاشة الرئيسية."
+          }
+        }
+      }
+    },
+    "Balance Overview": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "余额概览"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نظرة على الأرصدة"
+          }
+        }
+      }
+    },
+    "Review balances safely by currency": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全地按货币查看余额"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "راجع الأرصدة بأمان حسب العملة"
+          }
+        }
+      }
+    },
+    "Open the private in-app summary. Amounts stay off the Home Screen.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开应用内的私密汇总，金额不会显示在主屏幕上。"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح الملخص الخاص داخل التطبيق. تبقى المبالغ بعيدة عن الشاشة الرئيسية."
+          }
+        }
+      }
+    }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

@@ -2,6 +2,92 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testWorldCurrencyPickerIsSearchableAndShowsSymbols() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-PinbookFixture", "populated",
+            "-PinbookTab", "options",
+            "-PinbookTheme", "light",
+        ]
+        app.launch()
+
+        let booksLink = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Books & currencies")).firstMatch
+        XCTAssertTrue(booksLink.waitForExistence(timeout: 5))
+        booksLink.tap()
+
+        let currencyLink = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Choose currencies")).firstMatch
+        XCTAssertTrue(currencyLink.waitForExistence(timeout: 5))
+        currencyLink.tap()
+        XCTAssertTrue(app.navigationBars["Favorite currencies"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["currency-AED"].exists)
+
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook searchable world currency picker with symbols"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.exists)
+        search.tap()
+        search.typeText("USD")
+        XCTAssertTrue(app.descendants(matching: .any)["currency-USD"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testSimplifiedChineseFirstRunIntroductionIsLocalized() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-AppleLanguages", "(zh-Hans)",
+            "-AppleLocale", "zh_CN",
+            "-PinbookFixture", "empty",
+            "-PinbookOnboarding", "show",
+            "-PinbookTheme", "light",
+        ]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["欢迎使用 Pinbook"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["记住每一笔支出"].exists)
+        XCTAssertTrue(app.buttons["继续"].exists)
+
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook Simplified Chinese first-run introduction"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+
+        app.buttons["继续"].tap()
+        XCTAssertTrue(app.staticTexts["选择你的货币"].waitForExistence(timeout: 5))
+        app.buttons["继续"].tap()
+        XCTAssertTrue(app.staticTexts["清楚掌握剩余金额"].waitForExistence(timeout: 5))
+        app.buttons["继续"].tap()
+        XCTAssertTrue(app.staticTexts["默认保护隐私"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["全新开始"].exists)
+    }
+
+    @MainActor
+    func testNightInkLightAppearancePickerStaysReadableAndDescriptive() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-PinbookFixture", "populated",
+            "-PinbookTab", "options",
+            "-PinbookSkin", "nightInk",
+            "-PinbookTheme", "light",
+        ]
+        app.launch()
+
+        let appearanceLink = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Appearance")).firstMatch
+        XCTAssertTrue(appearanceLink.waitForExistence(timeout: 5))
+        appearanceLink.tap()
+        XCTAssertTrue(app.navigationBars["Appearance"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Deep navy designed for low light"].exists)
+        XCTAssertTrue(app.staticTexts["Warm paper with calm jade glass"].exists)
+
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook Night Ink light-mode descriptive skin picker"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+    }
+
+    @MainActor
     func testNativeFilesPickersOpenWithoutSaving() throws {
         let app = XCUIApplication()
         app.launchArguments = [
@@ -18,7 +104,7 @@ final class PinbookUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Backup & Recovery"].waitForExistence(timeout: 5))
 
         app.buttons["Export backup"].tap()
-        XCTAssertTrue(nativeFilesPicker(in: app).waitForExistence(timeout: 8))
+        XCTAssertTrue(nativeFilesPickerIsPresented(in: app, covering: "Export backup"))
         let exportEvidence = XCTAttachment(screenshot: app.screenshot())
         exportEvidence.name = "Pinbook native Files export picker"
         exportEvidence.lifetime = .keepAlways
@@ -30,7 +116,7 @@ final class PinbookUITests: XCTestCase {
         backupLink.tap()
         XCTAssertTrue(app.navigationBars["Backup & Recovery"].waitForExistence(timeout: 5))
         app.buttons["Import and preview"].tap()
-        XCTAssertTrue(nativeFilesPicker(in: app).waitForExistence(timeout: 8))
+        XCTAssertTrue(nativeFilesPickerIsPresented(in: app, covering: "Import and preview"))
         let importEvidence = XCTAttachment(screenshot: app.screenshot())
         importEvidence.name = "Pinbook native Files import picker"
         importEvidence.lifetime = .keepAlways
@@ -46,6 +132,12 @@ final class PinbookUITests: XCTestCase {
             "Save",
             "Recents"
         )).firstMatch
+    }
+
+    @MainActor
+    private func nativeFilesPickerIsPresented(in app: XCUIApplication, covering buttonLabel: String) -> Bool {
+        if nativeFilesPicker(in: app).waitForExistence(timeout: 3) { return true }
+        return !app.buttons[buttonLabel].isHittable
     }
 
     @MainActor

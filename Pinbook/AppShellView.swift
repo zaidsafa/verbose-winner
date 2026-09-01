@@ -8,13 +8,39 @@ enum PinbookTab: Hashable {
     case options
 }
 
+enum PinbookDeepLink: Equatable {
+    case newExpense
+    case summary
+
+    init?(url: URL) {
+        guard url.scheme?.lowercased() == "pinbook" else { return nil }
+        switch (url.host?.lowercased(), url.path.lowercased()) {
+        case ("expense", "/new"): self = .newExpense
+        case ("summary", ""): self = .summary
+        default: return nil
+        }
+    }
+
+    var destinationTab: PinbookTab {
+        switch self {
+        case .newExpense: .expenses
+        case .summary: .summary
+        }
+    }
+
+    var opensExpenseEditor: Bool { self == .newExpense }
+}
+
 struct AppShellView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var appearances: [AppearanceSettingsItem]
+    @AppStorage(PinbookOnboardingState.completionKey) private var hasCompletedOnboarding = false
     @State private var selection: PinbookTab
     @State private var showingAddExpense = false
     @State private var showingQuickAdd = false
+    @State private var onboardingOverrideDismissed = false
     @State private var bootstrapError: String?
     private let launchConfiguration: PinbookLaunchConfiguration
 
@@ -37,6 +63,14 @@ struct AppShellView: View {
 
     private var hasFavoriteCurrencies: Bool {
         appearances.first?.favoriteCurrencies.isEmpty == false
+    }
+
+    private var shouldShowOnboarding: Bool {
+        PinbookOnboardingPolicy.shouldPresent(
+            mode: launchConfiguration.onboardingMode,
+            hasCompleted: hasCompletedOnboarding,
+            overrideDismissed: onboardingOverrideDismissed
+        )
     }
 
     var body: some View {
@@ -75,6 +109,8 @@ struct AppShellView: View {
         .environment(\.pinbookSkin, skin)
         .tint(skin.accent)
         .preferredColorScheme(preferredColorScheme)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.45), value: skin)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: appearances.first?.themeMode)
         .sheet(isPresented: $showingAddExpense) {
             ExpenseEditorView()
                 .presentationDetents([.large])
@@ -89,6 +125,22 @@ struct AppShellView: View {
             Button("OK") { bootstrapError = nil }
         } message: {
             Text(bootstrapError ?? "")
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { shouldShowOnboarding },
+            set: { if !$0 { onboardingOverrideDismissed = true } }
+        )) {
+            PinbookOnboardingView {
+                hasCompletedOnboarding = true
+                onboardingOverrideDismissed = true
+            }
+        }
+        .onOpenURL { url in
+            guard let deepLink = PinbookDeepLink(url: url) else { return }
+            selection = deepLink.destinationTab
+            if deepLink.opensExpenseEditor {
+                showingAddExpense = true
+            }
         }
         .task {
             do {

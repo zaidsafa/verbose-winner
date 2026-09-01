@@ -24,6 +24,75 @@ import UIKit
     #expect(settings.preferredCurrency == nil)
 }
 
+@Test func onboardingPolicySeparatesNewReturningAndTestLaunches() {
+    #expect(PinbookOnboardingPolicy.shouldPresent(
+        mode: .automatic,
+        hasCompleted: false,
+        overrideDismissed: false
+    ))
+    #expect(!PinbookOnboardingPolicy.shouldPresent(
+        mode: .automatic,
+        hasCompleted: true,
+        overrideDismissed: false
+    ))
+    #expect(PinbookOnboardingPolicy.shouldPresent(
+        mode: .show,
+        hasCompleted: true,
+        overrideDismissed: false
+    ))
+    #expect(!PinbookOnboardingPolicy.shouldPresent(
+        mode: .skip,
+        hasCompleted: false,
+        overrideDismissed: false
+    ))
+    #expect(!PinbookOnboardingPolicy.shouldPresent(
+        mode: .show,
+        hasCompleted: false,
+        overrideDismissed: true
+    ))
+}
+
+@Test func widgetDeepLinksRouteWithoutExposingFinancialData() throws {
+    let add = try #require(PinbookDeepLink(url: URL(string: "pinbook://expense/new")!))
+    #expect(add == .newExpense)
+    #expect(add.destinationTab == .expenses)
+    #expect(add.opensExpenseEditor)
+
+    let summary = try #require(PinbookDeepLink(url: URL(string: "pinbook://summary")!))
+    #expect(summary == .summary)
+    #expect(summary.destinationTab == .summary)
+    #expect(!summary.opensExpenseEditor)
+
+    #expect(PinbookDeepLink(url: URL(string: "https://example.com")!) == nil)
+    #expect(PinbookDeepLink(url: URL(string: "pinbook://unknown")!) == nil)
+}
+
+@Test func currencyCatalogIncludesEveryFoundationCommonISOCodeAndASymbol() {
+    let options = PinbookCurrencyCatalog.options(locale: Locale(identifier: "en_US"))
+    #expect(options.count >= 150)
+    #expect(Set(options.map(\.code)) == Set(Locale.commonISOCurrencyCodes))
+    #expect(options.map(\.code) == options.map(\.code).sorted())
+    #expect(options.allSatisfy { !$0.symbol.isEmpty && !$0.localizedName.isEmpty })
+    #expect(options.contains { $0.code == "CNY" })
+    #expect(options.contains { $0.code == "USD" })
+    #expect(options.contains { $0.code == "KWD" })
+}
+
+@Test func everySkinMaintainsReadablePrimaryAndAccentContrast() {
+    for style in [UIUserInterfaceStyle.light, .dark] {
+        let traits = UITraitCollection(userInterfaceStyle: style)
+        let label = UIColor.label.resolvedColor(with: traits)
+        for skin in PinbookSkin.allCases {
+            let surface = skin.resolvedSurface(for: style)
+            #expect(contrastRatio(label, surface) >= 4.5)
+            for backdrop in skin.resolvedBackdrop(for: style) {
+                #expect(contrastRatio(label, backdrop) >= 4.5)
+            }
+            #expect(contrastRatio(skin.resolvedAccent(for: style), surface) >= 3.0)
+        }
+    }
+}
+
 @MainActor
 @Test func swiftDataPersistsExpenseAndPartialPayment() throws {
     let container = try inMemoryContainer()
@@ -757,9 +826,20 @@ import UIKit
     ])
 
     #expect(configuration.usesFixtures)
+    #expect(configuration.usesEphemeralStore)
+    #expect(configuration.onboardingMode == .skip)
     #expect(configuration.initialTab == .summary)
     #expect(configuration.skin == .nightInk)
     #expect(configuration.themeMode == "dark")
+
+    let onboarding = PinbookLaunchConfiguration(arguments: [
+        "Pinbook",
+        "-PinbookFixture", "empty",
+        "-PinbookOnboarding", "show",
+    ])
+    #expect(!onboarding.usesFixtures)
+    #expect(onboarding.usesEphemeralStore)
+    #expect(onboarding.onboardingMode == .show)
 }
 
 @MainActor
@@ -798,4 +878,25 @@ private func inMemoryContainer() throws -> ModelContainer {
     let schema = Schema(PinbookSchema.models)
     let configuration = ModelConfiguration(UUID().uuidString, schema: schema, isStoredInMemoryOnly: true)
     return try ModelContainer(for: schema, configurations: [configuration])
+}
+
+private func contrastRatio(_ first: UIColor, _ second: UIColor) -> Double {
+    let brighter = max(relativeLuminance(first), relativeLuminance(second))
+    let darker = min(relativeLuminance(first), relativeLuminance(second))
+    return (brighter + 0.05) / (darker + 0.05)
+}
+
+private func relativeLuminance(_ color: UIColor) -> Double {
+    var red: CGFloat = 0
+    var green: CGFloat = 0
+    var blue: CGFloat = 0
+    var alpha: CGFloat = 0
+    guard color.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return 0 }
+    func linear(_ value: CGFloat) -> Double {
+        let component = Double(value)
+        return component <= 0.04045
+            ? component / 12.92
+            : pow((component + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
 }

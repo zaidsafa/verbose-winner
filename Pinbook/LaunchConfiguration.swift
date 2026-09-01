@@ -3,9 +3,11 @@ import SwiftData
 
 struct PinbookLaunchConfiguration: Equatable {
     var usesFixtures = false
+    var usesEphemeralStore = false
     var initialTab = PinbookTab.expenses
     var skin: PinbookSkin?
     var themeMode: String?
+    var onboardingMode = PinbookOnboardingMode.automatic
 
     static let production = PinbookLaunchConfiguration()
 
@@ -21,7 +23,10 @@ struct PinbookLaunchConfiguration: Equatable {
 
 #if DEBUG
     init(arguments: [String]) {
-        usesFixtures = arguments.value(after: "-PinbookFixture") == "populated"
+        let fixtureMode = arguments.value(after: "-PinbookFixture")
+        usesFixtures = fixtureMode == "populated"
+        usesEphemeralStore = fixtureMode == "populated" || fixtureMode == "empty"
+        onboardingMode = usesEphemeralStore ? .skip : .automatic
 
         switch arguments.value(after: "-PinbookTab") {
         case "summary": initialTab = .summary
@@ -37,8 +42,20 @@ struct PinbookLaunchConfiguration: Equatable {
         if let value = arguments.value(after: "-PinbookTheme"), ["system", "light", "dark"].contains(value) {
             themeMode = value
         }
+
+        switch arguments.value(after: "-PinbookOnboarding") {
+        case "show": onboardingMode = .show
+        case "skip": onboardingMode = .skip
+        default: break
+        }
     }
 #endif
+}
+
+enum PinbookOnboardingMode: Equatable {
+    case automatic
+    case show
+    case skip
 }
 
 #if DEBUG
