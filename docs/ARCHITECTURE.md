@@ -29,7 +29,8 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 - Google Drive is the first planned transport because it preserves Android/iOS interoperability. Apple does not require iCloud for App Store distribution.
 - A future iCloud/CloudKit adapter may implement the same `BackupTransport` port as an alternative provider. Automatic Google Drive and iCloud replication must not run simultaneously until a single-authority and cross-provider conflict design is proven.
 - Sync will stage remote data, present a restore preview, retain undo snapshots, and apply deterministic merge results transactionally.
-- Receipts will be copied into app-private storage and represented in backup data.
+- Receipt photos use system `PhotosPicker`, which grants access only to the item a user selects. Bytes are copied immediately to `Library/Application Support/Receipts` under generated UUID filenames with complete-until-first-authentication file protection; SwiftData stores only attachment metadata.
+- Receipt imports compensate by removing the copied file if metadata persistence fails. Removal deletes the private file before tombstoning its metadata, and traversal-style filenames are rejected by the store boundary.
 - Statements will remain grouped by person and currency.
 - Reminders will use local notifications only after explicit permission.
 - OCR will be an optional on-device enhancement behind `ReceiptTextRecognizing`.

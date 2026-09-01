@@ -202,6 +202,81 @@ import Testing
     #expect(copy.occurredAt == 123_456)
 }
 
+@Test func receiptFileStoreSavesLoadsRemovesAndRejectsTraversal() async throws {
+    let root = FileManager.default.temporaryDirectory
+        .appending(path: "PinbookReceiptStore-\(UUID().uuidString)", directoryHint: .isDirectory)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let store = ReceiptFileStore(rootDirectory: root)
+    let source = Data([0x89, 0x50, 0x4E, 0x47])
+
+    let fileName = try await store.save(data: source, preferredFileName: "customer receipt.PNG")
+    #expect(fileName.hasSuffix(".png"))
+    #expect(!fileName.contains("customer"))
+    #expect(try await store.load(fileName: fileName) == source)
+
+    var rejectedTraversal = false
+    do {
+        _ = try await store.load(fileName: "../outside.png")
+    } catch ReceiptFileStoreError.invalidFileName {
+        rejectedTraversal = true
+    }
+    #expect(rejectedTraversal)
+
+    try await store.remove(fileName: fileName)
+    var removedFileIsUnavailable = false
+    do {
+        _ = try await store.load(fileName: fileName)
+    } catch {
+        removedFileIsUnavailable = true
+    }
+    #expect(removedFileIsUnavailable)
+}
+
+@MainActor
+@Test func receiptLifecycleKeepsMetadataAndPrivateFileInStep() async throws {
+    let root = FileManager.default.temporaryDirectory
+        .appending(path: "PinbookReceiptLifecycle-\(UUID().uuidString)", directoryHint: .isDirectory)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let store = ReceiptFileStore(rootDirectory: root)
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let expense = ExpenseItem(
+        amountMinor: 1_000,
+        currency: "USD",
+        purpose: "Receipt test",
+        counterparty: "Supplier"
+    )
+    context.insert(expense)
+    try context.save()
+    let source = Data("private receipt".utf8)
+
+    let metadata = try await ReceiptLifecycle.attach(
+        data: source,
+        preferredFileName: "receipt.jpg",
+        mimeType: "image/jpeg",
+        displayName: "Receipt photo",
+        to: expense,
+        context: context,
+        store: store
+    )
+    #expect(metadata.expenseID == expense.id)
+    #expect(!metadata.isTombstoned)
+    #expect(try await store.load(fileName: metadata.fileName) == source)
+
+    try await ReceiptLifecycle.remove(metadata, context: context, store: store)
+    #expect(metadata.isTombstoned)
+    let storedMetadata = try context.fetch(FetchDescriptor<ReceiptMetadataItem>())
+    #expect(storedMetadata.count == 1)
+    #expect(storedMetadata.first?.isTombstoned == true)
+    var removedFileIsUnavailable = false
+    do {
+        _ = try await store.load(fileName: metadata.fileName)
+    } catch {
+        removedFileIsUnavailable = true
+    }
+    #expect(removedFileIsUnavailable)
+}
+
 #if DEBUG
 @Test func launchArgumentsSelectDeterministicFixturePresentation() {
     let configuration = PinbookLaunchConfiguration(arguments: [

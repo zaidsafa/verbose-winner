@@ -29,6 +29,8 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - Users can create, edit, and soft-delete active-book templates. Expenses can be starred or unstarred as Favorites directly from their cards.
 - Quick Add presents active-book Favorites and templates in a native half-height sheet and copies the selected source into a fresh, open, unstarred expense with a new identity and current date.
 - SwiftData tombstones use `isTombstoned` internally to avoid the framework's `isDeleted` lifecycle collision; cross-platform backup records retain the Android-compatible `isDeleted` field.
+- Expense cards open a private receipt sheet. Apple PhotosPicker grants only the selected image, which is copied to app-private Application Support storage under a UUID filename with protected file attributes; no broad photo-library permission is requested.
+- Receipt import and removal coordinate file bytes with SwiftData metadata, compensate failed metadata saves, reject traversal filenames, and retain a confirmation step before UI deletion.
 
 ## Validation
 
@@ -43,20 +45,20 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - Clean Ledger and Editorial now have accepted light/dark populated evidence. All skin backdrops adapt to color scheme; the initial Clean Ledger dark contrast defect was fixed before acceptance.
 - The book milestone passes 7/7 simulator tests. Interactive acceptance created/selected a second book, proved its Expenses view was empty, switched back to prove the original records remained, then exercised rename, archive, and restore. Evidence: `docs/evidence/pinbook-books-management.png`.
 - The Templates/Favorites/Quick Add milestone passes 9/9 simulator tests with unique ephemeral stores for parallel isolation. Interactive acceptance verified accessible star controls, both Quick Add source groups, and a fresh expense created from the fixture template. Evidence: `docs/evidence/pinbook-quick-add.png`.
+- The receipt milestone passes 11/11 simulator tests. Interactive PhotosPicker acceptance imported a deterministic image, displayed its attachment metadata, and verified the copied 2,853,668-byte UUID-named PNG inside Pinbook's private Simulator container. Evidence: `docs/evidence/pinbook-private-receipt.png`.
 - The Simulator accessibility tree exposes card labels, labeled remaining values, and Payment/Mark noted actions in logical order. Spoken VoiceOver, rotor, and physical-device focus behavior remain outside this evidence boundary.
 
 ## Limitations
 
-- Drive/OAuth, receipt import, statements, notifications, conflict-recovery UI, and OCR are architectural seams only, not implemented features.
+- Drive/OAuth, statements, notifications, conflict-recovery UI, and OCR remain unimplemented.
 - iCloud/CloudKit is not implemented. The planned provider design treats it as an optional alternative to Google Drive, not a simultaneous second sync authority.
-- Receipt import, statement export, and notification delivery remain unimplemented local workflows.
+- Statement export and notification delivery remain unimplemented local workflows.
 - Arabic now covers the current iOS shell, forms, grouped options, validation copy, and accessibility labels. Full parity with Android's five locales remains unfinished, and user-authored content is not translated.
 - Simulator validation does not prove physical-device behavior, Apple signing, TestFlight, Drive transfer, iCloud, notifications, or App Store acceptance.
 - No Apple signing, OAuth credentials, external account settings, TestFlight, or App Store state has been created or changed.
 
 ## Exact next actions
 
-1. Add privacy-friendly PhotosPicker receipt import copied into app-private storage with lifecycle tests.
-2. Add per-person/per-currency PDF/CSV statements and local reminder delivery.
-3. Complete an interactive physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, Increase Contrast, and the five-skin light/dark matrix.
-4. Implement Google Drive `drive.appdata` only after the local workflows and explicit OAuth/provider approval.
+1. Add per-person/per-currency PDF/CSV statements and local reminder delivery.
+2. Complete an interactive physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, Increase Contrast, and the five-skin light/dark matrix.
+3. Implement Google Drive `drive.appdata` only after the local workflows and explicit OAuth/provider approval.

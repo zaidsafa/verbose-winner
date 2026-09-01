@@ -62,10 +62,10 @@ struct OptionsView: View {
                     PlannedCapabilityView(
                         title: "Receipts & statements",
                         symbol: "doc.text.magnifyingglass",
-                        detail: "Private receipt storage and per-person, per-currency PDF/CSV statements are planned. No files are imported or exported yet."
+                        detail: "Receipt photos can be imported from each expense and are copied into app-private storage. Per-person, per-currency PDF/CSV statements are the next local workflow."
                     )
                 } label: {
-                    OptionsRow(title: "Receipts & statements", subtitle: "Planned", symbol: "doc.text")
+                    OptionsRow(title: "Receipts & statements", subtitle: "Private receipts available", symbol: "doc.text")
                 }
             }
 

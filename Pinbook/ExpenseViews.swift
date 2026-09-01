@@ -118,6 +118,7 @@ private struct ExpenseCard: View {
     let toggleFavorite: () -> Void
     let markNoted: () -> Void
     @State private var showingPayment = false
+    @State private var showingReceipts = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -168,6 +169,11 @@ private struct ExpenseCard: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $showingReceipts) {
+            ReceiptSheetView(expense: expense)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     private var expenseIdentity: some View {
@@ -215,6 +221,20 @@ private struct ExpenseCard: View {
         if !expense.category.isEmpty {
             Label(expense.category, systemImage: "tag")
         }
+        receiptButton
+    }
+
+    private var receiptButton: some View {
+        Button(action: { showingReceipts = true }) {
+            if dynamicTypeSize.isAccessibilitySize {
+                Label("Receipts", systemImage: "paperclip")
+            } else {
+                Image(systemName: "paperclip")
+                    .accessibilityLabel("Receipts")
+            }
+        }
+        .buttonStyle(.glass)
+        .frame(minWidth: 44, minHeight: 44)
     }
 
     @ViewBuilder
