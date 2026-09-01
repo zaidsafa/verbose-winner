@@ -20,6 +20,7 @@ The Android product remains the behavioral reference while this repository devel
 - Selected-photo-only receipts copied into app-private protected storage.
 - On-device, one-person/one-currency print-safe PDF and exact-value, spreadsheet-safe CSV statements with explicit overflow failure.
 - Privacy-safe local reminders that request permission only during an explicit reminder save.
+- TestFlight release groundwork: a production App Store icon, Apple privacy manifest, export-compliance declaration, automatic-signing settings for the app and widget, and copy-ready App Store Connect metadata.
 
 Google Drive, iCloud, OAuth, live widget data sharing, and OCR are not implemented. The widgets intentionally need no App Group and expose no financial data. Both native Files sheets have been opened on a physical iPhone, but a completed external Files save/import round trip, notification delivery, and share-extension transfer remain acceptance boundaries. Their status is documented without presenting unverified behavior as working.
 
@@ -38,4 +39,4 @@ xcodebuild \
   build
 ```
 
-See `docs/CODEX_HANDOFF.md` for exact validation evidence and limitations.
+See `docs/CODEX_HANDOFF.md` for exact validation evidence and limitations. `docs/TESTFLIGHT_SUBMISSION.md` contains the copy-ready TestFlight/App Store Connect fields and upload checklist; `docs/PRIVACY_POLICY.md` is the publish-ready privacy-policy draft.
