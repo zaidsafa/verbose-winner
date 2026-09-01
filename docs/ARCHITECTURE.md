@@ -1,0 +1,24 @@
+# Pinbook iOS architecture
+
+## Product boundary
+
+Pinbook is offline-first. Local persistence is authoritative while the app runs. Synchronization is an explicit replication concern, not a replacement for the local store. Money is stored as signed 64-bit minor units and totals are never combined across ISO currency codes.
+
+The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae6a5bd2dc8ee26d6a1006dd9dda9fe4c0985`. Backup decoding supports format versions 1 through 8 and models the fields in `shared/pinbook-backup-v8.schema.json` from that source.
+
+## Layers
+
+- `PinbookCore`: platform-neutral records, backup decoding, currency-safe money, deterministic merge policy, and service ports.
+- `Pinbook`: SwiftUI app, SwiftData persistence, local preferences, and feature presentation.
+- Platform services: future adapters for Google Drive `appDataFolder`, receipt files, PDF/CSV statements, local notifications, and Vision OCR.
+
+## Planned boundaries, not implemented claims
+
+- Drive will use per-user authorization with only `drive.appdata`; tokens must remain in memory or protected system storage and no central Pinbook backend is planned.
+- Sync will stage remote data, present a restore preview, retain undo snapshots, and apply deterministic merge results transactionally.
+- Receipts will be copied into app-private storage and represented in backup data.
+- Statements will remain grouped by person and currency.
+- Reminders will use local notifications only after explicit permission.
+- OCR will be an optional on-device enhancement behind `ReceiptTextRecognizing`.
+
+No adapter above is implemented in the initial foundation, and the UI must label unavailable actions accordingly.
