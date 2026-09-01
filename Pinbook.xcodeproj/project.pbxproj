@@ -20,6 +20,8 @@
 		B1000000000000000000000B /* TemplatesAndQuickAddViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000B /* TemplatesAndQuickAddViews.swift */; };
 		B1000000000000000000000C /* ReceiptFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000C /* ReceiptFileStore.swift */; };
 		B1000000000000000000000D /* ReceiptViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000D /* ReceiptViews.swift */; };
+		B1000000000000000000000E /* StatementAndReminderServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000E /* StatementAndReminderServices.swift */; };
+		B1000000000000000000000F /* StatementAndReminderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000F /* StatementAndReminderViews.swift */; };
 		B20000000000000000000001 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* Records.swift */; };
 		B20000000000000000000002 /* Backup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* Backup.swift */; };
 		B20000000000000000000003 /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Money.swift */; };
@@ -52,6 +54,8 @@
 		A1000000000000000000000B /* TemplatesAndQuickAddViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesAndQuickAddViews.swift; sourceTree = "<group>"; };
 		A1000000000000000000000C /* ReceiptFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptFileStore.swift; sourceTree = "<group>"; };
 		A1000000000000000000000D /* ReceiptViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptViews.swift; sourceTree = "<group>"; };
+		A1000000000000000000000E /* StatementAndReminderServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAndReminderServices.swift; sourceTree = "<group>"; };
+		A1000000000000000000000F /* StatementAndReminderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAndReminderViews.swift; sourceTree = "<group>"; };
 		A20000000000000000000001 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* Backup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backup.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
@@ -106,6 +110,8 @@
 				A1000000000000000000000B /* TemplatesAndQuickAddViews.swift */,
 				A1000000000000000000000C /* ReceiptFileStore.swift */,
 				A1000000000000000000000D /* ReceiptViews.swift */,
+				A1000000000000000000000E /* StatementAndReminderServices.swift */,
+				A1000000000000000000000F /* StatementAndReminderViews.swift */,
 			);
 			path = Pinbook;
 			sourceTree = "<group>";
@@ -245,6 +251,8 @@
 				B1000000000000000000000B /* TemplatesAndQuickAddViews.swift in Sources */,
 				B1000000000000000000000C /* ReceiptFileStore.swift in Sources */,
 				B1000000000000000000000D /* ReceiptViews.swift in Sources */,
+				B1000000000000000000000E /* StatementAndReminderServices.swift in Sources */,
+				B1000000000000000000000F /* StatementAndReminderViews.swift in Sources */,
 				B20000000000000000000001 /* Records.swift in Sources */,
 				B20000000000000000000002 /* Backup.swift in Sources */,
 				B20000000000000000000003 /* Money.swift in Sources */,

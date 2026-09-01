@@ -63,11 +63,21 @@ struct ExpensesView: View {
     }
 
     private func markNoted(_ expense: ExpenseItem) {
+        let hadReminder = expense.reminderAt != nil
         withAnimation {
             expense.isNoted = true
             expense.notedAt = .nowMilliseconds
+            expense.reminderAt = nil
+            expense.reminderSentAt = nil
             expense.updatedAt = .nowMilliseconds
-            try? modelContext.save()
+            do {
+                try modelContext.save()
+                if hadReminder {
+                    Task { await LocalReminderScheduler.shared.cancel(expenseID: expense.id) }
+                }
+            } catch {
+                modelContext.rollback()
+            }
         }
     }
 

@@ -82,6 +82,7 @@ enum PinbookDebugFixtures {
             purpose: "International freight and customs clearance",
             counterparty: "North Star Shipping",
             category: "Freight",
+            reminderAt: 1_789_437_600_000,
             occurredAt: 1_787_760_000_000,
             createdAt: 1_787_760_000_000,
             updatedAt: 1_787_760_000_000

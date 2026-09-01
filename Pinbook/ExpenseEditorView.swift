@@ -17,6 +17,7 @@ struct ExpenseEditorView: View {
     @State private var reminderEnabled = false
     @State private var reminderAt = Date().addingTimeInterval(86_400)
     @State private var validationMessage: String?
+    @State private var isSaving = false
 
     private var settings: AppearanceSettingsItem? { appearances.first }
     private var currencies: [String] { settings?.favoriteCurrencies ?? [] }
@@ -55,7 +56,7 @@ struct ExpenseEditorView: View {
                             if reminderEnabled {
                                 DatePicker("Reminder", selection: $reminderAt)
                             }
-                            Text("Notification permission will be requested only when reminder delivery is implemented.")
+                            Text("Permission is requested only when you save an expense with a reminder.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -74,8 +75,11 @@ struct ExpenseEditorView: View {
                 }
                 if !currencies.isEmpty {
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { save() }
+                        Button("Save") {
+                            Task { await save() }
+                        }
                             .buttonStyle(.glassProminent)
+                            .disabled(isSaving)
                     }
                 }
             }
@@ -87,7 +91,13 @@ struct ExpenseEditorView: View {
         }
     }
 
-    private func save() {
+    @MainActor
+    private func save() async {
+        guard !isSaving else { return }
+        isSaving = true
+        defer { isSaving = false }
+        validationMessage = nil
+
         let cleanPurpose = purpose.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanCounterparty = counterparty.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanPurpose.isEmpty, !cleanCounterparty.isEmpty else {
@@ -95,27 +105,63 @@ struct ExpenseEditorView: View {
             return
         }
 
+        let money: MoneyAmount
         do {
-            let money = try MoneyAmount.parse(amount, currencyCode: currency)
-            guard money.minorUnits > 0 else {
-                validationMessage = String(localized: "Amount must be greater than zero.")
+            money = try MoneyAmount.parse(amount, currencyCode: currency)
+        } catch {
+            validationMessage = String(localized: "Enter a valid amount for this currency.")
+            return
+        }
+        guard money.minorUnits > 0 else {
+            validationMessage = String(localized: "Amount must be greater than zero.")
+            return
+        }
+        if reminderEnabled, reminderAt <= Date() {
+            validationMessage = String(localized: "Reminder must be in the future.")
+            return
+        }
+
+        let expense = ExpenseItem(
+            amountMinor: money.minorUnits,
+            currency: money.currencyCode,
+            purpose: cleanPurpose,
+            counterparty: cleanCounterparty,
+            bookID: settings?.activeBookID ?? activeBooks.first?.id ?? "default",
+            category: category.trimmingCharacters(in: .whitespacesAndNewlines),
+            privateNote: privateNote.trimmingCharacters(in: .whitespacesAndNewlines),
+            reminderAt: reminderEnabled ? Int64((reminderAt.timeIntervalSince1970 * 1_000).rounded()) : nil,
+            occurredAt: Int64((occurredAt.timeIntervalSince1970 * 1_000).rounded())
+        )
+        var notificationScheduled = false
+        if reminderEnabled {
+            do {
+                let authorized = try await LocalReminderScheduler.shared.requestAuthorization()
+                guard authorized else {
+                    validationMessage = String(localized: "Notifications are disabled. Turn off the reminder or enable notifications in Settings.")
+                    return
+                }
+                try await LocalReminderScheduler.shared.schedule(
+                    expenseID: expense.id,
+                    at: reminderAt,
+                    title: String(localized: "Expense reminder")
+                )
+                notificationScheduled = true
+            } catch {
+                validationMessage = error.localizedDescription
                 return
             }
-            modelContext.insert(ExpenseItem(
-                amountMinor: money.minorUnits,
-                currency: money.currencyCode,
-                purpose: cleanPurpose,
-                counterparty: cleanCounterparty,
-                bookID: settings?.activeBookID ?? activeBooks.first?.id ?? "default",
-                category: category.trimmingCharacters(in: .whitespacesAndNewlines),
-                privateNote: privateNote.trimmingCharacters(in: .whitespacesAndNewlines),
-                reminderAt: reminderEnabled ? Int64((reminderAt.timeIntervalSince1970 * 1_000).rounded()) : nil,
-                occurredAt: Int64((occurredAt.timeIntervalSince1970 * 1_000).rounded())
-            ))
+        }
+
+        do {
+            modelContext.insert(expense)
             try modelContext.save()
             dismiss()
         } catch {
-            validationMessage = String(localized: "Enter a valid amount for this currency.")
+            if notificationScheduled {
+                await LocalReminderScheduler.shared.cancel(expenseID: expense.id)
+            }
+            modelContext.rollback()
+            validationMessage = String(localized: "Unable to save this expense.")
         }
     }
 }

@@ -359,6 +359,17 @@ enum PinbookQueries {
         self.expenses(expenses, in: bookID).filter { $0.isFavorite }
     }
 
+    static func statementExpenses(
+        _ expenses: [ExpenseItem],
+        in bookID: String,
+        person: String,
+        currency: String
+    ) -> [ExpenseItem] {
+        self.expenses(expenses, in: bookID).filter {
+            $0.counterparty == person && $0.currency == currency
+        }
+    }
+
     static func templates(_ templates: [ExpenseTemplateItem], in bookID: String) -> [ExpenseTemplateItem] {
         templates.filter { $0.bookID == bookID && !$0.isTombstoned }
     }

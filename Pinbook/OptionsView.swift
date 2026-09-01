@@ -59,25 +59,17 @@ struct OptionsView: View {
                 }
 
                 NavigationLink {
-                    PlannedCapabilityView(
-                        title: "Receipts & statements",
-                        symbol: "doc.text.magnifyingglass",
-                        detail: "Receipt photos can be imported from each expense and are copied into app-private storage. Per-person, per-currency PDF/CSV statements are the next local workflow."
-                    )
+                    StatementsView()
                 } label: {
-                    OptionsRow(title: "Receipts & statements", subtitle: "Private receipts available", symbol: "doc.text")
+                    OptionsRow(title: "Statements", subtitle: "PDF and CSV", symbol: "doc.text")
                 }
             }
 
             Section("Device") {
                 NavigationLink {
-                    PlannedCapabilityView(
-                        title: "Reminders",
-                        symbol: "bell.badge",
-                        detail: "Reminder dates are stored locally. Notification authorization and delivery are not implemented yet."
-                    )
+                    ReminderOverviewView()
                 } label: {
-                    OptionsRow(title: "Reminders", subtitle: "Dates stored; delivery planned", symbol: "bell")
+                    OptionsRow(title: "Reminders", subtitle: "Local delivery", symbol: "bell")
                 }
 
                 NavigationLink {

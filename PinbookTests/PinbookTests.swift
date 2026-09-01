@@ -233,6 +233,111 @@ import Testing
 }
 
 @MainActor
+@Test func statementScopeStaysInsideBookPersonAndCurrency() throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let selected = ExpenseItem(
+        amountMinor: 1_000,
+        currency: "USD",
+        purpose: "Selected",
+        counterparty: "A",
+        bookID: "first"
+    )
+    let otherCurrency = ExpenseItem(
+        amountMinor: 2_000,
+        currency: "EUR",
+        purpose: "Other currency",
+        counterparty: "A",
+        bookID: "first"
+    )
+    let otherPerson = ExpenseItem(
+        amountMinor: 3_000,
+        currency: "USD",
+        purpose: "Other person",
+        counterparty: "B",
+        bookID: "first"
+    )
+    let otherBook = ExpenseItem(
+        amountMinor: 4_000,
+        currency: "USD",
+        purpose: "Other book",
+        counterparty: "A",
+        bookID: "second"
+    )
+    [selected, otherCurrency, otherPerson, otherBook].forEach(context.insert)
+    try context.save()
+
+    let stored = try context.fetch(FetchDescriptor<ExpenseItem>())
+    let scoped = PinbookQueries.statementExpenses(stored, in: "first", person: "A", currency: "USD")
+    #expect(scoped.map(\.id) == [selected.id])
+}
+
+@Test func localStatementsPreserveExactMinorUnitsAndCreateReadableFiles() throws {
+    let expense = ExpenseRecord(
+        id: "expense",
+        amountMinor: 12_345,
+        currency: "USD",
+        purpose: "Freight, \"priority\"",
+        counterparty: "North Star",
+        occurredAt: 1_788_192_000_000,
+        createdAt: 1_788_192_000_000,
+        updatedAt: 1_788_192_000_000,
+        isNoted: false
+    )
+    let activePayment = SettlementRecord(
+        id: "active",
+        expenseId: expense.id,
+        amountMinor: 2_345,
+        note: nil,
+        occurredAt: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        isDeleted: false
+    )
+    let deletedPayment = SettlementRecord(
+        id: "deleted",
+        expenseId: expense.id,
+        amountMinor: 9_999,
+        note: nil,
+        occurredAt: 2,
+        createdAt: 2,
+        updatedAt: 2,
+        isDeleted: true
+    )
+    let generator = LocalStatementGenerator()
+
+    let csv = try generator.csv(for: [expense], settlements: [activePayment, deletedPayment])
+    let csvText = try #require(String(data: csv, encoding: .utf8))
+    #expect(Array(csv.prefix(3)) == [0xEF, 0xBB, 0xBF])
+    #expect(csvText.hasPrefix("occurred_at"))
+    #expect(csvText.contains("\"Freight, \"\"priority\"\"\""))
+    #expect(csvText.contains(",12345,2345,10000,USD,open"))
+
+    let pdf = try generator.pdf(for: [expense], settlements: [activePayment, deletedPayment])
+    #expect(pdf.count > 1_000)
+    #expect(String(data: pdf.prefix(4), encoding: .ascii) == "%PDF")
+}
+
+@Test func reminderRequestIsDeterministicAndLockScreenPrivate() {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let date = Date(timeIntervalSince1970: 1_800_000_000)
+    let spec = ReminderRequestFactory.make(
+        expenseID: "expense-1",
+        at: date,
+        title: "Expense reminder",
+        calendar: calendar
+    )
+
+    #expect(spec.identifier == "pinbook-expense-expense-1")
+    #expect(calendar.date(from: spec.dateComponents) == date)
+    #expect(spec.body == "Open Pinbook to review a scheduled expense.")
+    #expect(!spec.body.contains("Rent"))
+    #expect(!spec.body.contains("USD"))
+    #expect(!spec.body.contains("100"))
+}
+
+@MainActor
 @Test func receiptLifecycleKeepsMetadataAndPrivateFileInStep() async throws {
     let root = FileManager.default.temporaryDirectory
         .appending(path: "PinbookReceiptLifecycle-\(UUID().uuidString)", directoryHint: .isDirectory)
@@ -312,6 +417,7 @@ import Testing
     #expect(expenses.count == 4)
     #expect(expenses.filter(\.isNoted).count == 1)
     #expect(expenses.filter(\.isFavorite).map(\.id) == ["fixture-rent"])
+    #expect(expenses.filter { $0.reminderAt != nil }.map(\.id) == ["fixture-freight"])
     #expect(settlements.count == 1)
     #expect(try context.fetch(FetchDescriptor<ExpenseTemplateItem>()).count == 1)
     #expect(

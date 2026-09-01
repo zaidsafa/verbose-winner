@@ -10,7 +10,7 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 
 - `PinbookCore`: platform-neutral records, backup decoding, currency-safe money, deterministic merge policy, and service ports.
 - `Pinbook`: SwiftUI app, SwiftData persistence, local preferences, and feature presentation.
-- Platform services: future adapters for Google Drive `appDataFolder`, receipt files, PDF/CSV statements, local notifications, and Vision OCR.
+- Platform services: implemented private receipt files, local PDF/CSV statements, and local notifications, plus future adapters for Google Drive `appDataFolder` and Vision OCR.
 
 ## Book and currency invariants
 
@@ -23,19 +23,22 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 - Quick Add always creates a fresh, unstarred, open expense with a new identifier and current occurrence timestamp; it never mutates the source favorite or template and never copies reminder delivery state.
 - SwiftData models use `isTombstoned` for soft-deletion state because `isDeleted` collides with SwiftData model lifecycle state. Backup records continue to encode the Android-compatible `isDeleted` field at the serialization boundary.
 
-## Planned boundaries, not implemented claims
+## Local service boundaries
+
+- Receipt photos use system `PhotosPicker`, which grants access only to the item a user selects. Bytes are copied immediately to `Library/Application Support/Receipts` under generated UUID filenames with complete-until-first-authentication file protection; SwiftData stores only attachment metadata.
+- Receipt imports compensate by removing the copied file if metadata persistence fails. Removal deletes the private file before tombstoning its metadata, and traversal-style filenames are rejected by the store boundary.
+- Statements are generated on device and contain exactly one active-book person and one ISO currency. CSV uses exact minor-unit integers with a UTF-8 BOM and CRLF rows; PDF formats values for reading and states that no exchange rate was applied. Generated files live in temporary, backup-excluded storage until the system share workflow consumes them.
+- Reminder authorization is requested only when the user saves an expense with a reminder. The notification title/body are generic and contain no purpose, person, amount, or currency. Pinbook cancels the pending request when the reminder is cancelled or the expense is marked noted; a failed SwiftData save compensates by cancelling any request scheduled for that expense.
+
+## Planned synchronization boundaries, not implemented claims
 
 - Drive will use per-user authorization with only `drive.appdata`; tokens must remain in memory or protected system storage and no central Pinbook backend is planned.
 - Google Drive is the first planned transport because it preserves Android/iOS interoperability. Apple does not require iCloud for App Store distribution.
 - A future iCloud/CloudKit adapter may implement the same `BackupTransport` port as an alternative provider. Automatic Google Drive and iCloud replication must not run simultaneously until a single-authority and cross-provider conflict design is proven.
 - Sync will stage remote data, present a restore preview, retain undo snapshots, and apply deterministic merge results transactionally.
-- Receipt photos use system `PhotosPicker`, which grants access only to the item a user selects. Bytes are copied immediately to `Library/Application Support/Receipts` under generated UUID filenames with complete-until-first-authentication file protection; SwiftData stores only attachment metadata.
-- Receipt imports compensate by removing the copied file if metadata persistence fails. Removal deletes the private file before tombstoning its metadata, and traversal-style filenames are rejected by the store boundary.
-- Statements will remain grouped by person and currency.
-- Reminders will use local notifications only after explicit permission.
 - OCR will be an optional on-device enhancement behind `ReceiptTextRecognizing`.
 
-No adapter above is implemented in the initial foundation, and the UI must label unavailable actions accordingly.
+Drive, CloudKit, conflict-recovery, and OCR adapters remain unavailable, and the UI labels those actions accordingly.
 
 ## Localization and accessibility
 
