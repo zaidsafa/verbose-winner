@@ -17,6 +17,7 @@
 		B10000000000000000000008 /* OptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* OptionsView.swift */; };
 		B10000000000000000000009 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* Localizable.xcstrings */; };
 		B1000000000000000000000A /* LaunchConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000A /* LaunchConfiguration.swift */; };
+		B1000000000000000000000B /* TemplatesAndQuickAddViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000B /* TemplatesAndQuickAddViews.swift */; };
 		B20000000000000000000001 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* Records.swift */; };
 		B20000000000000000000002 /* Backup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* Backup.swift */; };
 		B20000000000000000000003 /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Money.swift */; };
@@ -46,6 +47,7 @@
 		A10000000000000000000008 /* OptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsView.swift; sourceTree = "<group>"; };
 		A10000000000000000000009 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		A1000000000000000000000A /* LaunchConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchConfiguration.swift; sourceTree = "<group>"; };
+		A1000000000000000000000B /* TemplatesAndQuickAddViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesAndQuickAddViews.swift; sourceTree = "<group>"; };
 		A20000000000000000000001 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* Backup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backup.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 				A10000000000000000000008 /* OptionsView.swift */,
 				A10000000000000000000009 /* Localizable.xcstrings */,
 				A1000000000000000000000A /* LaunchConfiguration.swift */,
+				A1000000000000000000000B /* TemplatesAndQuickAddViews.swift */,
 			);
 			path = Pinbook;
 			sourceTree = "<group>";
@@ -233,6 +236,7 @@
 				B10000000000000000000007 /* SummaryAndNotedViews.swift in Sources */,
 				B10000000000000000000008 /* OptionsView.swift in Sources */,
 				B1000000000000000000000A /* LaunchConfiguration.swift in Sources */,
+				B1000000000000000000000B /* TemplatesAndQuickAddViews.swift in Sources */,
 				B20000000000000000000001 /* Records.swift in Sources */,
 				B20000000000000000000002 /* Backup.swift in Sources */,
 				B20000000000000000000003 /* Money.swift in Sources */,

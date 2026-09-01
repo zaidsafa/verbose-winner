@@ -19,6 +19,9 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 - The active book cannot be archived. Archived books remain recoverable and can be renamed or restored.
 - Production bootstrap creates one unarchived `Pinbook` book and repairs an invalid active-book reference without creating sample financial records.
 - Favorite currencies start empty. Users explicitly enable currencies and choose the preferred currency used to seed new expense entry.
+- Expense Favorites and templates are separate concepts, matching the backup model: starring an expense makes it a Quick Add source, while a named template stores reusable expense fields. Both are isolated to the active book.
+- Quick Add always creates a fresh, unstarred, open expense with a new identifier and current occurrence timestamp; it never mutates the source favorite or template and never copies reminder delivery state.
+- SwiftData models use `isTombstoned` for soft-deletion state because `isDeleted` collides with SwiftData model lifecycle state. Backup records continue to encode the Android-compatible `isDeleted` field at the serialization boundary.
 
 ## Planned boundaries, not implemented claims
 

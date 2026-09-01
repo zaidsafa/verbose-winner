@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 import Testing
 @testable import Pinbook
@@ -118,6 +119,89 @@ import Testing
     #expect(ExpenseCalculations.totalsByCurrency(expenses: firstOpen, settlements: []) == ["USD": 1_000])
 }
 
+@MainActor
+@Test func templatesAndFavoritesStayInsideTheirBook() throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let firstFavorite = ExpenseItem(
+        amountMinor: 1_500,
+        currency: "USD",
+        purpose: "Favorite",
+        counterparty: "A",
+        bookID: "first",
+        isFavorite: true
+    )
+    let secondFavorite = ExpenseItem(
+        amountMinor: 2_500,
+        currency: "EUR",
+        purpose: "Other favorite",
+        counterparty: "B",
+        bookID: "second",
+        isFavorite: true
+    )
+    let firstTemplate = ExpenseTemplateItem(
+        bookID: "first",
+        name: "First template",
+        amountMinor: 900,
+        currency: "USD",
+        purpose: "Template",
+        counterparty: "A"
+    )
+    let deletedTemplate = ExpenseTemplateItem(
+        bookID: "first",
+        name: "Deleted",
+        amountMinor: 100,
+        currency: "USD",
+        purpose: "Deleted",
+        counterparty: "A"
+    )
+    [firstFavorite, secondFavorite].forEach(context.insert)
+    [firstTemplate, deletedTemplate].forEach(context.insert)
+    try context.save()
+    try TemplateOperations.setDeleted(true, for: deletedTemplate, in: context)
+    #expect(deletedTemplate.isTombstoned)
+
+    let expenses = try context.fetch(FetchDescriptor<ExpenseItem>())
+    let templates = try context.fetch(FetchDescriptor<ExpenseTemplateItem>())
+    #expect(PinbookQueries.favoriteExpenses(expenses, in: "first").map(\.id) == [firstFavorite.id])
+    #expect(PinbookQueries.templates(templates, in: "first").map(\.id) == [firstTemplate.id])
+}
+
+@MainActor
+@Test func quickAddCopiesDraftIntoAFreshUnstarredExpense() throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let source = ExpenseItem(
+        amountMinor: 12_345,
+        currency: "KWD",
+        purpose: "Recurring",
+        counterparty: "Supplier",
+        bookID: "source",
+        category: "Samples",
+        tags: ["repeat"],
+        privateNote: "Private",
+        isFavorite: true
+    )
+    context.insert(source)
+    try context.save()
+
+    let copy = try QuickAddOperations.createExpense(
+        from: ExpenseDraft(favorite: source),
+        in: "active",
+        context: context,
+        now: 123_456
+    )
+    #expect(copy.id != source.id)
+    #expect(copy.bookID == "active")
+    #expect(copy.amountMinor == source.amountMinor)
+    #expect(copy.currency == source.currency)
+    #expect(copy.tags == ["repeat"])
+    #expect(!copy.isFavorite)
+    #expect(!copy.isNoted)
+    #expect(copy.reminderAt == nil)
+    #expect(copy.occurredAt == 123_456)
+}
+
 #if DEBUG
 @Test func launchArgumentsSelectDeterministicFixturePresentation() {
     let configuration = PinbookLaunchConfiguration(arguments: [
@@ -152,7 +236,9 @@ import Testing
     #expect(settings.favoriteCurrencies == ["CNY", "KWD", "USD"])
     #expect(expenses.count == 4)
     #expect(expenses.filter(\.isNoted).count == 1)
+    #expect(expenses.filter(\.isFavorite).map(\.id) == ["fixture-rent"])
     #expect(settlements.count == 1)
+    #expect(try context.fetch(FetchDescriptor<ExpenseTemplateItem>()).count == 1)
     #expect(
         ExpenseCalculations.totalsByCurrency(
             expenses: expenses.filter { !$0.isNoted },
@@ -165,6 +251,6 @@ import Testing
 @MainActor
 private func inMemoryContainer() throws -> ModelContainer {
     let schema = Schema(PinbookSchema.models)
-    let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let configuration = ModelConfiguration(UUID().uuidString, schema: schema, isStoredInMemoryOnly: true)
     return try ModelContainer(for: schema, configurations: [configuration])
 }

@@ -4,6 +4,18 @@ import SwiftUI
 struct OptionsView: View {
     @Environment(\.pinbookSkin) private var skin
     @Query private var appearances: [AppearanceSettingsItem]
+    @Query private var allTemplates: [ExpenseTemplateItem]
+
+    private var activeTemplateCount: Int {
+        PinbookQueries.templates(
+            allTemplates,
+            in: appearances.first?.activeBookID ?? "default"
+        ).count
+    }
+
+    private var templateCountText: Text {
+        activeTemplateCount == 1 ? Text("1 template") : Text("\(activeTemplateCount) templates")
+    }
 
     var body: some View {
         List {
@@ -21,6 +33,16 @@ struct OptionsView: View {
                         title: "Books & currencies",
                         subtitle: Text("\(appearances.first?.favoriteCurrencies.count ?? 0) favorite currencies"),
                         symbol: "books.vertical"
+                    )
+                }
+
+                NavigationLink {
+                    TemplatesView()
+                } label: {
+                    OptionsRow(
+                        title: "Templates",
+                        subtitle: templateCountText,
+                        symbol: "doc.on.doc"
                     )
                 }
             }

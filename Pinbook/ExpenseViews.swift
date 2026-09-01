@@ -36,6 +36,7 @@ struct ExpensesView: View {
                                         for: expense,
                                         settlements: settlements
                                     ),
+                                    toggleFavorite: { toggleFavorite(expense) },
                                     markNoted: { markNoted(expense) }
                                 )
                             }
@@ -65,6 +66,14 @@ struct ExpensesView: View {
         withAnimation {
             expense.isNoted = true
             expense.notedAt = .nowMilliseconds
+            expense.updatedAt = .nowMilliseconds
+            try? modelContext.save()
+        }
+    }
+
+    private func toggleFavorite(_ expense: ExpenseItem) {
+        withAnimation {
+            expense.isFavorite.toggle()
             expense.updatedAt = .nowMilliseconds
             try? modelContext.save()
         }
@@ -106,6 +115,7 @@ private struct ExpenseCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let expense: ExpenseItem
     let remainingMinor: Int64
+    let toggleFavorite: () -> Void
     let markNoted: () -> Void
     @State private var showingPayment = false
 
@@ -209,6 +219,8 @@ private struct ExpenseCard: View {
 
     @ViewBuilder
     private var cardActions: some View {
+        favoriteButton
+        if !dynamicTypeSize.isAccessibilitySize { Spacer() }
         Button("Payment", systemImage: "banknote") { showingPayment = true }
             .buttonStyle(.glass)
             .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
@@ -216,6 +228,26 @@ private struct ExpenseCard: View {
         Button("Mark noted", systemImage: "checkmark", action: markNoted)
             .buttonStyle(.glassProminent)
             .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
+    }
+
+    private var favoriteButton: some View {
+        Button(action: toggleFavorite) {
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    if expense.isFavorite {
+                        Label("Remove from Favorites", systemImage: "star.fill")
+                    } else {
+                        Label("Add to Favorites", systemImage: "star")
+                    }
+                } else {
+                    Image(systemName: expense.isFavorite ? "star.fill" : "star")
+                        .accessibilityLabel(expense.isFavorite ? "Remove from Favorites" : "Add to Favorites")
+                }
+            }
+        }
+        .buttonStyle(.glass)
+        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
+        .tint(expense.isFavorite ? .yellow : skin.accent)
     }
 }
 

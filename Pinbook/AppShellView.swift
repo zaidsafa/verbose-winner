@@ -14,6 +14,7 @@ struct AppShellView: View {
     @Query private var appearances: [AppearanceSettingsItem]
     @State private var selection: PinbookTab
     @State private var showingAddExpense = false
+    @State private var showingQuickAdd = false
     @State private var bootstrapError: String?
     private let launchConfiguration: PinbookLaunchConfiguration
 
@@ -68,7 +69,7 @@ struct AppShellView: View {
             .tabViewBottomAccessory(
                 isEnabled: selection == .expenses && hasFavoriteCurrencies && !dynamicTypeSize.isAccessibilitySize
             ) {
-                QuickAddAccessory { showingAddExpense = true }
+                QuickAddAccessory { showingQuickAdd = true }
             }
         }
         .environment(\.pinbookSkin, skin)
@@ -78,6 +79,11 @@ struct AppShellView: View {
             ExpenseEditorView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingQuickAdd) {
+            QuickAddView()
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .alert("Local store unavailable", isPresented: .constant(bootstrapError != nil)) {
             Button("OK") { bootstrapError = nil }

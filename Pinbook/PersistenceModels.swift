@@ -108,7 +108,7 @@ final class SettlementItem {
     var occurredAt: Int64
     var createdAt: Int64
     var updatedAt: Int64
-    var isDeleted: Bool
+    var isTombstoned: Bool
 
     init(
         id: String = UUID().uuidString,
@@ -127,7 +127,7 @@ final class SettlementItem {
         self.occurredAt = occurredAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
-        self.isDeleted = isDeleted
+        isTombstoned = isDeleted
     }
 }
 
@@ -145,7 +145,7 @@ final class ExpenseTemplateItem {
     var privateNote: String
     var createdAt: Int64
     var updatedAt: Int64
-    var isDeleted: Bool
+    var isTombstoned: Bool
 
     init(
         id: String = UUID().uuidString,
@@ -174,7 +174,12 @@ final class ExpenseTemplateItem {
         self.privateNote = privateNote
         self.createdAt = createdAt
         self.updatedAt = updatedAt
-        self.isDeleted = isDeleted
+        isTombstoned = isDeleted
+    }
+
+    var tags: [String] {
+        get { tagsRaw.split(separator: "\u{001F}").map(String.init) }
+        set { tagsRaw = newValue.cleanedTags.joined(separator: "\u{001F}") }
     }
 }
 
@@ -187,7 +192,7 @@ final class ReceiptMetadataItem {
     var displayName: String
     var createdAt: Int64
     var updatedAt: Int64
-    var isDeleted: Bool
+    var isTombstoned: Bool
 
     init(
         id: String = UUID().uuidString,
@@ -206,7 +211,7 @@ final class ReceiptMetadataItem {
         self.displayName = displayName
         self.createdAt = createdAt
         self.updatedAt = updatedAt
-        self.isDeleted = isDeleted
+        isTombstoned = isDeleted
     }
 }
 
@@ -349,12 +354,87 @@ enum PinbookQueries {
             return expense.isNoted == noted
         }
     }
+
+    static func favoriteExpenses(_ expenses: [ExpenseItem], in bookID: String) -> [ExpenseItem] {
+        self.expenses(expenses, in: bookID).filter { $0.isFavorite }
+    }
+
+    static func templates(_ templates: [ExpenseTemplateItem], in bookID: String) -> [ExpenseTemplateItem] {
+        templates.filter { $0.bookID == bookID && !$0.isTombstoned }
+    }
+}
+
+struct ExpenseDraft: Equatable {
+    var amountMinor: Int64
+    var currency: String
+    var purpose: String
+    var counterparty: String
+    var category: String
+    var tags: [String]
+    var privateNote: String
+
+    init(template: ExpenseTemplateItem) {
+        amountMinor = template.amountMinor
+        currency = template.currency
+        purpose = template.purpose
+        counterparty = template.counterparty
+        category = template.category
+        tags = template.tags
+        privateNote = template.privateNote
+    }
+
+    init(favorite expense: ExpenseItem) {
+        amountMinor = expense.amountMinor
+        currency = expense.currency
+        purpose = expense.purpose
+        counterparty = expense.counterparty
+        category = expense.category
+        tags = expense.tags
+        privateNote = expense.privateNote
+    }
+}
+
+enum QuickAddOperations {
+    @MainActor
+    @discardableResult
+    static func createExpense(
+        from draft: ExpenseDraft,
+        in bookID: String,
+        context: ModelContext,
+        now: Int64 = .nowMilliseconds
+    ) throws -> ExpenseItem {
+        let expense = ExpenseItem(
+            amountMinor: draft.amountMinor,
+            currency: draft.currency,
+            purpose: draft.purpose,
+            counterparty: draft.counterparty,
+            bookID: bookID,
+            category: draft.category,
+            tags: draft.tags,
+            privateNote: draft.privateNote,
+            occurredAt: now,
+            createdAt: now,
+            updatedAt: now
+        )
+        context.insert(expense)
+        try context.save()
+        return expense
+    }
+}
+
+enum TemplateOperations {
+    @MainActor
+    static func setDeleted(_ deleted: Bool, for template: ExpenseTemplateItem, in context: ModelContext) throws {
+        template.isTombstoned = deleted
+        template.updatedAt = .nowMilliseconds
+        try context.save()
+    }
 }
 
 enum ExpenseCalculations {
     static func remainingMinor(for expense: ExpenseItem, settlements: [SettlementItem]) -> Int64 {
         let paid = settlements
-            .filter { $0.expenseID == expense.id && !$0.isDeleted }
+            .filter { $0.expenseID == expense.id && !$0.isTombstoned }
             .reduce(Int64.zero) { partial, settlement in
                 let (sum, overflow) = partial.addingReportingOverflow(settlement.amountMinor)
                 return overflow ? Int64.max : sum

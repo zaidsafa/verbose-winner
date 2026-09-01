@@ -70,6 +70,7 @@ enum PinbookDebugFixtures {
             counterparty: "Guangzhou Logistics Center",
             category: "Operations",
             tags: ["recurring"],
+            isFavorite: true,
             occurredAt: 1_788_192_000_000,
             createdAt: 1_788_192_000_000,
             updatedAt: 1_788_278_400_000
@@ -119,6 +120,19 @@ enum PinbookDebugFixtures {
             occurredAt: 1_788_278_400_000,
             createdAt: 1_788_278_400_000,
             updatedAt: 1_788_278_400_000
+        ))
+        context.insert(ExpenseTemplateItem(
+            id: "fixture-template-utilities",
+            bookID: "default",
+            name: "Warehouse utilities",
+            amountMinor: 168_000,
+            currency: "CNY",
+            purpose: "Monthly utilities",
+            counterparty: "Guangzhou Utilities",
+            category: "Operations",
+            tags: ["recurring"],
+            createdAt: 1_787_760_000_000,
+            updatedAt: 1_787_760_000_000
         ))
         try context.save()
     }
