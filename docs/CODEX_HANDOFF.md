@@ -34,6 +34,7 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - The final simulator suite passes 5/5 tests after adding deterministic fixture/configuration coverage; Swift package tests remain 5/5.
 - Unsigned Debug and Release generic iOS Simulator builds pass. Release compilation excludes all fixture population code.
 - Populated visual evidence now covers Paper Glass Expenses, Soft Pastel Summary, Night Ink Noted, grouped Options, Arabic RTL, accessibility extra-extra-large text, Increase Contrast, and Reduce Transparency. See `docs/VALIDATION.md` for the evidence map.
+- Clean Ledger and Editorial now have accepted light/dark populated evidence. All skin backdrops adapt to color scheme; the initial Clean Ledger dark contrast defect was fixed before acceptance.
 - The Simulator accessibility tree exposes card labels, labeled remaining values, and Payment/Mark noted actions in logical order. Spoken VoiceOver, rotor, and physical-device focus behavior remain outside this evidence boundary.
 
 ## Limitations
@@ -47,7 +48,9 @@ Updated: 2026-09-01 (Asia/Shanghai)
 
 ## Exact next actions
 
-1. Complete an interactive physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, Increase Contrast, and the five-skin light/dark matrix.
-2. Add editable books/templates and receipt-file storage without changing the backup schema boundary.
-3. Implement statements and local reminders behind their existing ports, with focused tests and simulator/device acceptance.
-4. Implement Google Drive `drive.appdata` as the first sync adapter only after OAuth/provider decisions and explicit credential approval.
+1. Add editable books, active-book isolation, and manually selected favorite currencies without default favorites.
+2. Add templates, Favorites, and Quick Add.
+3. Add privacy-friendly PhotosPicker receipt import copied into app-private storage with lifecycle tests.
+4. Add per-person/per-currency PDF/CSV statements and local reminder delivery.
+5. Complete an interactive physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, Increase Contrast, and the five-skin light/dark matrix.
+6. Implement Google Drive `drive.appdata` only after the local workflows and explicit OAuth/provider approval.
