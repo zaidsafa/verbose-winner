@@ -2,21 +2,28 @@ import Foundation
 import UIKit
 import UserNotifications
 
+enum StatementGenerationError: LocalizedError, Equatable {
+    case arithmeticOverflow
+
+    var errorDescription: String? {
+        String(localized: "Statement values exceed the supported range.")
+    }
+}
+
 struct LocalStatementGenerator: StatementGenerating, Sendable {
     func csv(for expenses: [ExpenseRecord], settlements: [SettlementRecord]) throws -> Data {
         var rows = [
             "occurred_at,purpose,counterparty,original_minor,settled_minor,remaining_minor,currency,status"
         ]
-        for expense in expenses.sorted(by: { $0.occurredAt < $1.occurredAt }) {
-            let paid = paidMinor(for: expense, settlements: settlements)
-            let remaining = remainingMinor(for: expense, paidMinor: paid)
+        for line in try statementLines(for: expenses, settlements: settlements) {
+            let expense = line.expense
             rows.append([
                 ISO8601DateFormatter().string(from: expense.occurredAt.pinbookDate),
-                expense.purpose,
-                expense.counterparty,
+                spreadsheetSafeField(expense.purpose),
+                spreadsheetSafeField(expense.counterparty),
                 String(expense.amountMinor),
-                String(paid),
-                String(remaining),
+                String(line.paidMinor),
+                String(line.remainingMinor),
                 expense.currency,
                 expense.isNoted ? "noted" : "open",
             ].map(csvField).joined(separator: ","))
@@ -25,15 +32,23 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
     }
 
     func pdf(for expenses: [ExpenseRecord], settlements: [SettlementRecord]) throws -> Data {
+        let lines = try statementLines(for: expenses, settlements: settlements)
+        let totalRemaining = try lines.reduce(Int64.zero) { total, line in
+            let (sum, overflow) = total.addingReportingOverflow(line.remainingMinor)
+            guard !overflow else { throw StatementGenerationError.arithmeticOverflow }
+            return sum
+        }
         let page = CGRect(x: 0, y: 0, width: 595, height: 842)
         let renderer = UIGraphicsPDFRenderer(bounds: page)
         return renderer.pdfData { context in
             var y: CGFloat = 48
             func beginPage() {
                 context.beginPage()
+                context.cgContext.setFillColor(UIColor.white.cgColor)
+                context.cgContext.fill(page)
                 y = 48
             }
-            func draw(_ text: String, font: UIFont, color: UIColor = .label, spacing: CGFloat = 8) {
+            func draw(_ text: String, font: UIFont, color: UIColor = .black, spacing: CGFloat = 8) {
                 if y > page.height - 80 { beginPage() }
                 let paragraph = NSMutableParagraphStyle()
                 paragraph.lineBreakMode = .byWordWrapping
@@ -56,23 +71,22 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
             beginPage()
             draw(String(localized: "Pinbook statement"), font: .systemFont(ofSize: 26, weight: .bold), spacing: 4)
             if let first = expenses.first {
-                draw(first.counterparty, font: .systemFont(ofSize: 17, weight: .semibold), color: .secondaryLabel, spacing: 2)
-                draw(first.currency, font: .monospacedSystemFont(ofSize: 14, weight: .medium), color: .secondaryLabel, spacing: 20)
+                draw(first.counterparty, font: .systemFont(ofSize: 17, weight: .semibold), color: .darkGray, spacing: 2)
+                draw(first.currency, font: .monospacedSystemFont(ofSize: 14, weight: .medium), color: .darkGray, spacing: 20)
             }
 
-            for expense in expenses.sorted(by: { $0.occurredAt < $1.occurredAt }) {
-                let paid = paidMinor(for: expense, settlements: settlements)
-                let remaining = remainingMinor(for: expense, paidMinor: paid)
+            for line in lines {
+                let expense = line.expense
                 draw(expense.purpose, font: .systemFont(ofSize: 16, weight: .semibold), spacing: 3)
                 draw(
                     expense.occurredAt.pinbookDate.formatted(date: .abbreviated, time: .omitted),
                     font: .systemFont(ofSize: 11),
-                    color: .secondaryLabel,
+                    color: .darkGray,
                     spacing: 5
                 )
                 let original = expense.amountMinor.formattedMoney(currency: expense.currency)
-                let settled = paid.formattedMoney(currency: expense.currency)
-                let balance = remaining.formattedMoney(currency: expense.currency)
+                let settled = line.paidMinor.formattedMoney(currency: expense.currency)
+                let balance = line.remainingMinor.formattedMoney(currency: expense.currency)
                 draw(
                     String(localized: "Original: \(original) · Paid: \(settled) · Remaining: \(balance)"),
                     font: .monospacedSystemFont(ofSize: 12, weight: .regular),
@@ -80,14 +94,6 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
                 )
             }
 
-            let totalRemaining = expenses.reduce(Int64.zero) { total, expense in
-                let remaining = remainingMinor(
-                    for: expense,
-                    paidMinor: paidMinor(for: expense, settlements: settlements)
-                )
-                let (sum, overflow) = total.addingReportingOverflow(remaining)
-                return overflow ? Int64.max : sum
-            }
             if let currency = expenses.first?.currency {
                 draw(
                     String(localized: "Total remaining: \(totalRemaining.formattedMoney(currency: currency))"),
@@ -98,23 +104,38 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
             draw(
                 String(localized: "Generated locally by Pinbook. No exchange rate was applied."),
                 font: .systemFont(ofSize: 10),
-                color: .secondaryLabel
+                color: .darkGray
             )
         }
     }
 
-    private func paidMinor(for expense: ExpenseRecord, settlements: [SettlementRecord]) -> Int64 {
-        settlements
-            .filter { $0.expenseId == expense.id && !$0.isDeleted }
-            .reduce(Int64.zero) { result, settlement in
-                let (sum, overflow) = result.addingReportingOverflow(settlement.amountMinor)
-                return overflow ? Int64.max : sum
-            }
+    private func statementLines(
+        for expenses: [ExpenseRecord],
+        settlements: [SettlementRecord]
+    ) throws -> [StatementLine] {
+        try expenses.sorted(by: { $0.occurredAt < $1.occurredAt }).map { expense in
+            let paid = try settlements
+                .filter { $0.expenseId == expense.id && !$0.isDeleted }
+                .reduce(Int64.zero) { result, settlement in
+                    let (sum, overflow) = result.addingReportingOverflow(settlement.amountMinor)
+                    guard !overflow else { throw StatementGenerationError.arithmeticOverflow }
+                    return sum
+                }
+            let (remaining, overflow) = expense.amountMinor.subtractingReportingOverflow(paid)
+            guard !overflow else { throw StatementGenerationError.arithmeticOverflow }
+            return StatementLine(expense: expense, paidMinor: paid, remainingMinor: max(0, remaining))
+        }
     }
 
-    private func remainingMinor(for expense: ExpenseRecord, paidMinor: Int64) -> Int64 {
-        let (remaining, overflow) = expense.amountMinor.subtractingReportingOverflow(paidMinor)
-        return overflow ? 0 : max(0, remaining)
+    private func spreadsheetSafeField(_ value: String) -> String {
+        guard let first = value.first, "=+-@".contains(first) else { return value }
+        return "'\(value)"
+    }
+
+    private struct StatementLine {
+        let expense: ExpenseRecord
+        let paidMinor: Int64
+        let remainingMinor: Int64
     }
 
     private func csvField(_ value: String) -> String {

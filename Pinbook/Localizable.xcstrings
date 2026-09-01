@@ -141,6 +141,7 @@
     "Soft pastel" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ألوان هادئة" } } } },
     "Star an expense or create a template to make it appear here." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أضف مصروفاً إلى المفضلة أو أنشئ قالباً ليظهر هنا." } } } },
     "Statement scope" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "نطاق الكشف" } } } },
+    "Statement values exceed the supported range." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تتجاوز قيم الكشف النطاق المدعوم." } } } },
     "Statements" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الكشوف" } } } },
     "Summary" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الملخص" } } } },
     "System" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "النظام" } } } },

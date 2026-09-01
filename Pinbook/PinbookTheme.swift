@@ -1,5 +1,9 @@
 import SwiftUI
 
+enum PinbookLayout {
+    static let tabBarScrollClearance: CGFloat = 128
+}
+
 enum PinbookSkin: String, CaseIterable, Identifiable {
     case paperGlass = "paperGlass"
     case cleanLedger = "cleanLedger"

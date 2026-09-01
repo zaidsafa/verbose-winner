@@ -14,7 +14,7 @@ The Android product remains the behavioral reference while this repository devel
 - Five Pinbook visual skins and localization-ready, RTL-safe layout.
 - Editable books, explicit favorite currencies, templates, Favorites, and Quick Add.
 - Selected-photo-only receipts copied into app-private protected storage.
-- On-device, one-person/one-currency PDF and exact-value CSV statements.
+- On-device, one-person/one-currency print-safe PDF and exact-value, spreadsheet-safe CSV statements with explicit overflow failure.
 - Privacy-safe local reminders that request permission only during an explicit reminder save.
 
 Google Drive, iCloud, conflict-recovery UI, and OCR are not implemented. Physical-device notification delivery and share-extension transfer remain acceptance boundaries. Their status is documented without presenting unverified behavior as working.

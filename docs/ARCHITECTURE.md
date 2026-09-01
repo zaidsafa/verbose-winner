@@ -26,8 +26,8 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 ## Local service boundaries
 
 - Receipt photos use system `PhotosPicker`, which grants access only to the item a user selects. Bytes are copied immediately to `Library/Application Support/Receipts` under generated UUID filenames with complete-until-first-authentication file protection; SwiftData stores only attachment metadata.
-- Receipt imports compensate by removing the copied file if metadata persistence fails. Removal deletes the private file before tombstoning its metadata, and traversal-style filenames are rejected by the store boundary.
-- Statements are generated on device and contain exactly one active-book person and one ISO currency. CSV uses exact minor-unit integers with a UTF-8 BOM and CRLF rows; PDF formats values for reading and states that no exchange rate was applied. Generated files live in temporary, backup-excluded storage until the system share workflow consumes them.
+- Receipt imports compensate by removing the copied file if metadata persistence fails. Removal persists the metadata tombstone before deleting private bytes, so a failed save retains a live file/reference pair; a later file-removal failure can leave only a recoverable orphan, never live metadata pointing to a missing file. Traversal-style filenames are rejected by the store boundary.
+- Statements are generated on device and contain exactly one active-book person and one ISO currency. CSV uses exact minor-unit integers with a UTF-8 BOM and CRLF rows, prefixes formula-leading user fields (`=`, `+`, `-`, or `@`) with an apostrophe, and never silently clamps arithmetic overflow. PDF pages always paint a fixed white print background with black/dark-gray text regardless of app appearance, format values for reading, and state that no exchange rate was applied. Generated files live in temporary, backup-excluded storage until the system share workflow consumes them.
 - Reminder authorization is requested only when the user saves an expense with a reminder. The notification title/body are generic and contain no purpose, person, amount, or currency. Pinbook cancels the pending request when the reminder is cancelled or the expense is marked noted; a failed SwiftData save compensates by cancelling any request scheduled for that expense.
 
 ## Planned synchronization boundaries, not implemented claims
@@ -43,3 +43,5 @@ Drive, CloudKit, conflict-recovery, and OCR adapters remain unavailable, and the
 ## Localization and accessibility
 
 SwiftUI strings use localized keys and a string catalog seeds English plus Arabic top-level navigation. Layout code uses semantic leading/trailing alignment and system Dynamic Type. The validation plan requires RTL, VoiceOver, Reduce Transparency, Increase Contrast, light/dark, and accessibility-size checks before release.
+
+Scrollable Forms and Lists that end behind the floating Liquid Glass tab bar reserve a shared 128-point content clearance. UI automation verifies the final Books row and Statements help card can both be scrolled to a hittable frame fully above the tab bar.

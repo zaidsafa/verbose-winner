@@ -33,6 +33,9 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - Receipt import and removal coordinate file bytes with SwiftData metadata, compensate failed metadata saves, reject traversal filenames, and retain a confirmation step before UI deletion.
 - Statements generate on-device PDF and CSV for exactly one active-book person and one currency. CSV retains exact minor-unit integers; both formats exclude private notes and never apply an implicit exchange rate.
 - Statement files are temporary and backup-excluded, and become externally visible only if the user activates the native ShareLink workflow.
+- PDF rendering is appearance-independent for printing: every page is explicitly white with black/dark-gray ink. CSV protects spreadsheet consumers by neutralizing formula-leading user fields, and both formats surface arithmetic overflow instead of clamping.
+- Receipt removal persists its tombstone before deleting private bytes. If persistence fails, rollback keeps both live metadata and the file; a later byte-removal failure can leave an orphan but cannot leave live metadata pointing to a missing file.
+- Books and Statements reserve shared bottom scroll clearance, and UI automation proves their final identified content can be moved fully above the floating Liquid Glass tab bar.
 - Local reminders request notification authorization only during an explicit reminder-bearing save. Scheduled notification copy is generic, and pending requests are cancelled when a reminder is cancelled or its expense is marked noted.
 
 ## Validation
@@ -50,6 +53,7 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - The Templates/Favorites/Quick Add milestone passes 9/9 simulator tests with unique ephemeral stores for parallel isolation. Interactive acceptance verified accessible star controls, both Quick Add source groups, and a fresh expense created from the fixture template. Evidence: `docs/evidence/pinbook-quick-add.png`.
 - The receipt milestone passes 11/11 simulator tests. Interactive PhotosPicker acceptance imported a deterministic image, displayed its attachment metadata, and verified the copied 2,853,668-byte UUID-named PNG inside Pinbook's private Simulator container. Evidence: `docs/evidence/pinbook-private-receipt.png`.
 - The statement/reminder milestone passes 14/14 simulator tests. Interactive acceptance generated a 178-byte exact-value CSV and a 28,996-byte one-page PDF for one person/currency scope without opening the share sheet. The reminder overview showed generic privacy guidance and a future fixture date. Evidence: `docs/evidence/pinbook-statements.png` and `docs/evidence/pinbook-reminders.png`.
+- The follow-up complete scheme passes 20/20 on the dedicated iPhone 17 Pro simulator (19/19 isolated tests plus 1/1 XCUITest). It covers dark-mode print-safe PDF pixels, CSV formula neutralization, explicit statement-overflow failures, receipt tombstone-save failure ordering, and final-row/help reachability above the tab bar. Evidence: `docs/evidence/pinbook-statements-dark-reachability.png` and `docs/evidence/pinbook-dark-generated-statement-pdf.png`.
 - The Simulator accessibility tree exposes card labels, labeled remaining values, and Payment/Mark noted actions in logical order. Spoken VoiceOver, rotor, and physical-device focus behavior remain outside this evidence boundary.
 
 ## Limitations

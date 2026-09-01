@@ -28,10 +28,18 @@
 		B20000000000000000000004 /* Merge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Merge.swift */; };
 		B20000000000000000000005 /* ServicePorts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ServicePorts.swift */; };
 		B30000000000000000000001 /* PinbookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000001 /* PinbookTests.swift */; };
+		B40000000000000000000001 /* PinbookUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* PinbookUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		D30000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T10000000000000000000001;
+			remoteInfo = Pinbook;
+		};
+		D40000000000000000000001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E00000000000000000000001 /* Project object */;
 			proxyType = 1;
@@ -62,8 +70,10 @@
 		A20000000000000000000004 /* Merge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Merge.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* ServicePorts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicePorts.swift; sourceTree = "<group>"; };
 		A30000000000000000000001 /* PinbookTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookTests.swift; sourceTree = "<group>"; };
+		A40000000000000000000001 /* PinbookUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookUITests.swift; sourceTree = "<group>"; };
 		P10000000000000000000001 /* Pinbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pinbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		P30000000000000000000001 /* PinbookTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PinbookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		P40000000000000000000001 /* PinbookUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PinbookUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +91,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F40000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -90,6 +107,7 @@
 				G10000000000000000000001 /* Pinbook */,
 				G20000000000000000000001 /* PinbookCore */,
 				G30000000000000000000001 /* PinbookTests */,
+				G40000000000000000000001 /* PinbookUITests */,
 				G90000000000000000000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -136,11 +154,20 @@
 			path = PinbookTests;
 			sourceTree = "<group>";
 		};
+		G40000000000000000000001 /* PinbookUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000001 /* PinbookUITests.swift */,
+			);
+			path = PinbookUITests;
+			sourceTree = "<group>";
+		};
 		G90000000000000000000001 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				P10000000000000000000001 /* Pinbook.app */,
 				P30000000000000000000001 /* PinbookTests.xctest */,
+				P40000000000000000000001 /* PinbookUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -183,6 +210,24 @@
 			productReference = P30000000000000000000001 /* PinbookTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		T40000000000000000000001 /* PinbookUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L40000000000000000000001 /* Build configuration list for PBXNativeTarget "PinbookUITests" */;
+			buildPhases = (
+				S40000000000000000000001 /* Sources */,
+				F40000000000000000000001 /* Frameworks */,
+				R40000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D40000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = PinbookUITests;
+			productName = PinbookUITests;
+			productReference = P40000000000000000000001 /* PinbookUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -195,6 +240,7 @@
 				TargetAttributes = {
 					T10000000000000000000001 = { CreatedOnToolsVersion = 26.6; };
 					T30000000000000000000001 = { CreatedOnToolsVersion = 26.6; TestTargetID = T10000000000000000000001; };
+					T40000000000000000000001 = { CreatedOnToolsVersion = 26.6; TestTargetID = T10000000000000000000001; };
 				};
 			};
 			buildConfigurationList = L00000000000000000000001 /* Build configuration list for PBXProject "Pinbook" */;
@@ -212,6 +258,7 @@
 			targets = (
 				T10000000000000000000001 /* Pinbook */,
 				T30000000000000000000001 /* PinbookTests */,
+				T40000000000000000000001 /* PinbookUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -226,6 +273,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		R30000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		R40000000000000000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -269,6 +323,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		S40000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B40000000000000000000001 /* PinbookUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -276,6 +338,11 @@
 			isa = PBXTargetDependency;
 			target = T10000000000000000000001 /* Pinbook */;
 			targetProxy = D30000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		D40000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T10000000000000000000001 /* Pinbook */;
+			targetProxy = D40000000000000000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -389,6 +456,34 @@
 			};
 			name = Release;
 		};
+		C40000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Pinbook;
+			};
+			name = Debug;
+		};
+		C40000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Pinbook;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -415,6 +510,15 @@
 			buildConfigurations = (
 				C30000000000000000000001 /* Debug */,
 				C30000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L40000000000000000000001 /* Build configuration list for PBXNativeTarget "PinbookUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C40000000000000000000001 /* Debug */,
+				C40000000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

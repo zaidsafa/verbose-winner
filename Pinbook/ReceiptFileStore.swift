@@ -104,9 +104,29 @@ enum ReceiptLifecycle {
         context: ModelContext,
         store: any ReceiptStoring = ReceiptFileStore.shared
     ) async throws {
-        try await store.remove(fileName: metadata.fileName)
+        try await remove(
+            metadata,
+            store: store,
+            persist: { try context.save() },
+            rollback: { context.rollback() }
+        )
+    }
+
+    @MainActor
+    static func remove(
+        _ metadata: ReceiptMetadataItem,
+        store: any ReceiptStoring,
+        persist: @MainActor () throws -> Void,
+        rollback: @MainActor () -> Void
+    ) async throws {
         metadata.isTombstoned = true
         metadata.updatedAt = .nowMilliseconds
-        try context.save()
+        do {
+            try persist()
+        } catch {
+            rollback()
+            throw error
+        }
+        try await store.remove(fileName: metadata.fileName)
     }
 }

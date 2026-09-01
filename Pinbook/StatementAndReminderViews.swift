@@ -75,8 +75,10 @@ struct StatementsView: View {
                         Text("Every statement contains exactly one person and one currency. CSV stores exact minor-unit integers; PDF formats values for reading. Files are generated locally in temporary storage.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("statements-final-help")
                     }
                 }
+                .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
             }
         }
         .scrollContentBackground(.hidden)

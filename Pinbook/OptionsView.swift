@@ -256,6 +256,7 @@ private struct BooksAndCurrenciesView: View {
                 Text("No favorites are selected by default. Expense entry only shows the currencies you choose.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("books-currencies-final-help")
             }
 
             if let settings, !settings.favoriteCurrencies.isEmpty {
@@ -265,9 +266,11 @@ private struct BooksAndCurrenciesView: View {
                             Text(currency).tag(Optional(currency))
                         }
                     }
+                    .accessibilityIdentifier("books-currencies-final-row")
                 }
             }
         }
+        .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
         .navigationTitle("Books & currencies")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

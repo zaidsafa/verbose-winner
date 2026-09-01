@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import Testing
+import UIKit
 @testable import Pinbook
 
 @MainActor
@@ -318,6 +319,147 @@ import Testing
     #expect(String(data: pdf.prefix(4), encoding: .ascii) == "%PDF")
 }
 
+@Test func statementCSVNeutralizesSpreadsheetFormulas() throws {
+    let first = ExpenseRecord(
+        id: "first",
+        amountMinor: 100,
+        currency: "USD",
+        purpose: "=1+1",
+        counterparty: "+SUM(A1:A2)",
+        occurredAt: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        isNoted: false
+    )
+    let second = ExpenseRecord(
+        id: "second",
+        amountMinor: 200,
+        currency: "USD",
+        purpose: "-2+3",
+        counterparty: "@SUM(A1:A2)",
+        occurredAt: 2,
+        createdAt: 2,
+        updatedAt: 2,
+        isNoted: false
+    )
+
+    let csv = try LocalStatementGenerator().csv(for: [first, second], settlements: [])
+    let text = try #require(String(data: csv, encoding: .utf8))
+    #expect(text.contains(",'=1+1,'+SUM(A1:A2),"))
+    #expect(text.contains(",'-2+3,'@SUM(A1:A2),"))
+}
+
+@Test func statementArithmeticOverflowFailsExplicitly() throws {
+    let expense = ExpenseRecord(
+        id: "overflow",
+        amountMinor: Int64.max,
+        currency: "USD",
+        purpose: "Overflow",
+        counterparty: "Test",
+        occurredAt: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        isNoted: false
+    )
+    let payments = [
+        SettlementRecord(
+            id: "max",
+            expenseId: expense.id,
+            amountMinor: Int64.max,
+            note: nil,
+            occurredAt: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            isDeleted: false
+        ),
+        SettlementRecord(
+            id: "one",
+            expenseId: expense.id,
+            amountMinor: 1,
+            note: nil,
+            occurredAt: 2,
+            createdAt: 2,
+            updatedAt: 2,
+            isDeleted: false
+        ),
+    ]
+
+    do {
+        _ = try LocalStatementGenerator().csv(for: [expense], settlements: payments)
+        Issue.record("CSV generation should reject settlement overflow")
+    } catch let error as StatementGenerationError {
+        #expect(error == .arithmeticOverflow)
+    }
+
+    let second = ExpenseRecord(
+        id: "second-overflow",
+        amountMinor: Int64.max,
+        currency: "USD",
+        purpose: "Overflow total",
+        counterparty: "Test",
+        occurredAt: 2,
+        createdAt: 2,
+        updatedAt: 2,
+        isNoted: false
+    )
+    do {
+        _ = try LocalStatementGenerator().pdf(for: [expense, second], settlements: [])
+        Issue.record("PDF generation should reject total overflow")
+    } catch let error as StatementGenerationError {
+        #expect(error == .arithmeticOverflow)
+    }
+}
+
+@Test func statementPDFPaintsWhitePagesWithDarkInkInDarkMode() throws {
+    let expense = ExpenseRecord(
+        id: "dark-pdf",
+        amountMinor: 12_345,
+        currency: "USD",
+        purpose: "Print-safe statement",
+        counterparty: "Dark appearance",
+        occurredAt: 1_788_192_000_000,
+        createdAt: 1_788_192_000_000,
+        updatedAt: 1_788_192_000_000,
+        isNoted: false
+    )
+    var generationResult: Result<Data, Error>?
+    UITraitCollection(userInterfaceStyle: .dark).performAsCurrent {
+        generationResult = Result {
+            try LocalStatementGenerator().pdf(for: [expense], settlements: [])
+        }
+    }
+    let pdf = try #require(generationResult).get()
+    let dataProvider = try #require(CGDataProvider(data: pdf as CFData))
+    let document = try #require(CGPDFDocument(dataProvider))
+    let page = try #require(document.page(at: 1))
+    let width = 595
+    let height = 842
+    var pixels = [UInt8](repeating: 0, count: width * height * 4)
+    let context = try #require(CGContext(
+        data: &pixels,
+        width: width,
+        height: height,
+        bitsPerComponent: 8,
+        bytesPerRow: width * 4,
+        space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    ))
+    context.setFillColor(UIColor.magenta.cgColor)
+    context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+    context.translateBy(x: 0, y: CGFloat(height))
+    context.scaleBy(x: 1, y: -1)
+    context.drawPDFPage(page)
+
+    let corner = (10 * width + 10) * 4
+    #expect(pixels[corner] > 245)
+    #expect(pixels[corner + 1] > 245)
+    #expect(pixels[corner + 2] > 245)
+    let darkPixelCount = stride(from: 0, to: pixels.count, by: 4).filter { index in
+        pixels[index] < 80 && pixels[index + 1] < 80 && pixels[index + 2] < 80
+    }.count
+    #expect(darkPixelCount > 100)
+}
+
 @Test func reminderRequestIsDeterministicAndLockScreenPrivate() {
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -380,6 +522,51 @@ import Testing
         removedFileIsUnavailable = true
     }
     #expect(removedFileIsUnavailable)
+}
+
+@MainActor
+@Test func failedReceiptTombstoneSaveKeepsThePrivateFile() async throws {
+    enum ExpectedFailure: Error { case save }
+
+    let root = FileManager.default.temporaryDirectory
+        .appending(path: "PinbookReceiptFailedRemoval-\(UUID().uuidString)", directoryHint: .isDirectory)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let store = ReceiptFileStore(rootDirectory: root)
+    let source = Data("keep this receipt".utf8)
+    let fileName = try await store.save(data: source, preferredFileName: "receipt.jpg")
+    let metadata = ReceiptMetadataItem(
+        expenseID: "expense",
+        fileName: fileName,
+        mimeType: "image/jpeg",
+        displayName: "Receipt photo",
+        updatedAt: 123
+    )
+    var rollbackCalled = false
+
+    do {
+        try await ReceiptLifecycle.remove(
+            metadata,
+            store: store,
+            persist: { throw ExpectedFailure.save },
+            rollback: {
+                rollbackCalled = true
+                metadata.isTombstoned = false
+                metadata.updatedAt = 123
+            }
+        )
+        Issue.record("Receipt removal should surface the tombstone save failure")
+    } catch ExpectedFailure.save {
+        // Expected: the private file must not be removed before metadata persists.
+    }
+
+    #expect(rollbackCalled)
+    #expect(!metadata.isTombstoned)
+    #expect(metadata.updatedAt == 123)
+    #expect(try await store.load(fileName: fileName) == source)
+}
+
+@Test func scrollClearanceKeepsFinalRowsAboveTheLiquidGlassTabBar() {
+    #expect(PinbookLayout.tabBarScrollClearance >= 96)
 }
 
 #if DEBUG
