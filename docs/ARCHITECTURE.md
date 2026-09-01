@@ -15,6 +15,8 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 ## Planned boundaries, not implemented claims
 
 - Drive will use per-user authorization with only `drive.appdata`; tokens must remain in memory or protected system storage and no central Pinbook backend is planned.
+- Google Drive is the first planned transport because it preserves Android/iOS interoperability. Apple does not require iCloud for App Store distribution.
+- A future iCloud/CloudKit adapter may implement the same `BackupTransport` port as an alternative provider. Automatic Google Drive and iCloud replication must not run simultaneously until a single-authority and cross-provider conflict design is proven.
 - Sync will stage remote data, present a restore preview, retain undo snapshots, and apply deterministic merge results transactionally.
 - Receipts will be copied into app-private storage and represented in backup data.
 - Statements will remain grouped by person and currency.
@@ -22,3 +24,7 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 - OCR will be an optional on-device enhancement behind `ReceiptTextRecognizing`.
 
 No adapter above is implemented in the initial foundation, and the UI must label unavailable actions accordingly.
+
+## Localization and accessibility
+
+SwiftUI strings use localized keys and a string catalog seeds English plus Arabic top-level navigation. Layout code uses semantic leading/trailing alignment and system Dynamic Type. The validation plan requires RTL, VoiceOver, Reduce Transparency, Increase Contrast, light/dark, and accessibility-size checks before release.

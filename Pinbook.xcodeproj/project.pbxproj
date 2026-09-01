@@ -1,0 +1,401 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B10000000000000000000001 /* PinbookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* PinbookApp.swift */; };
+		B10000000000000000000002 /* PersistenceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* PersistenceModels.swift */; };
+		B10000000000000000000003 /* PinbookTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* PinbookTheme.swift */; };
+		B10000000000000000000004 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000004 /* AppShellView.swift */; };
+		B10000000000000000000005 /* ExpenseViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ExpenseViews.swift */; };
+		B10000000000000000000006 /* ExpenseEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* ExpenseEditorView.swift */; };
+		B10000000000000000000007 /* SummaryAndNotedViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* SummaryAndNotedViews.swift */; };
+		B10000000000000000000008 /* OptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* OptionsView.swift */; };
+		B10000000000000000000009 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* Localizable.xcstrings */; };
+		B20000000000000000000001 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* Records.swift */; };
+		B20000000000000000000002 /* Backup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* Backup.swift */; };
+		B20000000000000000000003 /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Money.swift */; };
+		B20000000000000000000004 /* Merge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Merge.swift */; };
+		B20000000000000000000005 /* ServicePorts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ServicePorts.swift */; };
+		B30000000000000000000001 /* PinbookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000001 /* PinbookTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D30000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T10000000000000000000001;
+			remoteInfo = Pinbook;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		A10000000000000000000001 /* PinbookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000002 /* PersistenceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceModels.swift; sourceTree = "<group>"; };
+		A10000000000000000000003 /* PinbookTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookTheme.swift; sourceTree = "<group>"; };
+		A10000000000000000000004 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
+		A10000000000000000000005 /* ExpenseViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseViews.swift; sourceTree = "<group>"; };
+		A10000000000000000000006 /* ExpenseEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseEditorView.swift; sourceTree = "<group>"; };
+		A10000000000000000000007 /* SummaryAndNotedViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryAndNotedViews.swift; sourceTree = "<group>"; };
+		A10000000000000000000008 /* OptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsView.swift; sourceTree = "<group>"; };
+		A10000000000000000000009 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		A20000000000000000000001 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* Backup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backup.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* Merge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Merge.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* ServicePorts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicePorts.swift; sourceTree = "<group>"; };
+		A30000000000000000000001 /* PinbookTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookTests.swift; sourceTree = "<group>"; };
+		P10000000000000000000001 /* Pinbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pinbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		P30000000000000000000001 /* PinbookTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PinbookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F10000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G00000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				G10000000000000000000001 /* Pinbook */,
+				G20000000000000000000001 /* PinbookCore */,
+				G30000000000000000000001 /* PinbookTests */,
+				G90000000000000000000001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		G10000000000000000000001 /* Pinbook */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000001 /* PinbookApp.swift */,
+				A10000000000000000000002 /* PersistenceModels.swift */,
+				A10000000000000000000003 /* PinbookTheme.swift */,
+				A10000000000000000000004 /* AppShellView.swift */,
+				A10000000000000000000005 /* ExpenseViews.swift */,
+				A10000000000000000000006 /* ExpenseEditorView.swift */,
+				A10000000000000000000007 /* SummaryAndNotedViews.swift */,
+				A10000000000000000000008 /* OptionsView.swift */,
+				A10000000000000000000009 /* Localizable.xcstrings */,
+			);
+			path = Pinbook;
+			sourceTree = "<group>";
+		};
+		G20000000000000000000001 /* PinbookCore */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* Records.swift */,
+				A20000000000000000000002 /* Backup.swift */,
+				A20000000000000000000003 /* Money.swift */,
+				A20000000000000000000004 /* Merge.swift */,
+				A20000000000000000000005 /* ServicePorts.swift */,
+			);
+			path = Sources/PinbookCore;
+			sourceTree = "<group>";
+		};
+		G30000000000000000000001 /* PinbookTests */ = {
+			isa = PBXGroup;
+			children = (
+				A30000000000000000000001 /* PinbookTests.swift */,
+			);
+			path = PinbookTests;
+			sourceTree = "<group>";
+		};
+		G90000000000000000000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				P10000000000000000000001 /* Pinbook.app */,
+				P30000000000000000000001 /* PinbookTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		T10000000000000000000001 /* Pinbook */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L10000000000000000000001 /* Build configuration list for PBXNativeTarget "Pinbook" */;
+			buildPhases = (
+				S10000000000000000000001 /* Sources */,
+				F10000000000000000000001 /* Frameworks */,
+				R10000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Pinbook;
+			productName = Pinbook;
+			productReference = P10000000000000000000001 /* Pinbook.app */;
+			productType = "com.apple.product-type.application";
+		};
+		T30000000000000000000001 /* PinbookTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L30000000000000000000001 /* Build configuration list for PBXNativeTarget "PinbookTests" */;
+			buildPhases = (
+				S30000000000000000000001 /* Sources */,
+				F30000000000000000000001 /* Frameworks */,
+				R30000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D30000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = PinbookTests;
+			productName = PinbookTests;
+			productReference = P30000000000000000000001 /* PinbookTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E00000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					T10000000000000000000001 = { CreatedOnToolsVersion = 26.6; };
+					T30000000000000000000001 = { CreatedOnToolsVersion = 26.6; TestTargetID = T10000000000000000000001; };
+				};
+			};
+			buildConfigurationList = L00000000000000000000001 /* Build configuration list for PBXProject "Pinbook" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				ar,
+				en,
+				Base,
+			);
+			mainGroup = G00000000000000000000001;
+			productRefGroup = G90000000000000000000001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				T10000000000000000000001 /* Pinbook */,
+				T30000000000000000000001 /* PinbookTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		R10000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000009 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		R30000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		S10000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000001 /* PinbookApp.swift in Sources */,
+				B10000000000000000000002 /* PersistenceModels.swift in Sources */,
+				B10000000000000000000003 /* PinbookTheme.swift in Sources */,
+				B10000000000000000000004 /* AppShellView.swift in Sources */,
+				B10000000000000000000005 /* ExpenseViews.swift in Sources */,
+				B10000000000000000000006 /* ExpenseEditorView.swift in Sources */,
+				B10000000000000000000007 /* SummaryAndNotedViews.swift in Sources */,
+				B10000000000000000000008 /* OptionsView.swift in Sources */,
+				B20000000000000000000001 /* Records.swift in Sources */,
+				B20000000000000000000002 /* Backup.swift in Sources */,
+				B20000000000000000000003 /* Money.swift in Sources */,
+				B20000000000000000000004 /* Merge.swift in Sources */,
+				B20000000000000000000005 /* ServicePorts.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		S30000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B30000000000000000000001 /* PinbookTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D30000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T10000000000000000000001 /* Pinbook */;
+			targetProxy = D30000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		C00000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C00000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		C10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Pinbook;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Pinbook;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C30000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pinbook.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pinbook";
+			};
+			name = Debug;
+		};
+		C30000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pinbook.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pinbook";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		L00000000000000000000001 /* Build configuration list for PBXProject "Pinbook" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00000000000000000000001 /* Debug */,
+				C00000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L10000000000000000000001 /* Build configuration list for PBXNativeTarget "Pinbook" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C10000000000000000000001 /* Debug */,
+				C10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L30000000000000000000001 /* Build configuration list for PBXNativeTarget "PinbookTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C30000000000000000000001 /* Debug */,
+				C30000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E00000000000000000000001 /* Project object */;
+}

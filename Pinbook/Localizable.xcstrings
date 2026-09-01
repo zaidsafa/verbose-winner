@@ -1,0 +1,46 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Add expense" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة مصروف" } }
+      }
+    },
+    "Choose currencies" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "اختيار العملات" } }
+      }
+    },
+    "Expenses" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصروفات" } }
+      }
+    },
+    "Noted" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المؤرشف" } }
+      }
+    },
+    "Options" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الخيارات" } }
+      }
+    },
+    "Quick Add" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة سريعة" } }
+      }
+    },
+    "Summary" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الملخص" } }
+      }
+    },
+    "Your open expenses" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصروفاتك المفتوحة" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
