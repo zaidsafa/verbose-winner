@@ -49,13 +49,9 @@ struct OptionsView: View {
 
             Section("Data") {
                 NavigationLink {
-                    PlannedCapabilityView(
-                        title: "Backup & sync",
-                        symbol: "arrow.triangle.2.circlepath.icloud",
-                        detail: "Per-user Google Drive app-data sync, restore preview, history, undo snapshots, and conflict recovery are planned but not connected."
-                    )
+                    BackupRecoveryView()
                 } label: {
-                    OptionsRow(title: "Backup & sync", subtitle: "Not connected", symbol: "icloud.slash")
+                    OptionsRow(title: "Backup & Recovery", subtitle: "Local Files and restore history", symbol: "externaldrive.badge.timemachine")
                 }
 
                 NavigationLink {

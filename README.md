@@ -11,13 +11,14 @@ The Android product remains the behavioral reference while this repository devel
 - Expenses, currency-separated Summary, recoverable Noted, and grouped Options.
 - Currency-safe signed 64-bit minor units and partial-payment balances.
 - Shared backup-v8 models and deterministic conflict merge groundwork.
+- Local Backup & Recovery center with native Files export/import, validated per-entity restore preview, pre-restore snapshots, exact recovery, and privacy-safe activity history.
 - Five Pinbook visual skins and localization-ready, RTL-safe layout.
 - Editable books, explicit favorite currencies, templates, Favorites, and Quick Add.
 - Selected-photo-only receipts copied into app-private protected storage.
 - On-device, one-person/one-currency print-safe PDF and exact-value, spreadsheet-safe CSV statements with explicit overflow failure.
 - Privacy-safe local reminders that request permission only during an explicit reminder save.
 
-Google Drive, iCloud, conflict-recovery UI, and OCR are not implemented. Physical-device notification delivery and share-extension transfer remain acceptance boundaries. Their status is documented without presenting unverified behavior as working.
+Google Drive, iCloud, OAuth, and OCR are not implemented. Both native Files sheets have been opened on a physical iPhone, but a completed external Files save/import round trip, notification delivery, and share-extension transfer remain acceptance boundaries. Their status is documented without presenting unverified behavior as working.
 
 ## Build and test
 

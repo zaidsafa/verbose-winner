@@ -17,6 +17,8 @@ import UIKit
     #expect(try context.fetch(FetchDescriptor<SettlementItem>()).isEmpty)
     #expect(try context.fetch(FetchDescriptor<ExpenseTemplateItem>()).isEmpty)
     #expect(try context.fetch(FetchDescriptor<ReceiptMetadataItem>()).isEmpty)
+    #expect(try context.fetch(FetchDescriptor<BackupActivityItem>()).isEmpty)
+    #expect(try context.fetch(FetchDescriptor<BackupSnapshotItem>()).isEmpty)
     let settings = try #require(context.fetch(FetchDescriptor<AppearanceSettingsItem>()).first)
     #expect(settings.favoriteCurrencies.isEmpty)
     #expect(settings.preferredCurrency == nil)
@@ -567,6 +569,181 @@ import UIKit
 
 @Test func scrollClearanceKeepsFinalRowsAboveTheLiquidGlassTabBar() {
     #expect(PinbookLayout.tabBarScrollClearance >= 96)
+}
+
+@MainActor
+@Test func localBackupExportsAndroidV8WithReceiptBytesAndAllEntityTypes() async throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let root = FileManager.default.temporaryDirectory
+        .appending(path: "PinbookBackupExport-\(UUID().uuidString)", directoryHint: .isDirectory)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let store = ReceiptFileStore(rootDirectory: root)
+    try PinbookBootstrap.prepare(context)
+
+    let expense = ExpenseItem(
+        id: "expense",
+        amountMinor: 12_345,
+        currency: "USD",
+        purpose: "Courier",
+        counterparty: "Customer",
+        category: "Delivery",
+        tags: ["urgent"],
+        privateNote: "private",
+        updatedAt: 20
+    )
+    context.insert(expense)
+    context.insert(SettlementItem(id: "payment", expenseID: expense.id, amountMinor: 2_345, updatedAt: 21))
+    context.insert(ExpenseTemplateItem(
+        id: "template",
+        bookID: "default",
+        name: "Monthly",
+        amountMinor: 900,
+        currency: "EUR",
+        purpose: "Template",
+        counterparty: "Supplier",
+        updatedAt: 22
+    ))
+    try context.save()
+    let receiptBytes = Data("private receipt bytes".utf8)
+    _ = try await ReceiptLifecycle.attach(
+        data: receiptBytes,
+        preferredFileName: "receipt.png",
+        mimeType: "image/png",
+        displayName: "Receipt photo",
+        to: expense,
+        context: context,
+        store: store
+    )
+
+    let prepared = try await BackupRecoveryService(context: context, receiptStore: store)
+        .prepareExport(now: 1_788_192_000_000)
+    let decoded = try JSONDecoder().decode(PinbookBackup.self, from: prepared.data)
+    #expect(decoded.formatVersion == 8)
+    #expect(decoded.books.count == 1)
+    #expect(decoded.expenses.count == 1)
+    #expect(decoded.settlements.count == 1)
+    #expect(decoded.templates.count == 1)
+    #expect(decoded.receiptAttachments.count == 1)
+    #expect(decoded.appearance != nil)
+    #expect(Data(base64Encoded: decoded.receiptAttachments[0].contentBase64) == receiptBytes)
+    #expect(prepared.fileName.contains("v8"))
+    #expect(decoded.totalRecordCount == 6)
+}
+
+@MainActor
+@Test func corruptAndUnsupportedBackupsNeverMutateFinancialRecords() async throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    try PinbookBootstrap.prepare(context)
+    context.insert(ExpenseItem(
+        id: "original",
+        amountMinor: 500,
+        currency: "USD",
+        purpose: "Keep me",
+        counterparty: "Person",
+        updatedAt: 10
+    ))
+    try context.save()
+    let service = BackupRecoveryService(context: context)
+
+    let invalidCases: [(Data, BackupRecoveryError)] = [
+        (Data("not-json".utf8), .invalidBackup),
+        (Data(#"{"formatVersion":9}"#.utf8), .unsupportedBackupVersion),
+    ]
+    for (invalidData, expectedError) in invalidCases {
+        do {
+            _ = try await service.prepareRestore(data: invalidData)
+            Issue.record("Invalid backup should be rejected")
+        } catch let error as BackupRecoveryError {
+            #expect(error == expectedError)
+        } catch {
+            Issue.record("Invalid backup should use a localized recovery error")
+        }
+        let expenses = try context.fetch(FetchDescriptor<ExpenseItem>())
+        #expect(expenses.count == 1)
+        #expect(expenses.first?.id == "original")
+        #expect(expenses.first?.purpose == "Keep me")
+        #expect(try context.fetch(FetchDescriptor<BackupSnapshotItem>()).isEmpty)
+    }
+    let failures = try context.fetch(FetchDescriptor<BackupActivityItem>())
+    #expect(failures.count == 2)
+    #expect(failures.allSatisfy { $0.kind == .failedRestore && $0.status == .failed })
+}
+
+@MainActor
+@Test func appliedRestoreCreatesSnapshotAndRecoveryRollsBackExactly() async throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let root = FileManager.default.temporaryDirectory
+        .appending(path: "PinbookBackupRecovery-\(UUID().uuidString)", directoryHint: .isDirectory)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let store = ReceiptFileStore(rootDirectory: root)
+    try PinbookBootstrap.prepare(context)
+    context.insert(ExpenseItem(
+        id: "shared",
+        amountMinor: 100,
+        currency: "USD",
+        purpose: "Original local",
+        counterparty: "Person",
+        updatedAt: 10
+    ))
+    try context.save()
+    let service = BackupRecoveryService(context: context, receiptStore: store)
+    let baseline = try await service.captureBackup(exportedAt: nil)
+    let updated = ExpenseRecord(
+        id: "shared",
+        amountMinor: 150,
+        currency: "USD",
+        purpose: "Newer imported",
+        counterparty: "Person",
+        bookId: "default",
+        occurredAt: 1,
+        createdAt: 1,
+        updatedAt: 20,
+        isNoted: false
+    )
+    let addedEUR = ExpenseRecord(
+        id: "added-eur",
+        amountMinor: 200,
+        currency: "EUR",
+        purpose: "Separate currency",
+        counterparty: "Person",
+        bookId: "default",
+        occurredAt: 2,
+        createdAt: 2,
+        updatedAt: 20,
+        isNoted: false
+    )
+    let incoming = try PinbookBackup(
+        formatVersion: 8,
+        exportedAt: 30,
+        expenses: [addedEUR, updated],
+        books: baseline.books,
+        appearance: baseline.appearance
+    )
+    let encoded = try JSONEncoder().encode(incoming)
+
+    let prepared = try await service.prepareRestore(data: encoded)
+    let expenseSummary = try #require(prepared.preview.summaries.first { $0.entity == .expenses })
+    #expect(expenseSummary.added == 1)
+    #expect(expenseSummary.updated == 1)
+    let snapshot = try await service.applyRestore(prepared, now: 40)
+    let applied = try context.fetch(FetchDescriptor<ExpenseItem>())
+    #expect(Set(applied.map(\.currency)) == ["USD", "EUR"])
+    #expect(applied.first { $0.id == "shared" }?.purpose == "Newer imported")
+    #expect(try context.fetch(FetchDescriptor<BackupSnapshotItem>()).count == 1)
+
+    try await service.recover(snapshot, now: 50)
+    let recovered = try context.fetch(FetchDescriptor<ExpenseItem>())
+    #expect(recovered.count == 1)
+    #expect(recovered.first?.id == "shared")
+    #expect(recovered.first?.purpose == "Original local")
+    #expect(snapshot.recoveredAt == 50)
+    let activities = try context.fetch(FetchDescriptor<BackupActivityItem>())
+    #expect(activities.contains { $0.kind == .preview && $0.status == .succeeded })
+    #expect(activities.contains { $0.kind == .appliedRestore && $0.status == .succeeded })
+    #expect(activities.contains { $0.kind == .recovery && $0.status == .succeeded })
 }
 
 #if DEBUG

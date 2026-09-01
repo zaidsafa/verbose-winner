@@ -37,6 +37,8 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - Receipt removal persists its tombstone before deleting private bytes. If persistence fails, rollback keeps both live metadata and the file; a later byte-removal failure can leave an orphan but cannot leave live metadata pointing to a missing file.
 - Books and Statements reserve shared bottom scroll clearance, and UI automation proves their final identified content can be moved fully above the floating Liquid Glass tab bar.
 - Local reminders request notification authorization only during an explicit reminder-bearing save. Scheduled notification copy is generic, and pending requests are cancelled when a reminder is cancelled or its expense is marked noted.
+- Local Backup & Recovery exports the complete Android-compatible version-8 envelope through native Files, validates imported content and references before mutation, previews add/update/unchanged/conflict counts by entity, keeps local records on equal-timestamp conflicts, and never converts or combines currencies.
+- A confirmed restore saves an exact pre-restore snapshot before transactional apply. Recovery replaces the financial domain with that snapshot; receipt bytes are staged before SwiftData changes, and activity history stores only privacy-safe metadata and opaque failure codes.
 
 ## Validation
 
@@ -54,18 +56,22 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - The receipt milestone passes 11/11 simulator tests. Interactive PhotosPicker acceptance imported a deterministic image, displayed its attachment metadata, and verified the copied 2,853,668-byte UUID-named PNG inside Pinbook's private Simulator container. Evidence: `docs/evidence/pinbook-private-receipt.png`.
 - The statement/reminder milestone passes 14/14 simulator tests. Interactive acceptance generated a 178-byte exact-value CSV and a 28,996-byte one-page PDF for one person/currency scope without opening the share sheet. The reminder overview showed generic privacy guidance and a future fixture date. Evidence: `docs/evidence/pinbook-statements.png` and `docs/evidence/pinbook-reminders.png`.
 - The follow-up complete scheme passes 20/20 on the dedicated iPhone 17 Pro simulator (19/19 isolated tests plus 1/1 XCUITest). It covers dark-mode print-safe PDF pixels, CSV formula neutralization, explicit statement-overflow failures, receipt tombstone-save failure ordering, and final-row/help reachability above the tab bar. Evidence: `docs/evidence/pinbook-statements-dark-reachability.png` and `docs/evidence/pinbook-dark-generated-statement-pdf.png`.
+- The local backup milestone passes 7/7 Swift package tests and 26/26 complete-scheme tests on the dedicated iPhone 17 Pro simulator (22/22 isolated tests plus 4/4 XCUITests). It covers full version-8 export/round trip with receipt bytes, deterministic preview/local-wins ties, currency separation, corrupt/unsupported no-financial-mutation, pre-restore snapshot creation, exact recovery rollback, English dark plus Arabic RTL reachability, and native Files export/import sheet presentation without saving or selecting a document. Unsigned Debug and Release builds pass. Evidence: `docs/evidence/pinbook-backup-recovery-dark.png`, `docs/evidence/pinbook-backup-recovery-ar.png`, and `docs/evidence/pinbook-files-import-picker-physical.png`.
+- The signed Debug build also installed on a wired iPhone 16 Pro running iOS 26.6, where the complete scheme passed 26/26. Physical English dark and Arabic RTL screenshots replaced the earlier Simulator captures for the two backup-screen evidence files. The native export and import sheets both opened on that phone; automation terminated Pinbook without pressing Save or selecting a file. Tests used isolated fixtures/temporary storage and did not touch production financial data.
 - The Simulator accessibility tree exposes card labels, labeled remaining values, and Payment/Mark noted actions in logical order. Spoken VoiceOver, rotor, and physical-device focus behavior remain outside this evidence boundary.
 
 ## Limitations
 
-- Drive/OAuth, conflict-recovery UI, and OCR remain unimplemented.
+- Drive/OAuth, iCloud transport, and OCR remain unimplemented. Backup & Recovery is currently manual and local through Files.
 - iCloud/CloudKit is not implemented. The planned provider design treats it as an optional alternative to Google Drive, not a simultaneous second sync authority.
 - Statements are generated locally, but successful transfer through a chosen share extension was not exercised. Reminder request construction is implemented, but authorization and real notification delivery were deliberately not triggered during simulator acceptance.
 - Arabic now covers the current iOS shell, forms, grouped options, validation copy, and accessibility labels. Full parity with Android's five locales remains unfinished, and user-authored content is not translated.
-- Simulator validation does not prove physical-device behavior, Apple signing, TestFlight, Drive transfer, iCloud, notifications, or App Store acceptance.
-- No Apple signing, OAuth credentials, external account settings, TestFlight, or App Store state has been created or changed.
+- The universal target declares all four standard interface orientations, but the complete iPhone/iPad rotation and multitasking layout matrix has not yet received visual acceptance.
+- Physical build/install and automated tests do not prove TestFlight, Drive transfer, iCloud, a completed external Files-provider transfer, real notification delivery, or App Store acceptance. The UI tests opened both system document pickers but did not save or select a file.
+- Existing Apple development signing was used for the device build. No new signing credentials/profiles, OAuth credentials, external account settings, TestFlight state, or App Store state were created or changed.
 
 ## Exact next actions
 
-1. Complete an interactive physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, Increase Contrast, the five-skin light/dark matrix, share-extension transfer, and real local-notification delivery.
-2. Implement Google Drive `drive.appdata` only after explicit OAuth/provider approval, with restore preview, history, undo snapshots, and deterministic conflict recovery.
+1. On a physical iPhone, export a backup to a chosen Files location, import it into a disposable test state, inspect the preview, apply it, and recover the pre-restore snapshot. This must use non-production test data.
+2. Complete the remaining physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, Increase Contrast, the five-skin light/dark matrix, share-extension transfer, and real local-notification delivery.
+3. Implement Google Drive `drive.appdata` only after explicit OAuth/provider approval, routing remote bytes through the existing validation, preview, snapshot, history, and deterministic conflict-recovery boundary.

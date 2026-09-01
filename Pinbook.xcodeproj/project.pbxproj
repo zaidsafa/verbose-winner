@@ -22,11 +22,14 @@
 		B1000000000000000000000D /* ReceiptViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000D /* ReceiptViews.swift */; };
 		B1000000000000000000000E /* StatementAndReminderServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000E /* StatementAndReminderServices.swift */; };
 		B1000000000000000000000F /* StatementAndReminderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000F /* StatementAndReminderViews.swift */; };
+		B10000000000000000000010 /* BackupRecoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000010 /* BackupRecoveryService.swift */; };
+		B10000000000000000000011 /* BackupRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* BackupRecoveryView.swift */; };
 		B20000000000000000000001 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* Records.swift */; };
 		B20000000000000000000002 /* Backup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* Backup.swift */; };
 		B20000000000000000000003 /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Money.swift */; };
 		B20000000000000000000004 /* Merge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Merge.swift */; };
 		B20000000000000000000005 /* ServicePorts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ServicePorts.swift */; };
+		B20000000000000000000006 /* BackupRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* BackupRecovery.swift */; };
 		B30000000000000000000001 /* PinbookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000001 /* PinbookTests.swift */; };
 		B40000000000000000000001 /* PinbookUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* PinbookUITests.swift */; };
 /* End PBXBuildFile section */
@@ -64,11 +67,14 @@
 		A1000000000000000000000D /* ReceiptViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptViews.swift; sourceTree = "<group>"; };
 		A1000000000000000000000E /* StatementAndReminderServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAndReminderServices.swift; sourceTree = "<group>"; };
 		A1000000000000000000000F /* StatementAndReminderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAndReminderViews.swift; sourceTree = "<group>"; };
+		A10000000000000000000010 /* BackupRecoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecoveryService.swift; sourceTree = "<group>"; };
+		A10000000000000000000011 /* BackupRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecoveryView.swift; sourceTree = "<group>"; };
 		A20000000000000000000001 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* Backup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backup.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
 		A20000000000000000000004 /* Merge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Merge.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* ServicePorts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicePorts.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* BackupRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecovery.swift; sourceTree = "<group>"; };
 		A30000000000000000000001 /* PinbookTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000001 /* PinbookUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookUITests.swift; sourceTree = "<group>"; };
 		P10000000000000000000001 /* Pinbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pinbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +136,8 @@
 				A1000000000000000000000D /* ReceiptViews.swift */,
 				A1000000000000000000000E /* StatementAndReminderServices.swift */,
 				A1000000000000000000000F /* StatementAndReminderViews.swift */,
+				A10000000000000000000010 /* BackupRecoveryService.swift */,
+				A10000000000000000000011 /* BackupRecoveryView.swift */,
 			);
 			path = Pinbook;
 			sourceTree = "<group>";
@@ -142,6 +150,7 @@
 				A20000000000000000000003 /* Money.swift */,
 				A20000000000000000000004 /* Merge.swift */,
 				A20000000000000000000005 /* ServicePorts.swift */,
+				A20000000000000000000006 /* BackupRecovery.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -307,11 +316,14 @@
 				B1000000000000000000000D /* ReceiptViews.swift in Sources */,
 				B1000000000000000000000E /* StatementAndReminderServices.swift in Sources */,
 				B1000000000000000000000F /* StatementAndReminderViews.swift in Sources */,
+				B10000000000000000000010 /* BackupRecoveryService.swift in Sources */,
+				B10000000000000000000011 /* BackupRecoveryView.swift in Sources */,
 				B20000000000000000000001 /* Records.swift in Sources */,
 				B20000000000000000000002 /* Backup.swift in Sources */,
 				B20000000000000000000003 /* Money.swift in Sources */,
 				B20000000000000000000004 /* Merge.swift in Sources */,
 				B20000000000000000000005 /* ServicePorts.swift in Sources */,
+				B20000000000000000000006 /* BackupRecovery.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -389,6 +401,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.0;
@@ -414,6 +427,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.0;

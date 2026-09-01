@@ -9,7 +9,89 @@ enum PinbookSchema {
         ExpenseTemplateItem.self,
         ReceiptMetadataItem.self,
         AppearanceSettingsItem.self,
+        BackupActivityItem.self,
+        BackupSnapshotItem.self,
     ]
+}
+
+enum BackupActivityKind: String, Codable {
+    case export
+    case preview
+    case appliedRestore
+    case failedRestore
+    case recovery
+}
+
+enum BackupActivityStatus: String, Codable {
+    case succeeded
+    case failed
+}
+
+@Model
+final class BackupActivityItem {
+    @Attribute(.unique) var id: String
+    var kindRaw: String
+    var statusRaw: String
+    var occurredAt: Int64
+    var formatVersion: Int
+    var recordCount: Int
+    var changedCount: Int
+    var conflictCount: Int
+    var snapshotID: String?
+    var detailCode: String?
+
+    init(
+        id: String = UUID().uuidString,
+        kind: BackupActivityKind,
+        status: BackupActivityStatus,
+        occurredAt: Int64 = .nowMilliseconds,
+        formatVersion: Int = PinbookBackup.currentFormatVersion,
+        recordCount: Int = 0,
+        changedCount: Int = 0,
+        conflictCount: Int = 0,
+        snapshotID: String? = nil,
+        detailCode: String? = nil
+    ) {
+        self.id = id
+        kindRaw = kind.rawValue
+        statusRaw = status.rawValue
+        self.occurredAt = occurredAt
+        self.formatVersion = formatVersion
+        self.recordCount = recordCount
+        self.changedCount = changedCount
+        self.conflictCount = conflictCount
+        self.snapshotID = snapshotID
+        self.detailCode = detailCode
+    }
+
+    var kind: BackupActivityKind { BackupActivityKind(rawValue: kindRaw) ?? .failedRestore }
+    var status: BackupActivityStatus { BackupActivityStatus(rawValue: statusRaw) ?? .failed }
+}
+
+@Model
+final class BackupSnapshotItem {
+    @Attribute(.unique) var id: String
+    var createdAt: Int64
+    var formatVersion: Int
+    var recordCount: Int
+    var backupData: Data
+    var recoveredAt: Int64?
+
+    init(
+        id: String = UUID().uuidString,
+        createdAt: Int64 = .nowMilliseconds,
+        formatVersion: Int,
+        recordCount: Int,
+        backupData: Data,
+        recoveredAt: Int64? = nil
+    ) {
+        self.id = id
+        self.createdAt = createdAt
+        self.formatVersion = formatVersion
+        self.recordCount = recordCount
+        self.backupData = backupData
+        self.recoveredAt = recoveredAt
+    }
 }
 
 @Model

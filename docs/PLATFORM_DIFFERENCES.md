@@ -5,4 +5,5 @@
 - The initial visual identity is Paper glass: warm paper content, ink typography, and native Liquid Glass controls. It does not claim to reproduce Android's custom Glass renderer pixel-for-pixel.
 - SwiftData is the offline local store on iOS; Android Room remains Android-only. Backup records provide the cross-platform interchange boundary.
 - Receipt import uses system PhotosPicker without broad photo-library permission. Notification authorization is requested only when the user explicitly saves an expense with a reminder.
+- Manual backups use the native Files document exporter/importer. This gives the user control of the destination without connecting Pinbook to Google Drive, iCloud, or another provider; cloud locations shown by Files belong to the user's system configuration, not an app sync integration.
 - App signing, Google OAuth configuration, TestFlight, and App Store settings are intentionally outside this repository milestone and require explicit approval.

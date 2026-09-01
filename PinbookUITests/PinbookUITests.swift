@@ -2,6 +2,114 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testNativeFilesPickersOpenWithoutSaving() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-PinbookFixture", "populated",
+            "-PinbookTab", "options",
+            "-PinbookSkin", "paperGlass",
+            "-PinbookTheme", "dark",
+        ]
+        app.launch()
+
+        let backupLink = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Backup & Recovery")).firstMatch
+        XCTAssertTrue(backupLink.waitForExistence(timeout: 5))
+        backupLink.tap()
+        XCTAssertTrue(app.navigationBars["Backup & Recovery"].waitForExistence(timeout: 5))
+
+        app.buttons["Export backup"].tap()
+        XCTAssertTrue(nativeFilesPicker(in: app).waitForExistence(timeout: 8))
+        let exportEvidence = XCTAttachment(screenshot: app.screenshot())
+        exportEvidence.name = "Pinbook native Files export picker"
+        exportEvidence.lifetime = .keepAlways
+        add(exportEvidence)
+        app.terminate()
+
+        app.launch()
+        XCTAssertTrue(backupLink.waitForExistence(timeout: 5))
+        backupLink.tap()
+        XCTAssertTrue(app.navigationBars["Backup & Recovery"].waitForExistence(timeout: 5))
+        app.buttons["Import and preview"].tap()
+        XCTAssertTrue(nativeFilesPicker(in: app).waitForExistence(timeout: 8))
+        let importEvidence = XCTAttachment(screenshot: app.screenshot())
+        importEvidence.name = "Pinbook native Files import picker"
+        importEvidence.lifetime = .keepAlways
+        add(importEvidence)
+        app.terminate()
+    }
+
+    @MainActor
+    private func nativeFilesPicker(in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier == %@ OR label == %@ OR label == %@",
+            "Browse View (Picker)",
+            "Save",
+            "Recents"
+        )).firstMatch
+    }
+
+    @MainActor
+    func testBackupRecoveryCenterKeepsPrivacyGuidanceReachable() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-PinbookFixture", "populated",
+            "-PinbookTab", "options",
+            "-PinbookSkin", "paperGlass",
+            "-PinbookTheme", "dark",
+        ]
+        app.launch()
+
+        let backupLink = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Backup & Recovery")).firstMatch
+        XCTAssertTrue(backupLink.waitForExistence(timeout: 5))
+        backupLink.tap()
+        XCTAssertTrue(app.navigationBars["Backup & Recovery"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Export backup"].exists)
+        XCTAssertTrue(app.buttons["Import and preview"].exists)
+
+        let privacyFooter = app.descendants(matching: .any)["backup-history-privacy-footer"]
+        scrollToHittable(privacyFooter, in: app)
+        assertClearsTabBar(privacyFooter, in: app)
+
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook dark local backup and recovery center"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+    }
+
+    @MainActor
+    func testArabicBackupRecoveryCenterUsesRTLLocalizedCopy() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-AppleLanguages", "(ar)",
+            "-AppleLocale", "ar_SA",
+            "-PinbookFixture", "populated",
+            "-PinbookTab", "options",
+            "-PinbookSkin", "paperGlass",
+            "-PinbookTheme", "light",
+        ]
+        app.launch()
+
+        let backupLink = app.buttons.matching(NSPredicate(
+            format: "label CONTAINS %@",
+            "النسخ الاحتياطي والاستعادة"
+        )).firstMatch
+        XCTAssertTrue(backupLink.waitForExistence(timeout: 5))
+        backupLink.tap()
+        XCTAssertTrue(app.navigationBars["النسخ الاحتياطي والاستعادة"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["تصدير نسخة احتياطية"].exists)
+        XCTAssertTrue(app.buttons["استيراد ومعاينة"].exists)
+
+        let privacyFooter = app.descendants(matching: .any)["backup-history-privacy-footer"]
+        scrollToHittable(privacyFooter, in: app)
+        assertClearsTabBar(privacyFooter, in: app)
+
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook Arabic RTL local backup and recovery center"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+    }
+
+    @MainActor
     func testFinalBooksAndStatementContentClearsTheTabBar() throws {
         let app = XCUIApplication()
         app.launchArguments = [
