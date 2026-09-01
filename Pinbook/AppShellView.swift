@@ -10,10 +10,17 @@ enum PinbookTab: Hashable {
 
 struct AppShellView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var appearances: [AppearanceSettingsItem]
-    @State private var selection = PinbookTab.expenses
+    @State private var selection: PinbookTab
     @State private var showingAddExpense = false
     @State private var bootstrapError: String?
+    private let launchConfiguration: PinbookLaunchConfiguration
+
+    init(launchConfiguration: PinbookLaunchConfiguration = .production) {
+        self.launchConfiguration = launchConfiguration
+        _selection = State(initialValue: launchConfiguration.initialTab)
+    }
 
     private var skin: PinbookSkin {
         PinbookSkin(rawValue: appearances.first?.interfaceSkin ?? "") ?? .paperGlass
@@ -58,7 +65,9 @@ struct AppShellView: View {
                 }
             }
             .tabBarMinimizeBehavior(.onScrollDown)
-            .tabViewBottomAccessory(isEnabled: selection == .expenses && hasFavoriteCurrencies) {
+            .tabViewBottomAccessory(
+                isEnabled: selection == .expenses && hasFavoriteCurrencies && !dynamicTypeSize.isAccessibilitySize
+            ) {
                 QuickAddAccessory { showingAddExpense = true }
             }
         }
@@ -78,6 +87,9 @@ struct AppShellView: View {
         .task {
             do {
                 try PinbookBootstrap.prepare(modelContext)
+#if DEBUG
+                try PinbookDebugFixtures.prepare(modelContext, configuration: launchConfiguration)
+#endif
             } catch {
                 bootstrapError = error.localizedDescription
             }

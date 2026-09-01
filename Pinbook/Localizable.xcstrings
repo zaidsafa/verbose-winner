@@ -1,46 +1,86 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Add expense" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة مصروف" } }
-      }
-    },
-    "Choose currencies" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "اختيار العملات" } }
-      }
-    },
-    "Expenses" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصروفات" } }
-      }
-    },
-    "Noted" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المؤرشف" } }
-      }
-    },
-    "Options" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الخيارات" } }
-      }
-    },
-    "Quick Add" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة سريعة" } }
-      }
-    },
-    "Summary" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الملخص" } }
-      }
-    },
-    "Your open expenses" : {
-      "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصروفاتك المفتوحة" } }
-      }
-    }
+    "%lld favorite currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld عملات مفضلة" } } } },
+    "Add" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة" } } } },
+    "Add a periodic expense, then track what remains until it is noted." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أضف مصروفاً دورياً، ثم تابع المبلغ المتبقي حتى أرشفته." } } } },
+    "Add expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة مصروف" } } } },
+    "Amount" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المبلغ" } } } },
+    "Amount must be greater than zero." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يجب أن يكون المبلغ أكبر من صفر." } } } },
+    "Appearance" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المظهر" } } } },
+    "Backup & sync" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "النسخ الاحتياطي والمزامنة" } } } },
+    "Books" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الدفاتر" } } } },
+    "Books & currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الدفاتر والعملات" } } } },
+    "Cancel" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إلغاء" } } } },
+    "Category (optional)" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الفئة (اختياري)" } } } },
+    "Choose currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "اختيار العملات" } } } },
+    "Choose currencies first" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "اختر العملات أولاً" } } } },
+    "Clean ledger" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "سجل واضح" } } } },
+    "Currency" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "العملة" } } } },
+    "Dark" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "داكن" } } } },
+    "Data" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "البيانات" } } } },
+    "Date" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التاريخ" } } } },
+    "Dates stored; delivery planned" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التواريخ محفوظة؛ الإشعارات لاحقاً" } } } },
+    "Details" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التفاصيل" } } } },
+    "Device" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الجهاز" } } } },
+    "Editorial" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحريري" } } } },
+    "Enter a valid amount for this currency." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أدخل مبلغاً صالحاً لهذه العملة." } } } },
+    "Enter an amount up to the remaining balance." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أدخل مبلغاً لا يتجاوز الرصيد المتبقي." } } } },
+    "Expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصروف" } } } },
+    "Expenses" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصروفات" } } } },
+    "Expenses you mark as noted stay recoverable here." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تبقى المصروفات التي تؤرشفها قابلة للاستعادة هنا." } } } },
+    "Favorite currencies" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "العملات المفضلة" } } } },
+    "Interface skin" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "نمط الواجهة" } } } },
+    "Later enhancement" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحسين لاحق" } } } },
+    "Light" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "فاتح" } } } },
+    "Local store unavailable" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التخزين المحلي غير متاح" } } } },
+    "Mark noted" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "أرشفة" } } } },
+    "New expense" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصروف جديد" } } } },
+    "Night ink" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حبر ليلي" } } } },
+    "No favorites are selected by default. Expense entry only shows the currencies you choose." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا تُحدد عملات مفضلة افتراضياً. تعرض شاشة إضافة المصروف العملات التي تختارها فقط." } } } },
+    "No open balances yet." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد أرصدة مفتوحة بعد." } } } },
+    "Note (optional)" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ملاحظة (اختياري)" } } } },
+    "Not connected" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "غير متصل" } } } },
+    "Noted" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المؤرشف" } } } },
+    "Nothing noted" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توجد مصروفات مؤرشفة" } } } },
+    "Notification permission will be requested only when reminder delivery is implemented." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لن يُطلب إذن الإشعارات إلا بعد تنفيذ إرسال التذكيرات." } } } },
+    "OK" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حسناً" } } } },
+    "of" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "من" } } } },
+    "On-device receipt text recognition is a later enhancement and is not available in this build." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التعرّف على نصوص الإيصالات على الجهاز تحسين لاحق وغير متاح في هذا الإصدار." } } } },
+    "Open" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مفتوح" } } } },
+    "Opens the new expense form" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يفتح نموذج المصروف الجديد" } } } },
+    "Options" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الخيارات" } } } },
+    "Paper glass" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "زجاج ورقي" } } } },
+    "Payment" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "دفعة" } } } },
+    "Per-user Google Drive app-data sync, restore preview, history, undo snapshots, and conflict recovery are planned but not connected." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مزامنة بيانات التطبيق لكل مستخدم عبر Google Drive، ومعاينة الاستعادة والسجل ولقطات التراجع ومعالجة التعارضات مخطط لها ولكنها غير متصلة." } } } },
+    "Person or customer" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الشخص أو العميل" } } } },
+    "Personalize" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التخصيص" } } } },
+    "Pinbook never assumes a default favorite currency. Choose one in Options, then add the expense." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا يفترض Pinbook عملة مفضلة افتراضية. اختر عملة من الخيارات ثم أضف المصروف." } } } },
+    "Pinbook uses native Liquid Glass for tabs, toolbars, sheets, and important interactive controls. Expense cards retain a stable themed surface for readability." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "يستخدم Pinbook تأثير الزجاج السائل الأصلي للتبويبات وأشرطة الأدوات والنوافذ وعناصر التحكم المهمة. تحتفظ بطاقات المصروفات بخلفية ثابتة وواضحة للقراءة." } } } },
+    "Planned" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مخطط له" } } } },
+    "Private note (optional)" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ملاحظة خاصة (اختياري)" } } } },
+    "Private receipt storage and per-person, per-currency PDF/CSV statements are planned. No files are imported or exported yet." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تخزين الإيصالات الخاصة وكشوف PDF وCSV لكل شخص ولكل عملة مخطط له. لا يتم استيراد أو تصدير أي ملفات حالياً." } } } },
+    "Purpose" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الغرض" } } } },
+    "Purpose and person are required." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الغرض والشخص مطلوبان." } } } },
+    "Quick Add" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة سريعة" } } } },
+    "Receipt OCR" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "قراءة الإيصال" } } } },
+    "Receipts & statements" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الإيصالات والكشوف" } } } },
+    "Record payment" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تسجيل دفعة" } } } },
+    "Remaining" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المتبقي" } } } },
+    "Remaining balance" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الرصيد المتبقي" } } } },
+    "Remaining by currency" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "المتبقي حسب العملة" } } } },
+    "Reminder" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التذكير" } } } },
+    "Reminder dates are stored locally. Notification authorization and delivery are not implemented yet." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تُحفظ تواريخ التذكير محلياً. إذن الإشعارات وإرسالها غير منفذين بعد." } } } },
+    "Reminders" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "التذكيرات" } } } },
+    "Restore" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "استعادة" } } } },
+    "Save" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "حفظ" } } } },
+    "Set a reminder date" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحديد تاريخ تذكير" } } } },
+    "Soft pastel" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "ألوان هادئة" } } } },
+    "Summary" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "الملخص" } } } },
+    "System" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "النظام" } } } },
+    "Theme mode" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "وضع المظهر" } } } },
+    "Totals stay separated by currency. Pinbook never applies an implicit exchange rate." : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "تبقى الإجماليات منفصلة حسب العملة. لا يطبق Pinbook سعر صرف ضمنياً." } } } },
+    "Your open expenses" : { "localizations" : { "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصروفاتك المفتوحة" } } } }
   },
   "version" : "1.0"
 }

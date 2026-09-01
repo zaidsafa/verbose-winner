@@ -20,7 +20,9 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - SwiftData persistence for books, expenses, settlements, templates, receipt metadata, appearance, favorite currencies, reminders, and cross-platform timestamps.
 - Working expense entry, partial payments and remaining balance, reversible noted flow, currency-separated summary, five visual skins, and grouped Options.
 - Native Liquid Glass tab bar, minimizing behavior, bottom accessory, toolbar/buttons, sheet presentation, and grouped custom glass actions; information cards stay on stable themed surfaces.
-- Localization-ready strings with initial Arabic shell translations and RTL-safe semantic layout.
+- Arabic shell localization, RTL-safe semantic layout, and bidirectional isolation for financial values.
+- Debug-only deterministic launch fixtures use an ephemeral SwiftData store to exercise populated expenses, a partial payment, three currencies, Summary, Noted, and grouped Options without contaminating production bootstrap.
+- Accessibility-size layouts stack card metadata/actions, switch Expenses to an inline title, and remove the optional Quick Add accessory while retaining the toolbar Add action.
 
 ## Validation
 
@@ -29,19 +31,23 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - Unsigned generic iOS Simulator build passed against SDK 26.5 with deployment target 26.1.
 - The iOS test bundle compiled, and all 3 in-memory SwiftData tests passed on a dedicated iPhone 17 Pro simulator: clean production bootstrap, persisted partial payment, and currency-separated summary totals.
 - The clean-launch Expenses screen was visually inspected in English and Arabic RTL on that simulator; screenshots: `docs/evidence/pinbook-empty-expenses.png` and `docs/evidence/pinbook-empty-expenses-ar.png`.
+- The final simulator suite passes 5/5 tests after adding deterministic fixture/configuration coverage; Swift package tests remain 5/5.
+- Unsigned Debug and Release generic iOS Simulator builds pass. Release compilation excludes all fixture population code.
+- Populated visual evidence now covers Paper Glass Expenses, Soft Pastel Summary, Night Ink Noted, grouped Options, Arabic RTL, accessibility extra-extra-large text, Increase Contrast, and Reduce Transparency. See `docs/VALIDATION.md` for the evidence map.
+- The Simulator accessibility tree exposes card labels, labeled remaining values, and Payment/Mark noted actions in logical order. Spoken VoiceOver, rotor, and physical-device focus behavior remain outside this evidence boundary.
 
 ## Limitations
 
 - Drive/OAuth, receipt import, statements, notifications, conflict-recovery UI, and OCR are architectural seams only, not implemented features.
 - iCloud/CloudKit is not implemented. The planned provider design treats it as an optional alternative to Google Drive, not a simultaneous second sync authority.
 - Books and templates have persisted models but only the default book is exposed in the initial UI; template creation and additional book management are not yet implemented.
-- Arabic translations currently cover the top-level shell only; full parity with Android's five locales remains unfinished.
+- Arabic now covers the current iOS shell, forms, grouped options, validation copy, and accessibility labels. Full parity with Android's five locales remains unfinished, and user-authored content is not translated.
 - Simulator validation does not prove physical-device behavior, Apple signing, TestFlight, Drive transfer, iCloud, notifications, or App Store acceptance.
 - No Apple signing, OAuth credentials, external account settings, TestFlight, or App Store state has been created or changed.
 
 ## Exact next actions
 
-1. Complete simulator visual/accessibility checks for all four sections, five skins, light/dark, Arabic RTL, and accessibility settings.
+1. Complete an interactive physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, Increase Contrast, and the five-skin light/dark matrix.
 2. Add editable books/templates and receipt-file storage without changing the backup schema boundary.
 3. Implement statements and local reminders behind their existing ports, with focused tests and simulator/device acceptance.
 4. Implement Google Drive `drive.appdata` as the first sync adapter only after OAuth/provider decisions and explicit credential approval.

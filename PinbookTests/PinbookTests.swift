@@ -53,6 +53,50 @@ import Testing
     #expect(totals == ["USD": 100, "EUR": 200])
 }
 
+#if DEBUG
+@Test func launchArgumentsSelectDeterministicFixturePresentation() {
+    let configuration = PinbookLaunchConfiguration(arguments: [
+        "Pinbook",
+        "-PinbookFixture", "populated",
+        "-PinbookTab", "summary",
+        "-PinbookSkin", "nightInk",
+        "-PinbookTheme", "dark",
+    ])
+
+    #expect(configuration.usesFixtures)
+    #expect(configuration.initialTab == .summary)
+    #expect(configuration.skin == .nightInk)
+    #expect(configuration.themeMode == "dark")
+}
+
+@MainActor
+@Test func debugFixtureUsesInfrastructureAndDeterministicSampleRecords() throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let configuration = PinbookLaunchConfiguration(arguments: [
+        "Pinbook", "-PinbookFixture", "populated", "-PinbookSkin", "softPastel",
+    ])
+
+    try PinbookBootstrap.prepare(context)
+    try PinbookDebugFixtures.prepare(context, configuration: configuration)
+
+    let settings = try #require(context.fetch(FetchDescriptor<AppearanceSettingsItem>()).first)
+    let expenses = try context.fetch(FetchDescriptor<ExpenseItem>())
+    let settlements = try context.fetch(FetchDescriptor<SettlementItem>())
+    #expect(settings.interfaceSkin == PinbookSkin.softPastel.rawValue)
+    #expect(settings.favoriteCurrencies == ["CNY", "KWD", "USD"])
+    #expect(expenses.count == 4)
+    #expect(expenses.filter(\.isNoted).count == 1)
+    #expect(settlements.count == 1)
+    #expect(
+        ExpenseCalculations.totalsByCurrency(
+            expenses: expenses.filter { !$0.isNoted },
+            settlements: settlements
+        ) == ["CNY": 800_000, "USD": 285_075, "KWD": 123_456]
+    )
+}
+#endif
+
 @MainActor
 private func inMemoryContainer() throws -> ModelContainer {
     let schema = Schema(PinbookSchema.models)

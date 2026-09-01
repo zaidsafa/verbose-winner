@@ -4,6 +4,7 @@ import SwiftUI
 struct ExpensesView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.pinbookSkin) private var skin
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \ExpenseItem.occurredAt, order: .reverse) private var allExpenses: [ExpenseItem]
     @Query(sort: \SettlementItem.occurredAt, order: .reverse) private var settlements: [SettlementItem]
     @Query private var appearances: [AppearanceSettingsItem]
@@ -45,6 +46,7 @@ struct ExpensesView: View {
             }
         }
         .navigationTitle("Expenses")
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if !expenses.isEmpty {
@@ -98,6 +100,7 @@ private struct EmptyExpensesView: View {
 private struct ExpenseCard: View {
     @Environment(\.pinbookSkin) private var skin
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let expense: ExpenseItem
     let remainingMinor: Int64
     let markNoted: () -> Void
@@ -105,43 +108,38 @@ private struct ExpenseCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(expense.purpose)
-                        .font(.headline)
-                    Text(expense.counterparty)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) {
+                    expenseIdentity
+                    amountSummary
                 }
-                Spacer(minLength: 12)
-                VStack(alignment: .trailing, spacing: 3) {
-                    Text(remainingMinor.formattedMoney(currency: expense.currency))
-                        .font(.title3.weight(.semibold))
-                        .monospacedDigit()
-                    if remainingMinor != expense.amountMinor {
-                        Text("of \(expense.amountMinor.formattedMoney(currency: expense.currency))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+            } else {
+                HStack(alignment: .firstTextBaseline) {
+                    expenseIdentity
+                    Spacer(minLength: 12)
+                    amountSummary
                 }
             }
 
-            HStack(spacing: 12) {
-                Label(expense.occurredAt.pinbookDate.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
-                if !expense.category.isEmpty {
-                    Label(expense.category, systemImage: "tag")
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        expenseMetadata
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        expenseMetadata
+                        Spacer()
+                    }
                 }
-                Spacer()
             }
             .font(.caption)
             .foregroundStyle(.secondary)
 
-            HStack {
-                Button("Payment", systemImage: "banknote") { showingPayment = true }
-                    .buttonStyle(.glass)
-                Spacer()
-                Button("Mark noted", systemImage: "checkmark", action: markNoted)
-                    .buttonStyle(.glassProminent)
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 10) { cardActions }
+            } else {
+                HStack { cardActions }
             }
         }
         .padding(18)
@@ -157,6 +155,64 @@ private struct ExpenseCard: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
+    }
+
+    private var expenseIdentity: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(expense.purpose)
+                .font(.headline)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(expense.counterparty)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var amountSummary: some View {
+        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: 3) {
+            Text(remainingMinor.formattedMoney(currency: expense.currency))
+                .font(.title3.weight(.semibold))
+                .monospacedDigit()
+                .environment(\.layoutDirection, .leftToRight)
+                .fixedSize(horizontal: false, vertical: true)
+            if remainingMinor != expense.amountMinor {
+                HStack(spacing: 4) {
+                    Text("of")
+                    Text(expense.amountMinor.formattedMoney(currency: expense.currency))
+                        .monospacedDigit()
+                        .environment(\.layoutDirection, .leftToRight)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Remaining balance")
+        .accessibilityValue(remainingMinor.formattedMoney(currency: expense.currency))
+    }
+
+    @ViewBuilder
+    private var expenseMetadata: some View {
+        Label(
+            expense.occurredAt.pinbookDate.formatted(date: .abbreviated, time: .omitted),
+            systemImage: "calendar"
+        )
+        if !expense.category.isEmpty {
+            Label(expense.category, systemImage: "tag")
+        }
+    }
+
+    @ViewBuilder
+    private var cardActions: some View {
+        Button("Payment", systemImage: "banknote") { showingPayment = true }
+            .buttonStyle(.glass)
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
+        if !dynamicTypeSize.isAccessibilitySize { Spacer() }
+        Button("Mark noted", systemImage: "checkmark", action: markNoted)
+            .buttonStyle(.glassProminent)
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
     }
 }
 
@@ -176,6 +232,7 @@ private struct SettlementEditorView: View {
                     Text(remainingMinor.formattedMoney(currency: expense.currency))
                         .font(.title2.weight(.semibold))
                         .monospacedDigit()
+                        .environment(\.layoutDirection, .leftToRight)
                 }
                 Section("Payment") {
                     TextField("Amount", text: $amount)

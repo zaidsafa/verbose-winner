@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SummaryView: View {
     @Environment(\.pinbookSkin) private var skin
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var expenses: [ExpenseItem]
     @Query private var settlements: [SettlementItem]
 
@@ -16,9 +17,16 @@ struct SummaryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 12) {
-                    SummaryMetric(title: "Open", value: "\(openExpenses.count)", symbol: "tray.full")
-                    SummaryMetric(title: "Noted", value: "\(expenses.count - openExpenses.count)", symbol: "checkmark.circle")
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(spacing: 12) {
+                        SummaryMetric(title: "Open", value: "\(openExpenses.count)", symbol: "tray.full")
+                        SummaryMetric(title: "Noted", value: "\(expenses.count - openExpenses.count)", symbol: "checkmark.circle")
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        SummaryMetric(title: "Open", value: "\(openExpenses.count)", symbol: "tray.full")
+                        SummaryMetric(title: "Noted", value: "\(expenses.count - openExpenses.count)", symbol: "checkmark.circle")
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: 14) {
@@ -28,12 +36,22 @@ struct SummaryView: View {
                         Text("No open balances yet.").foregroundStyle(.secondary)
                     } else {
                         ForEach(totals, id: \.currency) { total in
-                            HStack {
-                                Text(total.currency).font(.subheadline.weight(.semibold))
-                                Spacer()
-                                Text(total.amount.formattedMoney(currency: total.currency))
-                                    .monospacedDigit()
-                                    .font(.headline)
+                            ViewThatFits(in: .horizontal) {
+                                HStack {
+                                    Text(total.currency).font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Text(total.amount.formattedMoney(currency: total.currency))
+                                        .monospacedDigit()
+                                        .font(.headline)
+                                        .environment(\.layoutDirection, .leftToRight)
+                                }
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(total.currency).font(.subheadline.weight(.semibold))
+                                    Text(total.amount.formattedMoney(currency: total.currency))
+                                        .monospacedDigit()
+                                        .font(.headline)
+                                        .environment(\.layoutDirection, .leftToRight)
+                                }
                             }
                             if total.currency != totals.last?.currency { Divider() }
                         }
@@ -78,6 +96,7 @@ private struct SummaryMetric: View {
 struct NotedView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.pinbookSkin) private var skin
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \ExpenseItem.notedAt, order: .reverse) private var allExpenses: [ExpenseItem]
     private var expenses: [ExpenseItem] { allExpenses.filter(\.isNoted) }
 
@@ -93,11 +112,17 @@ struct NotedView: View {
                 List {
                     ForEach(expenses) { expense in
                         VStack(alignment: .leading, spacing: 7) {
-                            HStack {
-                                Text(expense.purpose).font(.headline)
-                                Spacer()
-                                Text(expense.amountMinor.formattedMoney(currency: expense.currency))
-                                    .monospacedDigit()
+                            if dynamicTypeSize.isAccessibilitySize {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    notedPurpose(expense)
+                                    notedAmount(expense)
+                                }
+                            } else {
+                                HStack {
+                                    notedPurpose(expense)
+                                    Spacer()
+                                    notedAmount(expense)
+                                }
                             }
                             Text(expense.counterparty).foregroundStyle(.secondary)
                         }
@@ -120,5 +145,18 @@ struct NotedView: View {
         }
         .background(skin.backdrop.ignoresSafeArea())
         .navigationTitle("Noted")
+    }
+
+    private func notedPurpose(_ expense: ExpenseItem) -> some View {
+        Text(expense.purpose)
+            .font(.headline)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func notedAmount(_ expense: ExpenseItem) -> some View {
+        Text(expense.amountMinor.formattedMoney(currency: expense.currency))
+            .monospacedDigit()
+            .environment(\.layoutDirection, .leftToRight)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
