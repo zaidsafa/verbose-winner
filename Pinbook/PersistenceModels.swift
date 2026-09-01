@@ -271,16 +271,83 @@ final class AppearanceSettingsItem {
 enum PinbookBootstrap {
     @MainActor
     static func prepare(_ context: ModelContext) throws {
-        let books = try context.fetch(FetchDescriptor<BookItem>())
+        var books = try context.fetch(FetchDescriptor<BookItem>())
         if !books.contains(where: { $0.id == "default" }) {
-            context.insert(BookItem(id: "default", name: "Pinbook", createdAt: 0, updatedAt: 0))
+            let defaultBook = BookItem(id: "default", name: "Pinbook", createdAt: 0, updatedAt: 0)
+            context.insert(defaultBook)
+            books.append(defaultBook)
         }
 
         let appearances = try context.fetch(FetchDescriptor<AppearanceSettingsItem>())
         if !appearances.contains(where: { $0.id == "appearance" }) {
             context.insert(AppearanceSettingsItem())
+        } else if let settings = appearances.first,
+                  !books.contains(where: { $0.id == settings.activeBookID && !$0.isArchived }) {
+            settings.activeBookID = books.first(where: { !$0.isArchived })?.id ?? "default"
+            settings.updatedAt = .nowMilliseconds
         }
         try context.save()
+    }
+}
+
+enum BookOperations {
+    static func cleanedName(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    @MainActor
+    @discardableResult
+    static func create(named name: String, in context: ModelContext) throws -> BookItem? {
+        let cleanName = cleanedName(name)
+        guard !cleanName.isEmpty else { return nil }
+        let book = BookItem(name: cleanName)
+        context.insert(book)
+        try context.save()
+        return book
+    }
+
+    @MainActor
+    static func rename(_ book: BookItem, to name: String, in context: ModelContext) throws {
+        let cleanName = cleanedName(name)
+        guard !cleanName.isEmpty else { return }
+        book.name = cleanName
+        book.updatedAt = .nowMilliseconds
+        try context.save()
+    }
+
+    @MainActor
+    static func select(_ book: BookItem, settings: AppearanceSettingsItem, in context: ModelContext) throws {
+        guard !book.isArchived else { return }
+        settings.activeBookID = book.id
+        settings.updatedAt = .nowMilliseconds
+        try context.save()
+    }
+
+    @MainActor
+    static func setArchived(
+        _ archived: Bool,
+        for book: BookItem,
+        settings: AppearanceSettingsItem,
+        in context: ModelContext
+    ) throws {
+        guard !archived || book.id != settings.activeBookID else { return }
+        book.isArchived = archived
+        book.updatedAt = .nowMilliseconds
+        try context.save()
+    }
+}
+
+enum PinbookQueries {
+    static func expenses(
+        _ expenses: [ExpenseItem],
+        in bookID: String,
+        noted: Bool? = nil
+    ) -> [ExpenseItem] {
+        expenses.filter { expense in
+            guard expense.bookID == bookID else { return false }
+            guard let noted else { return true }
+            return expense.isNoted == noted
+        }
     }
 }
 

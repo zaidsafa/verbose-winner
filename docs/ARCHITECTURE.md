@@ -12,6 +12,14 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 - `Pinbook`: SwiftUI app, SwiftData persistence, local preferences, and feature presentation.
 - Platform services: future adapters for Google Drive `appDataFolder`, receipt files, PDF/CSV statements, local notifications, and Vision OCR.
 
+## Book and currency invariants
+
+- Every expense belongs to exactly one book through `bookID`.
+- Expenses, Summary, and Noted are filtered by `AppearanceSettingsItem.activeBookID`; records from another book never contribute to counts or currency totals.
+- The active book cannot be archived. Archived books remain recoverable and can be renamed or restored.
+- Production bootstrap creates one unarchived `Pinbook` book and repairs an invalid active-book reference without creating sample financial records.
+- Favorite currencies start empty. Users explicitly enable currencies and choose the preferred currency used to seed new expense entry.
+
 ## Planned boundaries, not implemented claims
 
 - Drive will use per-user authorization with only `drive.appdata`; tokens must remain in memory or protected system storage and no central Pinbook backend is planned.

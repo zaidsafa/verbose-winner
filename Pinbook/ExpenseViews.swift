@@ -11,7 +11,10 @@ struct ExpensesView: View {
     @Binding var showingAddExpense: Bool
     let openOptions: () -> Void
 
-    private var expenses: [ExpenseItem] { allExpenses.filter { !$0.isNoted } }
+    private var activeBookID: String { appearances.first?.activeBookID ?? "default" }
+    private var expenses: [ExpenseItem] {
+        PinbookQueries.expenses(allExpenses, in: activeBookID, noted: false)
+    }
 
     var body: some View {
         ZStack {

@@ -6,8 +6,12 @@ struct SummaryView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var expenses: [ExpenseItem]
     @Query private var settlements: [SettlementItem]
+    @Query private var appearances: [AppearanceSettingsItem]
 
-    private var openExpenses: [ExpenseItem] { expenses.filter { !$0.isNoted } }
+    private var activeBookExpenses: [ExpenseItem] {
+        PinbookQueries.expenses(expenses, in: appearances.first?.activeBookID ?? "default")
+    }
+    private var openExpenses: [ExpenseItem] { activeBookExpenses.filter { !$0.isNoted } }
     private var totals: [(currency: String, amount: Int64)] {
         ExpenseCalculations.totalsByCurrency(expenses: openExpenses, settlements: settlements)
             .map { ($0.key, $0.value) }
@@ -20,12 +24,12 @@ struct SummaryView: View {
                 if dynamicTypeSize.isAccessibilitySize {
                     VStack(spacing: 12) {
                         SummaryMetric(title: "Open", value: "\(openExpenses.count)", symbol: "tray.full")
-                        SummaryMetric(title: "Noted", value: "\(expenses.count - openExpenses.count)", symbol: "checkmark.circle")
+                        SummaryMetric(title: "Noted", value: "\(activeBookExpenses.count - openExpenses.count)", symbol: "checkmark.circle")
                     }
                 } else {
                     HStack(spacing: 12) {
                         SummaryMetric(title: "Open", value: "\(openExpenses.count)", symbol: "tray.full")
-                        SummaryMetric(title: "Noted", value: "\(expenses.count - openExpenses.count)", symbol: "checkmark.circle")
+                        SummaryMetric(title: "Noted", value: "\(activeBookExpenses.count - openExpenses.count)", symbol: "checkmark.circle")
                     }
                 }
 
@@ -98,7 +102,14 @@ struct NotedView: View {
     @Environment(\.pinbookSkin) private var skin
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \ExpenseItem.notedAt, order: .reverse) private var allExpenses: [ExpenseItem]
-    private var expenses: [ExpenseItem] { allExpenses.filter(\.isNoted) }
+    @Query private var appearances: [AppearanceSettingsItem]
+    private var expenses: [ExpenseItem] {
+        PinbookQueries.expenses(
+            allExpenses,
+            in: appearances.first?.activeBookID ?? "default",
+            noted: true
+        )
+    }
 
     var body: some View {
         Group {

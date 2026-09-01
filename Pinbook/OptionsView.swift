@@ -170,13 +170,68 @@ private struct BooksAndCurrenciesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var appearances: [AppearanceSettingsItem]
     @Query(sort: \BookItem.createdAt) private var books: [BookItem]
+    @State private var showingNewBook = false
+    @State private var editingBook: BookItem?
+    @State private var operationError: String?
     private let availableCurrencies = ["AED", "CNY", "EUR", "GBP", "IQD", "JPY", "KWD", "SAR", "USD"]
+
+    private var settings: AppearanceSettingsItem? { appearances.first }
+    private var activeBooks: [BookItem] { books.filter { !$0.isArchived } }
+    private var archivedBooks: [BookItem] { books.filter(\.isArchived) }
 
     var body: some View {
         List {
-            Section("Books") {
-                ForEach(books.filter { !$0.isArchived }) { book in
-                    Label(book.name, systemImage: book.id == "default" ? "book.closed.fill" : "book.closed")
+            Section {
+                ForEach(activeBooks) { book in
+                    Button {
+                        select(book)
+                    } label: {
+                        HStack {
+                            Label(book.name, systemImage: book.id == "default" ? "book.closed.fill" : "book.closed")
+                            Spacer()
+                            if settings?.activeBookID == book.id {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.tint)
+                                    .accessibilityLabel("Active book")
+                            }
+                        }
+                        .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .swipeActions(edge: .leading) {
+                        Button("Rename", systemImage: "pencil") { editingBook = book }
+                            .tint(.blue)
+                    }
+                    .swipeActions(edge: .trailing) {
+                        if settings?.activeBookID != book.id {
+                            Button("Archive", systemImage: "archivebox", role: .destructive) {
+                                setArchived(true, for: book)
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("Active book")
+            } footer: {
+                Text("Only the selected book appears in Expenses, Summary, Noted, templates, and exports.")
+            }
+
+            if !archivedBooks.isEmpty {
+                Section("Archived books") {
+                    ForEach(archivedBooks) { book in
+                        Label(book.name, systemImage: "archivebox")
+                            .foregroundStyle(.secondary)
+                            .swipeActions(edge: .leading) {
+                                Button("Rename", systemImage: "pencil") { editingBook = book }
+                                    .tint(.blue)
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button("Restore", systemImage: "arrow.uturn.backward") {
+                                    setArchived(false, for: book)
+                                }
+                                .tint(.green)
+                            }
+                    }
                 }
             }
 
@@ -188,8 +243,60 @@ private struct BooksAndCurrenciesView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
+
+            if let settings, !settings.favoriteCurrencies.isEmpty {
+                Section("Default for new expenses") {
+                    Picker("Preferred currency", selection: preferredCurrencyBinding(settings)) {
+                        ForEach(settings.favoriteCurrencies, id: \.self) { currency in
+                            Text(currency).tag(Optional(currency))
+                        }
+                    }
+                }
+            }
         }
         .navigationTitle("Books & currencies")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("New book", systemImage: "plus") { showingNewBook = true }
+            }
+        }
+        .sheet(isPresented: $showingNewBook) {
+            BookNameEditorView(title: "New book", initialName: "") { name in
+                do {
+                    guard let book = try BookOperations.create(named: name, in: modelContext) else {
+                        return false
+                    }
+                    if let settings { try BookOperations.select(book, settings: settings, in: modelContext) }
+                    return true
+                } catch {
+                    operationError = error.localizedDescription
+                    return false
+                }
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $editingBook) { book in
+            BookNameEditorView(title: "Rename book", initialName: book.name) { name in
+                do {
+                    try BookOperations.rename(book, to: name, in: modelContext)
+                    return true
+                } catch {
+                    operationError = error.localizedDescription
+                    return false
+                }
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
+        .alert("Unable to update books", isPresented: Binding(
+            get: { operationError != nil },
+            set: { if !$0 { operationError = nil } }
+        )) {
+            Button("OK") { operationError = nil }
+        } message: {
+            Text(operationError ?? "")
+        }
     }
 
     private func currencyBinding(_ currency: String) -> Binding<Bool> {
@@ -208,6 +315,81 @@ private struct BooksAndCurrenciesView: View {
                 try? modelContext.save()
             }
         )
+    }
+
+    private func preferredCurrencyBinding(_ settings: AppearanceSettingsItem) -> Binding<String?> {
+        Binding(
+            get: { settings.preferredCurrency ?? settings.favoriteCurrencies.first },
+            set: { value in
+                settings.preferredCurrency = value
+                settings.updatedAt = .nowMilliseconds
+                try? modelContext.save()
+            }
+        )
+    }
+
+    private func select(_ book: BookItem) {
+        guard let settings else { return }
+        do {
+            try BookOperations.select(book, settings: settings, in: modelContext)
+        } catch {
+            operationError = error.localizedDescription
+        }
+    }
+
+    private func setArchived(_ archived: Bool, for book: BookItem) {
+        guard let settings else { return }
+        do {
+            try BookOperations.setArchived(archived, for: book, settings: settings, in: modelContext)
+        } catch {
+            operationError = error.localizedDescription
+        }
+    }
+}
+
+private struct BookNameEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    let title: LocalizedStringKey
+    let save: (String) -> Bool
+    @State private var name: String
+    @State private var showsValidation = false
+
+    init(title: LocalizedStringKey, initialName: String, save: @escaping (String) -> Bool) {
+        self.title = title
+        self.save = save
+        _name = State(initialValue: initialName)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Book name") {
+                    TextField("Name", text: $name)
+                        .textInputAutocapitalization(.words)
+                    if showsValidation {
+                        Text("Enter a book name.")
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", role: .cancel) { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        guard !BookOperations.cleanedName(name).isEmpty else {
+                            showsValidation = true
+                            return
+                        }
+                        if save(name) { dismiss() }
+                    }
+                    .buttonStyle(.glassProminent)
+                }
+            }
+        }
     }
 }
 

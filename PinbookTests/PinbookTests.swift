@@ -15,6 +15,9 @@ import Testing
     #expect(try context.fetch(FetchDescriptor<SettlementItem>()).isEmpty)
     #expect(try context.fetch(FetchDescriptor<ExpenseTemplateItem>()).isEmpty)
     #expect(try context.fetch(FetchDescriptor<ReceiptMetadataItem>()).isEmpty)
+    let settings = try #require(context.fetch(FetchDescriptor<AppearanceSettingsItem>()).first)
+    #expect(settings.favoriteCurrencies.isEmpty)
+    #expect(settings.preferredCurrency == nil)
 }
 
 @MainActor
@@ -51,6 +54,68 @@ import Testing
         settlements: []
     )
     #expect(totals == ["USD": 100, "EUR": 200])
+}
+
+@MainActor
+@Test func bookManagementPreservesAnActiveUnarchivedBook() throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    try PinbookBootstrap.prepare(context)
+    let settings = try #require(context.fetch(FetchDescriptor<AppearanceSettingsItem>()).first)
+    let defaultBook = try #require(context.fetch(FetchDescriptor<BookItem>()).first)
+
+    let createdTravel = try BookOperations.create(named: "  Travel  ", in: context)
+    let travel = try #require(createdTravel)
+    #expect(travel.name == "Travel")
+    try BookOperations.select(travel, settings: settings, in: context)
+    #expect(settings.activeBookID == travel.id)
+
+    try BookOperations.setArchived(true, for: travel, settings: settings, in: context)
+    #expect(!travel.isArchived)
+
+    try BookOperations.setArchived(true, for: defaultBook, settings: settings, in: context)
+    #expect(defaultBook.isArchived)
+    try BookOperations.setArchived(false, for: defaultBook, settings: settings, in: context)
+    try BookOperations.rename(defaultBook, to: "  Household  ", in: context)
+    #expect(defaultBook.name == "Household")
+    #expect(!defaultBook.isArchived)
+}
+
+@MainActor
+@Test func activeBookQueriesIsolateOpenNotedAndCurrencyTotals() throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    let first = ExpenseItem(
+        amountMinor: 1_000,
+        currency: "USD",
+        purpose: "First",
+        counterparty: "A",
+        bookID: "first"
+    )
+    let firstNoted = ExpenseItem(
+        amountMinor: 2_000,
+        currency: "USD",
+        purpose: "First noted",
+        counterparty: "A",
+        bookID: "first",
+        isNoted: true
+    )
+    let second = ExpenseItem(
+        amountMinor: 9_000,
+        currency: "EUR",
+        purpose: "Second",
+        counterparty: "B",
+        bookID: "second"
+    )
+    [first, firstNoted, second].forEach(context.insert)
+    try context.save()
+
+    let stored = try context.fetch(FetchDescriptor<ExpenseItem>())
+    let firstOpen = PinbookQueries.expenses(stored, in: "first", noted: false)
+    let firstArchived = PinbookQueries.expenses(stored, in: "first", noted: true)
+    #expect(firstOpen.map(\.id) == [first.id])
+    #expect(firstArchived.map(\.id) == [firstNoted.id])
+    #expect(ExpenseCalculations.totalsByCurrency(expenses: firstOpen, settlements: []) == ["USD": 1_000])
 }
 
 #if DEBUG
