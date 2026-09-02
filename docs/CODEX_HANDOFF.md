@@ -1,12 +1,13 @@
 # Pinbook iOS Codex handoff
 
-Updated: 2026-09-01 (Asia/Shanghai)
+Updated: 2026-09-02 (Asia/Shanghai)
 
 ## Ownership and source
 
 - iOS repository: `zaidsafa/verbose-winner`
 - Android read-only product reference: `zaidsafa/studious-potato`
 - Android release reference: Pinbook 0.4.2, `versionCode 8`, source `442ae6a5bd2dc8ee26d6a1006dd9dda9fe4c0985`
+- Android workstream update: the reported 0.5.0 candidate from run `33617739851` is rejected and unpublished. Draft PR #29 (`f395120`) adds first-run/Settings language selection and a 16-locale contract, but publication remains blocked until every catalog has human-quality native review.
 - Initial iOS `main` bootstrap: `7b7fb061e22539632a13b9b5aa5c378235c83684`
 - Active feature branch: `codex/pinbook-ios-foundation`
 
@@ -77,6 +78,7 @@ Updated: 2026-09-01 (Asia/Shanghai)
 - iCloud/CloudKit is not implemented. The planned provider design treats it as an optional alternative to Google Drive, not a simultaneous second sync authority.
 - Statements are generated locally, but successful transfer through a chosen share extension was not exercised. Reminder request construction is implemented, but authorization and real notification delivery were deliberately not triggered during simulator acceptance.
 - English, Arabic, and Simplified Chinese cover the current iOS shell, forms, grouped options, onboarding, validation copy, accessibility labels, and widgets. Full parity with Android's other locales remains unfinished, and user-authored content is not translated.
+- Android's reported target locale set is English, Arabic, Turkish, Simplified Chinese, Traditional Chinese, Spanish, French, German, Portuguese, Hindi, Indonesian, Japanese, Korean, Russian, Italian, and Urdu, with Arabic/Urdu RTL behavior. This is a parity requirement only: iOS must not advertise or ship unsupported locales, and AI-generated text must not be represented as human-authored or native-reviewed translation.
 - Widgets currently provide privacy-safe navigation only. Live counts or balances require an explicitly approved App Group entitlement, a versioned shared-snapshot format, signing/profile changes, and new privacy/physical-device acceptance; none is enabled here.
 - The universal target declares all four standard interface orientations, but the complete iPhone/iPad rotation and multitasking layout matrix has not yet received visual acceptance.
 - The current milestone has no new physical-device acceptance. Simulator build/tests do not prove widget gallery installation, TestFlight, Drive transfer, iCloud, a completed external Files-provider transfer, real notification delivery, or App Store acceptance. The UI tests opened both system document pickers but did not save or select a file.
@@ -91,3 +93,4 @@ Updated: 2026-09-01 (Asia/Shanghai)
 3. Install the exact processed TestFlight build on a physical iPhone and run disposable-data acceptance: onboarding/locales, five-theme contrast, two widgets, receipt selection, local notification delivery, statement sharing, and a completed Files backup/export/import/recovery round trip.
 4. Complete the remaining physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, and Increase Contrast before App Store release.
 5. Implement Google Drive `drive.appdata` only after explicit OAuth/provider approval, routing remote bytes through the existing validation, preview, snapshot, history, and deterministic conflict-recovery boundary. Re-audit App Privacy and update the privacy policy before shipping it.
+6. Add the remaining Android-parity locales to iOS only after native-reviewed catalogs are available, then validate first-run and Settings language selection, System-default behavior, layout, and Arabic/Urdu RTL independently on iOS before publication.
