@@ -27,6 +27,17 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- HTTP/TLS checkpoint is now committed locally at `c9b5912` (no push/upload).
+  Subsequent session-only Keychain custody is implemented with passcode-required
+  non-backup protection, explicit add-only consent, scope validation and generation
+  CAS. Before refresh it persists a marker WITHOUT old tokens; only a successful
+  marker write returns a volatile dispatch lease. A late callback cannot replace
+  a newer login. Ambiguous replacement is pending OR a complete new pair, never a
+  mixed pair or automatic old-token replay. Full core88/88 passes; app-host111
+  passes plus one hardware skip, including actual isolated Simulator SecItem
+  generation matching. Unsigned Release passes. See TEAM_SESSION_CUSTODY_IOS.md.
+  This low-level custody is not the pending one-owner refresh/provider coordinator.
+
 - New inactive native account transport implements all six agreed routes, bounded
   response validation, scoped authorization, default TLS trust and one-use POST
   streams. Both replacement-stream callbacks refuse replay. Actual private localhost

@@ -58,6 +58,13 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- Native account transport now has bounded six-route parsing and one-use POST
+  streams with synthetic and real localhost TLS failure tests. Separate protected
+  session custody uses durable pending markers and generation-bound atomic pair
+  replacement. Neither low-level foundation is a complete sign-in/session feature:
+  provider/controller ownership, single-dispatch refresh orchestration, real client
+  configuration/origin, revocation/enrollment and physical acceptance remain open.
+
 - Personal Files import now coordinates/read-checks off-main, is cancellable and
   bounds actual file bytes to 128 MiB. Export uses the same limit. Legacy backups
   larger than this limit need an accepted recovery path before final sign-off;

@@ -1,5 +1,33 @@
 # Validation plan
 
+## 2026-09-04 separate account-session Keychain custody (inactive)
+
+- Seven new synthetic custody tests pass. Full core **88/88 passed** in12.243s:
+  `/private/tmp/pinbook-ios-session-custody-full-core.log`. Focused7/7 result:
+  `/private/tmp/pinbook-ios-session-store-tests2.log`. Initial test source needed
+  explicit `try` inside Swift Testing's throwing `#require` expression; corrected
+  before execution. No failed compilation is counted as a test pass.
+- Tests cover passcode-only/non-sync attributes, explicit consent/add-only behavior,
+  marker persistence with no old tokens, simulated reopen, before/after-commit
+  failure ambiguity, eight competing refresh starts with one winner, newer login
+  preservation against late callbacks, scope/corruption/unavailable reads, lifetime/
+  clock/token checks and pre-cancelled writes. New and old storage remain separate.
+- Unsigned generic iPhone Release **PASSED**:
+  `/private/tmp/pinbook-ios-session-custody-release.log`. Simulator test compile
+  **PASSED**: `/private/tmp/pinbook-ios-session-custody-test-build.log`.
+- A new app-host test uses actual SecItem calls in an isolated random test service,
+  with DEBUG-only WhenUnlockedThisDeviceOnly protection. This checks generation
+  query/update behavior, NOT physical passcode-only/non-backup acceptance. Public
+  session construction always uses WhenPasscodeSetThisDeviceOnly; existing archive
+  recovery-key protection is unchanged. See `TEAM_SESSION_CUSTODY_IOS.md`.
+- Full iPhone app-host **111 passed, one explicit hardware skip, zero failures**:
+  `/private/tmp/Pinbook-Session-Custody-App.xcresult`, finish Unix1788522079.999;
+  `/private/tmp/pinbook-ios-session-custody-app.log`. Actual Keychain generation
+  test passed in0.006s and removed its isolated test item. UI suite not rerun;
+  no UI source changed. The hardware skip concerns file-protection attributes.
+- No provider/refresh coordinator or normal navigation activation; no source push,
+  capability/signing change, production service or TestFlight upload.
+
 ## 2026-09-04 inactive native account HTTP and one-use request body
 
 - Six-route scoped adapter, bounded strict response codec, default platform TLS,
