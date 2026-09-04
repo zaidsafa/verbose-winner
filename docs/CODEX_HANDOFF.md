@@ -46,7 +46,9 @@ Updated: 2026-09-05 (Asia/Shanghai)
 ## Active local implementation after release hold
 
 - Exact-current automated final-candidate regression at local iOS commit
-  `910f3dc` now passes: signed Simulator UI **29/29**, zero failures/skips;
+  `910f3dc` now passes: signed Simulator app-host **353 PASS + 4 expected
+  physical-only SKIPS** (357 total,0 failures), physical QA app-host **357/357**,
+  and signed Simulator UI **29/29**, zero failures/skips;
   localization **336 keys x 15 translated locales plus English**, format tokens
   intact, with exact compiled app/widget parity. Committed backend `926d2ae`
   tightened canonical General JWE validation but kept delivery submission
@@ -60,7 +62,8 @@ Updated: 2026-09-05 (Asia/Shanghai)
   `a158bf8f1c83bb2813009d835d0b079999d25187` now has exact inactive iOS parity.
   Exact compact metadata pins JWE bytes/hash, delivery ID, audience digest and
   membership revision; caller-supplied expected bindings and exact re-encoding
-  fail closed. Focused **3/3**, core **328/328**, signed Simulator **357/357**,
+  fail closed. Focused **3/3**, core **328/328**, signed Simulator **353 PASS +
+  4 expected physical-only SKIPS** (357 total,0 failures),
   physical QA iPhone **357/357**, normal QA relaunch and ordinary Release pass.
   No upload/acceptance/network/TestFlight action. Later committed server checkpoint
   `926d2aeae972569476808e339923fc62c9da5014` now strictly validates the existing
@@ -75,7 +78,8 @@ Updated: 2026-09-05 (Asia/Shanghai)
   A256GCM General JWE uses distinct per-recipient P-256 ECDH-ES+A256KW keys and a
   protected digest of the complete frozen audience. Both byte-identical vectors
   pass for both recipients; focused delivery **26/26**, core **325/325**, signed
-  Simulator **354/354**, physical QA iPhone **354/354**, named Secure Enclave JWE,
+  Simulator **350 PASS + 4 expected physical-only SKIPS** (354 total,0 failures),
+  physical QA iPhone **354/354**, named Secure Enclave JWE,
   normal QA relaunch and ordinary Release all pass. JWE is not sender auth. No
   runtime/endpoint/archive-before-ACK/Android sync/TestFlight action. See
   `TEAM_DELIVERY_JWE_IOS.md` and `VALIDATION.md`. The later submit-intent parity is
@@ -85,7 +89,8 @@ Updated: 2026-09-05 (Asia/Shanghai)
 - Finalized outgoing draft identities cannot be recreated while their immutable
   pending events remain, preventing retry identity aliasing; generic reflection
   of outgoing values is empty. Exact final source passes focused outgoing
-  **9/9**, complete core **318/318**, signed Simulator **346/346**, physical QA
+  **9/9**, complete core **318/318**, signed Simulator **343 PASS + 3 expected
+  physical-only SKIPS** (346 total,0 failures), physical QA
   iPhone **346/346**, normal QA relaunch and ordinary unsigned Release. No Android
   or live sync test was possible because the envelope/transport remains inactive.
   See the newest `VALIDATION.md` section.
@@ -98,7 +103,8 @@ Updated: 2026-09-05 (Asia/Shanghai)
   custody. The public fixture is byte-identical, SHA-256
   `946a6bfda62b193c23a38a53e6a3f4293fdc725545e3deefd99c567c63c763c2`.
   Focused agreement **13/13** plus HTTP **1/1**, clean core **318/318**, signed
-  Simulator **346/346**, and separate physical QA iPhone **346/346 PASS**. The
+  Simulator **343 PASS + 3 expected physical-only SKIPS** (346 total,0 failures),
+  and separate physical QA iPhone **346/346 PASS**. The
   named Secure Enclave possession test passes; ordinary unsigned Release and QA
   normal relaunch pass. No runtime/live endpoint/Android sync/TestFlight action.
   See `TEAM_AGREEMENT_ENROLLMENT_IOS.md` and `VALIDATION.md`. NEXT: freeze the

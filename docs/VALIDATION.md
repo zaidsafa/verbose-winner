@@ -14,6 +14,10 @@
   app/widget compiled strings exactly matching source. This is automated catalog
   and structural accessibility/UI evidence; it does not claim spoken VoiceOver,
   rotor, locked-device widgets or physical focus behavior.
+- The exact-current signed Simulator app-host result contains **353 passes,
+  4 expected physical-only skips, 0 failures** (357 total). The skips are the
+  three real Secure Enclave cases and the physical file-protection case; the
+  separate physical-iPhone result contains **357/357 passes, 0 skips/failures**.
 - Committed backend checkpoint `926d2ae` added strict canonical General JWE
   validation without enabling delivery submit. The iOS JWE, payload and
   submit-intent fixtures remain byte-identical to the shared vectors (`cmp=0`),
@@ -39,7 +43,8 @@
   `/private/tmp/pinbook-ios-submit-intent-focused-first-20260905.log`.
 - Complete Swift core **328/328 PASS**,28 suites,15.268s:
   `/private/tmp/pinbook-ios-submit-intent-full-core-20260905.log`. Signed Simulator
-  app-host **357/357 PASS**,29 suites,8.208s:
+  app-host **353 PASS + 4 expected physical-only SKIPS**,357 total,29 suites,
+  8.208s,0 failures:
   `/private/tmp/Pinbook-Submit-Intent-Signed.xcresult` and
   `/private/tmp/pinbook-ios-submit-intent-signed-app-host-20260905.log`.
 - Separate physical-iPhone QA build-for-testing **SUCCEEDED** and app-host
@@ -72,7 +77,8 @@
   `/private/tmp/pinbook-ios-delivery-composed-focused-final-20260905.log`.
 - Complete Swift core **325/325 PASS**,27 suites,16.951s:
   `/private/tmp/pinbook-ios-jwe-payload-full-core-20260905.log`. Signed Simulator
-  app-host **354/354 PASS**,28 suites,9.327s:
+  app-host **350 PASS + 4 expected physical-only SKIPS**,354 total,28 suites,
+  9.327s,0 failures:
   `/private/tmp/Pinbook-JWE-Payload-Signed-Final.xcresult` and
   `/private/tmp/pinbook-ios-jwe-payload-signed-app-host-final-20260905.log`.
 - Separate physical-iPhone QA build-for-testing **SUCCEEDED** and complete app-host
@@ -101,7 +107,8 @@
   `/private/tmp/pinbook-ios-outgoing-commit-focused-20260905.log`. Complete core
   **318/318 PASS**,25 suites,15.321s:
   `/private/tmp/pinbook-ios-outgoing-commit-full-core-20260905.log`.
-- Signed Simulator app-host **346/346 PASS**,26 suites,8.981s:
+- Signed Simulator app-host **343 PASS + 3 expected physical-only SKIPS**,346
+  total,26 suites,8.981s,0 failures:
   `/private/tmp/Pinbook-Outbox-Commit-Signed.xcresult` and
   `/private/tmp/pinbook-ios-outbox-commit-signed-app-host-20260905.log`.
 - Separate signed physical-iPhone QA **BUILD SUCCEEDED** and complete app-host
@@ -135,7 +142,8 @@
   `/private/tmp/pinbook-ios-agreement-possession-http-focused-final-20260905.log`.
 - Clean complete Swift core **318/318 PASS**,25 suites,15.838s:
   `/private/tmp/pinbook-ios-agreement-possession-full-core-20260905.log`.
-  Signed dedicated-Simulator app-host **346/346 PASS**,26 suites,9.848s:
+  Signed dedicated-Simulator app-host **343 PASS + 3 expected physical-only
+  SKIPS**,346 total,26 suites,9.848s,0 failures:
   `/private/tmp/Pinbook-Agreement-Possession-Signed.xcresult` and
   `/private/tmp/pinbook-ios-agreement-possession-app-host-20260905.log`.
 - The initial unsigned Simulator app-host run compiled and executed but failed
