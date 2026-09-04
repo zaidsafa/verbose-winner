@@ -27,6 +27,33 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Current source checkpoint `3b02975` adds background invalidation and token-scoped
+  cancellation for received-note recovery, plus explicit recovery-key setup/copy.
+  New key custody requires consent, an exported file read-back, the last eight
+  characters and separate-copy confirmation. Existing keys are never overwritten;
+  unavailable custody is not treated as a missing key. This remains inactive in
+  normal navigation; the DEBUG host uses an in-memory fake, not a real account.
+- Recovery-only core suite: 62/62 passed. Two full Simulator attempts remain
+  failed evidence: 100/1failed/1skip, then99/2failed/1skip. Nested-switch targeting
+  alone did not fix the second run; recording showed a dimmed blocked screen after
+  a prior native Files sheet was left open at host termination. Unchanged key
+  setup passes1/1 in isolation after fresh boot, including background clearing.
+  Native Files UI test now dismisses and verifies the sheet before termination.
+  Final combined rerun PASSED:108 app/UI passes (95 app +13 UI), one hardware skip,
+  zero failures. See VALIDATION.md for exact artifact paths and prior failures.
+- New inactive native Apple/Google request binding and Apple request construction
+  are implemented in TeamNativeSignIn.swift; seven synthetic tests bring core to
+  69/69 passed. No Google SDK/controller, real provider/client ID, HTTP route or
+  session custody is enabled. Android session semantics require a durable refresh
+  marker before dispatch and atomic replacement, with reauthentication on ambiguity.
+  See TEAM_NATIVE_SIGN_IN_IOS.md and TEAM_AUTH_MLS_FEASIBILITY_20260904.md.
+- Unsigned iPhone Release and compiled286-key app/widget catalog parity passed.
+  This is a verified local checkpoint, not the final releasable feature set.
+- Keychain protection remains non-synchronizing WhenUnlockedThisDeviceOnly.
+  Passcode/secure-screen policy and physical acceptance remain open; changing to
+  WhenPasscodeSetThisDeviceOnly would delete items when the passcode is removed.
+  Native Files/cloud durability and imported-key retention are not established by
+  local temporary-file read-back tests. Full sender/revision/media recovery is open.
 - The personal import/widget checkpoint is committed locally at
   `f6e6e26c1e3280f1202b7d2b5b74ab9d4907bf7c`: 50 core passes, 85 app/UI passes
   plus one hardware skip, unsigned iPhone Release build passed; no upload/push.
@@ -40,12 +67,21 @@ Updated: 2026-09-04 (Asia/Shanghai)
   92 app/UI passes (80 app + 12 UI), one hardware-protection skip and zero failures.
   Unsigned iPhone Release compile and exact compiled 272-key localization checks
   passed. Chinese preview screenshot was visually inspected. No source push/upload.
-- Next safe implementation: complete explicit recovery-key setup/off-device
-  confirmation and imported-key retention UX, secure-screen policy, authenticated
+- Next safe implementation: bounded native auth transport and session custody,
+  imported-key retention UX, secure-screen policy, authenticated
   Apple+Google integration against the Android-owned admission contract, and
   user-facing inbox/retry lifecycle. Finish automatic personal cloud concurrency/
   bounded I/O and live widget App Group/privacy integration. Do not silently drop
   sender/media/full recovery, staging or hardware acceptance from the final gate.
+- Android has now supplied the six-route native account contract at `15751a7` in its
+  `docs/TEAM_AUTH_HTTP_V1.md` (read-only checked SHA256
+  `1f0791df923112808df25524a2106541008f26e273ac63690fb83ded64647235`;
+  handler SHA256 `2f10b61feecc11962ecf0f1e3eea1c5c272fb5630d3fda607c70e4fe10818c48`).
+  Exact next slice after this test checkpoint: bounded no-cookie/no-cache native
+  HTTPS transport and strict response parsing, no redirects, followed by atomic
+  device-only session custody with durable pre-dispatch refresh marker. No real
+  base URL/provider IDs have been supplied; use synthetic tests, never invent or
+  contact an endpoint. Re-read the peer contract/commit before implementation.
 - Continuous implementation resumed at the owner's request. Current additional
   local slice: personal Files reads now use NSFileCoordinator off the main actor,
   balanced security-scoped access, regular-file-only descriptor reads, 64 KiB
@@ -94,10 +130,10 @@ Updated: 2026-09-04 (Asia/Shanghai)
   Android tests were not independently rerun here. No raw URI/path behavior parity
   is claimed: Android owns InputStream closure; iOS owns its opened file descriptor.
 - No source push, TestFlight upload, project signing/version change, physical-phone access
-  or shared infrastructure action in this continuation. Pending provider question
-  remains coordinated by Android, not repeated to the owner here.
-- Next integration gates: answer the existing Apple+Google versus passkeys question,
-  approve a reviewed library/provider and crash-safe storage design, freeze sender/
+  or shared infrastructure action in this continuation. Apple+Google direction is
+  accepted; actual provider configuration remains coordinated with Android.
+- Next integration gates: configure and validate the accepted Apple+Google direction,
+  approve a reviewed encryption library/provider and crash-safe storage design, freeze sender/
   revision/media archive coverage jointly, then implement authenticated team/Files
   UX and complete staging acceptance. Do not wire incomplete recovery into production.
 

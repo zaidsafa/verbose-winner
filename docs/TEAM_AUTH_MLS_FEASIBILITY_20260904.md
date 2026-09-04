@@ -58,6 +58,35 @@ device enrollment and Pinbook session issuance remain separate. Never accept a
 personal Drive access token, client-asserted user ID, or email as team API authority.
 [Google backend authentication](https://developers.google.com/identity/sign-in/ios/backend-auth).
 
+## Native contract follow-up: September 4
+
+Android's `login-proof.mjs` now distinguishes the exact trusted backend audience
+from the native authorized presenter. Source review at SHA256
+`a9207772042de1ea0710379cc17a8d84ffcc73a8947d11b7ec3537ea1243ef15`
+found that distinct presenters require a signed exact `azp`; only explicitly
+configured Google profiles accept its documented bare issuer spelling. Google
+9.2.0 source passes caller nonce unchanged into AppAuth and sends serverClientID
+separately as audience. This supports the proposed interface, not proof of real
+native ID-token claim shape or SDK integration.
+[Tagged source](https://raw.githubusercontent.com/google/GoogleSignIn-iOS/9.2.0/GoogleSignIn/Sources/GIDSignIn.m),
+[Google claims](https://developers.google.com/identity/openid-connect/openid-connect#an-id-tokens-payload).
+
+Apple's installed SDK exposes request nonce/state and a returned credential state.
+Use the exact raw server nonce with fresh local callback state; do not introduce
+Firebase-style nonce hashing into this direct backend profile. Native app audience,
+issuer and real provider configuration must be explicitly verified before serving.
+[Apple request nonce](https://developer.apple.com/documentation/authenticationservices/asauthorizationopenidrequest/nonce).
+
+Android's local account-session slice at `93e4314` adds actual PostgreSQL admission
+and opaque access/refresh rotation; routes remain unfrozen and no provider is live.
+Native clients must serialize refresh and durably mark it in-flight BEFORE sending,
+then atomically replace the token pair and clear that marker. Process death, lost
+response or persistence failure requires reauthentication, not retry of the old
+refresh token (which can revoke a committed successor). Credentials stay outside
+portable/device/cloud backups. Admission and sessions are not team/device authority.
+The external restore authority gate, actual provider setup and session transport
+remain open. Android owns its backend; no source or runtime mutation was made there.
+
 ## MLS candidates
 
 Follow-up: `OPENMLS_AUDIT_ADOPTION_20260904.md` supersedes this short review's

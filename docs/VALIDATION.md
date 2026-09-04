@@ -1,5 +1,76 @@
 # Validation plan
 
+## 2026-09-04 recovery lifecycle and explicit key setup (inactive)
+
+- Final tested source saved locally at `3b02975`. Combined app/UI regression
+  **PASSED108 tests (95 app +13 UI), one explicit hardware-protection skip,
+  zero failures**: `/private/tmp/Pinbook-Native-Recovery-Final.xcresult`, log
+  `/private/tmp/pinbook-ios-native-recovery-final.log`, finish Unix1788519214.739.
+  Both native Files dismissal and the later key-setup/background test pass together.
+  Earlier failures below are preserved, not silently substituted or counted as passes.
+- New actor setup tests cover consent/export/confirmation, no premature custody,
+  wrong content with matching suffix, no replacement, token-scoped cancellation,
+  read failure, ambiguous own-add reconciliation and losing a race to another key.
+  Presentation tests reject late background work and retain uncertain restore
+  state until an authoritative preview. Core: **62/62 passed** at
+  `/private/tmp/pinbook-ios-key-setup-final-core.log`.
+- Initial full Simulator run: **100 passed, 1 failed, 1 hardware skip**.
+  `/private/tmp/Pinbook-Key-Setup-Full.xcresult`, log
+  `/private/tmp/pinbook-ios-key-setup-full.log`, finish Unix1788517423.598.
+  The key-setup UI test tapped SwiftUI's labeled Switch container; hierarchy showed
+  value0 and disabled Create. Changing to the nested native switch did not alone
+  resolve the full-run failure. Both failed runs are retained; do not attribute
+  the cause solely to that selector or call either suite fully passed.
+- Second full run: **99 passed, 2 failed, 1 hardware skip** at
+  `/private/tmp/Pinbook-Key-Setup-Verified.xcresult` (the historical filename does
+  NOT mean it passed), finish Unix1788518491.324, log
+  `/private/tmp/pinbook-ios-key-setup-verified.log`. Failures: native Files picker
+  relaunch navigation and subsequent key-setup interaction. Extracted recording
+  frames show the latter screen dimmed/blocked, not merely a disabled Create.
+- After a fresh dedicated Simulator boot, unchanged key-setup source and the
+  nested-control test **passed1/1**, including consent, disabled Finish before
+  export, Home/background clearing and foreground reset:
+  `/private/tmp/Pinbook-Key-Setup-Focused.xcresult`, log
+  `/private/tmp/pinbook-ios-key-setup-focused.log`. Its screenshot was inspected:
+  readable warnings/actions, masked confirmation field, no key shown. The prior
+  Files test terminated its host with a native provider sheet still open. It now
+  pulls the sheet down and verifies the underlying action is hittable BEFORE
+  termination. The successful combined rerun above follows this change; no
+  production switch workaround was introduced.
+- Unsigned generic iPhone Release build PASSED:
+  `/private/tmp/pinbook-ios-key-setup-release.log`. Static and compiled app/widget
+  localization parity PASSED: **286 keys ×15 translated locales +English source**.
+- Key setup UI is DEBUG-fixture-only until integrated; in-memory fake custody
+  avoids real credentials. Native unit coverage reads an actual temporary64-byte
+  key file through the coordinated reader before retention. This is not live
+  Files-provider durability, separate physical storage or successful native export.
+- Scene/background teardown clears pasted text, document/preview references and
+  cancels scoped tasks. Late operation completions cannot repopulate active UI or
+  clear a newer operation. Swift/String/FileDocument copies are not guaranteed
+  physically erased. Exported user files are not deleted on cancellation.
+- No Keychain accessibility change: WhenUnlockedThisDeviceOnly remains in use.
+  [Apple's passcode-only class](https://developer.apple.com/documentation/security/ksecattraccessiblewhenpasscodesetthisdeviceonly)
+  deletes its items when the passcode is removed; adopting it requires an explicit
+  migration/recovery policy, not a silent strengthening that risks lost keys.
+  No physical screen/passcode/access-control acceptance is claimed.
+- No source push, signing/capability mutation, shared infrastructure write or
+  TestFlight upload. Build3 remains the published baseline.
+
+## 2026-09-04 native sign-in binding (inactive)
+
+- Added one-use native attempt/callback binding and actual Apple request
+  construction, exact raw nonce plus independent local state, bounded unverified
+  token submission, stale cancellation protection, clock/expiry validation and
+  redacted descriptions/reflection. No live controller/provider/HTTP/session flow.
+- Seven new synthetic tests; full core **69/69 passed**:
+  `/private/tmp/pinbook-ios-native-signin-final-core.log`.
+- Unsigned iPhone Release **PASSED**:
+  `/private/tmp/pinbook-ios-native-signin-release.log`. Compiled Release app/widget
+  catalogs exactly match all286 keys ×15 translations +English source.
+- iOS app-host tests and complete UI rerun PASSED in the combined108-pass result
+  above, including all seven native sign-in tests. See `TEAM_NATIVE_SIGN_IN_IOS.md`
+  for implemented API and outstanding provider/controller/transport integration.
+
 ## 2026-09-04 continuous final-update work: personal import and widget families
 
 - Tested source checkpoint: `f6e6e26c1e3280f1202b7d2b5b74ab9d4907bf7c` (local commit).

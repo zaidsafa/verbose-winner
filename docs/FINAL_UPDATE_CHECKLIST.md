@@ -73,8 +73,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   behind inactive APIs. No normal app screen opens the team store or creates keys.
 - Shared human-readable recovery-key parser and single-use preview session now
   implemented, plus an inactive received-text Files screen and public DEBUG UI
-  test host. Complete key setup/export/retention and full archive coverage remain
-  open; do not equate that scoped screen with complete team recovery.
+  test host. Background teardown rejects late operations and preserves an uncertain
+  restore warning until a fresh authoritative preview. Key setup/copy now requires
+  explicit consent, file read-back and separate-copy confirmation before custody.
+  Final UI/provider/physical acceptance, imported-key retention, secure-screen
+  policy and full archive coverage remain open; this is not complete team recovery.
 - See `VALIDATION.md` for exact tested checkpoints. This is not a complete user
   recovery flow or a physical-device acceptance claim.
 - Crypto audit/version/fix assessment: `OPENMLS_AUDIT_ADOPTION_20260904.md`.
