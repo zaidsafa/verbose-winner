@@ -45,6 +45,20 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Android/server accepted-event contract checkpoint `2725a49` now has inactive
+  iOS model/vector parity. ACCEPT freezes deterministic event/object identity,
+  exact sender authority, intent/JWE hashes and sizes, ordered audience, all
+  lifecycle timestamps and fixed retention. ACK/CANCEL now freeze the agreement-
+  key thumbprint with user/device/enrollment. Independent Node and Swift canonical
+  ACCEPT bytes match at 1,079 bytes, SHA-256
+  `253037999a2c6122c96de38e1123f7b3923202670e98c418575d34f9f23a4a7f`.
+  Focused **4/4**, core **332/332**, signed Simulator **357 PASS + 4 expected
+  physical-only SKIPS** (361 total, 0 failures), and unsigned production Release
+  pass. Later server `12137d2` keeps this event contract and hardens inactive
+  lease/recovery behavior. No provider/journal/network route, Android sync,
+  archive-before-ACK, staging or TestFlight action. See
+  `TEAM_DELIVERY_JOURNAL_EVENT_IOS.md` and `VALIDATION.md`.
+
 - Actual iOS 26.5 Simulator widget-gallery acceptance now covers both Pinbook
   kinds and all four Home Screen gallery pages: Quick Expense small/medium and
   Balance Overview small/medium. Installed Balance Overview opens Summary;

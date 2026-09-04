@@ -68,6 +68,14 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the
+  committed server contract. ACCEPT derives deterministic event/object identity,
+  binds exact canonical submit-intent/JWE/audience/timestamps and freezes ordered
+  target user/device/enrollment/agreement-key identity. ACK/CANCEL freeze that
+  same four-field target. Independent Node and Swift canonical hashes match;
+  complete core/app-host/Release pass. No journal, provider or route is active.
+  See `TEAM_DELIVERY_JOURNAL_EVENT_IOS.md`.
+
 - Canonical submit-intent metadata now has exact inactive iOS parity. It pins the
   delivery ID, complete-audience digest, membership revision and exact JWE bytes/
   hash, with independent expected-binding and canonical decode checks. This is not

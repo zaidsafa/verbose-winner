@@ -1,5 +1,36 @@
 # Validation plan
 
+## 2026-09-05 canonical ACCEPT/ACK/CANCEL journal event parity (inactive)
+
+- Mirrored the exact accepted-delivery journal metadata frozen in committed
+  Android/server checkpoint `2725a49`: deterministic ACCEPT event/object IDs,
+  delivery/team/sender authority, revision, audience/intent/JWE hashes and size,
+  ordered frozen targets, all lifecycle timestamps and fixed 30-day expiry.
+  ACK/CANCEL now freeze target user/device/enrollment/agreement-key thumbprint;
+  CANCEL remains distinct and limited to `MEMBERSHIP_REMOVED`.
+- The accepted constructor requires exact canonical submit-intent bytes and derives
+  their SHA-256. Independent Node canonicalization and Swift serialization match:
+  1,079 bytes, SHA-256
+  `253037999a2c6122c96de38e1123f7b3923202670e98c418575d34f9f23a4a7f`;
+  embedded intent SHA-256
+  `b39a539699af95520162e09fe08ee4044e66bf80de3968ee24f356e043561ddf`.
+- Focused Swift journal-event **4/4 PASS**. Complete Swift core **332/332 PASS**,
+  29 suites, 19.487s:
+  `/private/tmp/pinbook-journal-event-full-core-20260905.log`.
+- Correct signed iOS 26.5 Simulator app-host run **357 PASS + 4 expected physical-
+  only SKIPS**, 361 total, 0 failures, 30 suites, 10.736s:
+  `/private/tmp/Pinbook-Journal-Event-AppHost-3-20260905.xcresult` and
+  `/private/tmp/pinbook-journal-event-apphost-3-20260905.log`. The first app-host
+  attempt omitted `-sdk iphonesimulator`, failed before tests by selecting a macOS
+  host path, and is not counted.
+- Ordinary unsigned production Release **BUILD SUCCEEDED**, bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`:
+  `/private/tmp/pinbook-journal-event-release-20260905.log`.
+- Later server checkpoint `12137d2` retains this event contract and adds inactive
+  lease/recovery fencing. No iOS provider write, journal, network route, Android
+  sync, archive-before-ACK, staging, archive/upload or TestFlight action occurred.
+  See `TEAM_DELIVERY_JOURNAL_EVENT_IOS.md`.
+
 ## 2026-09-05 installed widgets and authoritative cross-route presentation
 
 - The actual Pinbook entry in the iOS 26.5 Simulator widget gallery exposes four
