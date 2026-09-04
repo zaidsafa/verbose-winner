@@ -406,23 +406,29 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
     }
 
     func onboarding(_ route: TeamOnboardingRoute, fields: [String: Any], session: TeamAccountSessionSnapshot? = nil) async throws -> (data: Data, receivedAt: Int64) {
+        try await onboardingAccess(route, fields: fields, ticket: session.map { try TeamAccountAccessTicket(snapshot: $0) })
+    }
+    func onboarding(_ route: TeamOnboardingRoute, fields: [String: Any], ticket: TeamAccountAccessTicket) async throws -> (data: Data, receivedAt: Int64) {
+        try await onboardingAccess(route, fields: fields, ticket: ticket)
+    }
+    private func onboardingAccess(_ route: TeamOnboardingRoute, fields: [String: Any], ticket: TeamAccountAccessTicket?) async throws -> (data: Data, receivedAt: Int64) {
         try Task.checkCancellation()
         let start = try onboardingTime()
         let bearer: String?
         if route.requiresSession {
-            guard let session, session.scope.origin.absoluteString == origin.appendingPathComponent("").absoluteString else {
+            guard let ticket, ticket.scope.origin.absoluteString == origin.appendingPathComponent("").absoluteString else {
                 throw TeamAuthHTTPError.invalidRequest
             }
-            bearer = try session.usablePair(now: start).accessToken
+            bearer = try ticket.usableToken(now: start)
         } else {
-            guard session == nil else { throw TeamAuthHTTPError.invalidRequest }
+            guard ticket == nil else { throw TeamAuthHTTPError.invalidRequest }
             bearer = nil
         }
         let data = try await sendPath(route.rawValue, fields: fields, bearer: bearer, expectedStatus: 200,
             maximumResponseBytes: route == .listInvitations ? 32 * 1024 : 4096)
         let end = clock()
         guard end >= start, end <= TeamAuthWire.maximumSafeTime else { throw TeamAuthHTTPError.invalidResponse }
-        if let session { _ = try session.usablePair(now: end) }
+        if let ticket { _ = try ticket.usableToken(now: end) }
         return (data, end)
     }
 
@@ -432,13 +438,13 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
         return value
     }
 
-    func acceptsDeviceBinding(_ binding: TeamDeviceEnrollmentWire.Binding, session: TeamAccountSessionSnapshot) -> Bool {
+    func acceptsDeviceBinding(_ binding: TeamDeviceEnrollmentWire.Binding, ticket: TeamAccountAccessTicket) -> Bool {
         let raw = origin.absoluteString
         let canonical = raw.hasSuffix("/") ? String(raw.dropLast()) : raw
         return TeamDeviceEnrollmentWire.canonicalAudience(binding.audience) && binding.audience == canonical &&
-            binding.accountID == session.accountID && binding.sessionID == session.sessionID &&
+            binding.accountID == ticket.accountID && binding.sessionID == ticket.sessionID &&
             TeamAuthWire.identifier(binding.authorityEpoch) && TeamAuthWire.identifier(binding.deviceID) &&
-            TeamAuthWire.credential(binding.keyThumbprint) && binding.accessExpiresAt == session.pair?.accessExpiresAt
+            TeamAuthWire.credential(binding.keyThumbprint) && binding.accessExpiresAt == ticket.accessExpiresAt
     }
 
     private func sendPath(_ path: String, fields: [String: Any]?, bearer: String?,

@@ -133,24 +133,36 @@ extension TeamAuthHTTPClient {
     }
     func deviceChallenge(key: TeamDeviceEnrollmentWire.PublicKey, expected: TeamDeviceEnrollmentWire.Binding,
                          session: TeamAccountSessionSnapshot) async throws -> TeamPreparedDeviceChallenge {
-        guard acceptsDeviceBinding(expected, session: session), key.thumbprint == expected.keyThumbprint else { throw TeamAuthHTTPError.invalidRequest }
-        let reply = try await onboarding(.deviceChallenge, fields: ["deviceId": expected.deviceID, "publicKey": key.jwk], session: session)
+        try await deviceChallenge(key: key, expected: expected, ticket: .init(snapshot: session))
+    }
+    func deviceChallenge(key: TeamDeviceEnrollmentWire.PublicKey, expected: TeamDeviceEnrollmentWire.Binding,
+                         ticket: TeamAccountAccessTicket) async throws -> TeamPreparedDeviceChallenge {
+        guard acceptsDeviceBinding(expected, ticket: ticket), key.thumbprint == expected.keyThumbprint else { throw TeamAuthHTTPError.invalidRequest }
+        let reply = try await onboarding(.deviceChallenge, fields: ["deviceId": expected.deviceID, "publicKey": key.jwk], ticket: ticket)
         do { return try .init(validating: reply.data, expected: expected, now: reply.receivedAt) }
         catch { throw TeamAuthHTTPError.invalidResponse }
     }
     func completeDevice(challenge: TeamPreparedDeviceChallenge, signature: Data, expected: TeamDeviceEnrollmentWire.Binding,
                         session: TeamAccountSessionSnapshot) async throws -> TeamRegisteredDevice {
-        guard acceptsDeviceBinding(expected, session: session), signature.count == 64 else { throw TeamAuthHTTPError.invalidRequest }
+        try await completeDevice(challenge: challenge, signature: signature, expected: expected, ticket: .init(snapshot: session))
+    }
+    func completeDevice(challenge: TeamPreparedDeviceChallenge, signature: Data, expected: TeamDeviceEnrollmentWire.Binding,
+                        ticket: TeamAccountAccessTicket) async throws -> TeamRegisteredDevice {
+        guard acceptsDeviceBinding(expected, ticket: ticket), signature.count == 64 else { throw TeamAuthHTTPError.invalidRequest }
         do { _ = try challenge.message(expected: expected, now: onboardingTime()) }
         catch { throw TeamAuthHTTPError.invalidRequest }
         let reply = try await onboarding(.deviceComplete, fields: ["challengeId": challenge.challengeID,
-            "signature": TeamDeviceEnrollmentWire.encode(signature)], session: session)
+            "signature": TeamDeviceEnrollmentWire.encode(signature)], ticket: ticket)
         return try TeamOnboardingWire.registration(TeamStrictJSON.object(reply.data), expected: expected)
     }
     func lookupDevice(key: TeamDeviceEnrollmentWire.PublicKey, expected: TeamDeviceEnrollmentWire.Binding,
                       session: TeamAccountSessionSnapshot) async throws -> TeamRegisteredDevice? {
-        guard acceptsDeviceBinding(expected, session: session), key.thumbprint == expected.keyThumbprint else { throw TeamAuthHTTPError.invalidRequest }
-        let reply = try await onboarding(.deviceLookup, fields: ["deviceId": expected.deviceID, "publicKey": key.jwk], session: session)
+        try await lookupDevice(key: key, expected: expected, ticket: .init(snapshot: session))
+    }
+    func lookupDevice(key: TeamDeviceEnrollmentWire.PublicKey, expected: TeamDeviceEnrollmentWire.Binding,
+                      ticket: TeamAccountAccessTicket) async throws -> TeamRegisteredDevice? {
+        guard acceptsDeviceBinding(expected, ticket: ticket), key.thumbprint == expected.keyThumbprint else { throw TeamAuthHTTPError.invalidRequest }
+        let reply = try await onboarding(.deviceLookup, fields: ["deviceId": expected.deviceID, "publicKey": key.jwk], ticket: ticket)
         let object = try TeamAuthWire.object(reply.data, keys: ["registration"])
         if object["registration"] is NSNull { return nil }
         guard let registration = object["registration"] as? [String: Any] else { throw TeamAuthHTTPError.invalidResponse }

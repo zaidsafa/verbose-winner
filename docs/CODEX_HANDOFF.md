@@ -27,14 +27,37 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Account-bound registration owner now composes current access-only session
+  tickets, protected device custody and the SAME retained onboarding client.
+  Fresh lookup even for REGISTERED, current-generation checks after slow device
+  reads, wall/monotonic operation/proof limits and cancellation ownership; no
+  automatic key rotation, sign-in, refresh or proof replay. See
+  TEAM_DEVICE_REGISTRATION_IOS.md. Thirteen new core cases and actual localhostTLS
+  captured-signature/repeat-lookup integration added. One older TLS sign-in case
+  failed once in initial full regression; isolated and subsequent full runs pass,
+  but root cause is unproven. Added bounded test diagnostics and three mandatory
+  fresh TLS cases, not retry-on-failure. Preserve caveat for final validation.
+  Next: invitation account consent/exact account handoff, then durable membership
+  intent and separate join consent/current-membership recovery. Android invitation
+  consent and join-recovery documents have been read; use persisted team/enrollment
+  IDs for unknown accept, not re-preview of a consumed link. All release gates stay.
+  Final core **163/163 PASS**,13.498s:
+  `/private/tmp/pinbook-ios-registration-owner-final-core.log`; final Simulator
+  build-for-testing PASS:
+  `/private/tmp/pinbook-ios-registration-owner-final-test-build.log`. No new app-host
+  runtime; Woo task snapshot was active but unchanged with no concrete GUI handle
+  or explicit release. That is not a verified live wait; safe local work continues.
+  Unsigned iPhone Release PASS:
+  `/private/tmp/pinbook-ios-registration-owner-release.log`.
+
 - Device custody now uses an inactive SecureEnclave-only provider and a separate
   bounded passcode-only Keychain index. RESERVED→READY→SUBMIT_PENDING (before signing)
   →REGISTERED; fresh RECOVERING generation and exact-key absence retain the SAME key.
   Fifteen synthetic fault/race/Keychain-policy tests plus composed actual localhost
   TLS signature verification added. Full core **149/149 PASS**; Simulator test build
   PASS. See TEAM_DEVICE_CUSTODY_IOS.md. No real Secure Enclave/Keychain runtime or
-  physical acceptance is implied. Next: current-session access-only ticket and
-  monotonic registration owner, then invited account consent and distinct join UI.
+  physical acceptance is implied. The subsequent registration owner above now
+  provides current-session and monotonic integration; consent/join UI remains open.
   The owning app must perform a fresh lookup even for local REGISTERED metadata;
   it is not lasting authority. Keep all final scope/activation/publication gates.
   Unsigned iPhone Release also PASS:

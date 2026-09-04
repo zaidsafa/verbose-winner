@@ -241,6 +241,7 @@ final class TeamDeviceCustody: @unchecked Sendable {
         _ = try now(since: row.snapshot.observedAt)
         return row.snapshot
     }
+    func requireCurrent(_ expected: TeamDeviceSnapshot) throws { _ = try current(expected) }
     private func current(_ expected: TeamDeviceSnapshot) throws -> TeamDeviceRecord {
         let (_, index) = try read()
         guard let row = index.records.first(where: { $0.snapshot.scope == expected.scope }), row.snapshot.generation == expected.generation else { throw TeamDeviceCustodyError.staleOperation }

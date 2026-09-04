@@ -96,6 +96,19 @@ struct TeamAuthTLSTests {
         }
     }
     private enum FixtureError: Error { case setup }
+    private actor SignInTransportTrace: TeamAccountSigningIn {
+        let client: TeamAuthHTTPClient
+        private(set) var failures = [String]()
+        init(_ client: TeamAuthHTTPClient) { self.client = client }
+        func challenge(providerID: String) async throws -> TeamAuthChallenge {
+            do { return try await client.challenge(providerID: providerID) }
+            catch { failures.append("challenge: \(error as? TeamAuthHTTPError ?? .transport)"); throw error }
+        }
+        func exchange(_ submission: TeamNativeLoginSubmission) async throws -> TeamAuthSessionPair {
+            do { return try await client.exchange(submission) }
+            catch { failures.append("exchange: \(error as? TeamAuthHTTPError ?? .transport)"); throw error }
+        }
+    }
     private var pair: TeamAuthSessionPair {
         TeamAuthSessionPair(accountID: "public-account", sessionID: "public-session",
             accessToken: String(repeating: "A", count: 43), refreshToken: String(repeating: "B", count: 42) + "A",
@@ -178,6 +191,35 @@ struct TeamAuthTLSTests {
         #expect(raw.count == 64 && raw == proof.signature)
     }
 
+    @Test func accountBoundRegistrationOwnerUsesTLSAndFreshLookupOnRepeat() async throws {
+        let fixture = try await Fixture(mode: "success"), client = try fixture.client()
+        let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
+        let sessions = TeamAccountSessionStore(testService: "registration-owner-tls", keychain: SessionMemoryKeychain())
+        _ = try sessions.saveInitial(pair, scope: scope, now: 1_000, consent: true)
+        let metadata = try KeychainTeamDeviceMetadata(testService: "pinbook.device-test.owner-tls", keychain: SessionMemoryKeychain())
+        let custody = TeamDeviceCustody(storage: metadata, keys: DeviceFixtureKeys(), clock: { 1_000 })
+        let owner = try TeamDeviceRegistration(scope: scope, authorityEpoch: "public-epoch", sessions: sessions,
+            devices: TeamRegistrationCustodyDriver(custody: custody), transport: client,
+            clock: { .init(wallTime: 1_000, instant: .now) })
+        guard case .registered(let saved) = try await owner.register(consent: true),
+              case .registered(let refreshed) = try await owner.register(consent: true) else { Issue.record("Expected registration and fresh lookup"); return }
+        #expect(saved.deviceID == refreshed.deviceID && saved.publicKey?.thumbprint == refreshed.publicKey?.thumbprint)
+        let attempts = try fixture.records("attempts")
+        #expect(attempts.compactMap { $0["path"] as? String } == ["/api/v1/devices/lookup", "/api/v1/devices/challenge", "/api/v1/devices/complete", "/api/v1/devices/lookup"])
+        #expect(attempts.allSatisfy { $0["authorization"] as? String == "Bearer \(pair.accessToken)" })
+        let bodies = try fixture.records("bodies"); #expect(bodies.count == 4)
+        let encodedBody = try #require(bodies[2]["body"] as? String)
+        let sent = try TeamStrictJSON.object(Data(encodedBody.utf8))
+        let signature = try P256.Signing.ECDSASignature(rawRepresentation: #require((sent["signature"] as? String).flatMap(TeamDeviceEnrollmentWire.decode)))
+        let key = try #require(saved.publicKey)
+        let binding = TeamDeviceEnrollmentWire.Binding(audience: fixture.origin.absoluteString, authorityEpoch: "public-epoch", accountID: pair.accountID,
+            sessionID: pair.sessionID, deviceID: saved.deviceID, keyThumbprint: key.thumbprint, accessExpiresAt: pair.accessExpiresAt)
+        let wire = try Data(contentsOf: fixture.directory.appendingPathComponent("device-public.json"))
+        let message = try TeamDeviceEnrollmentWire.message(challenge: wire, expected: binding, now: 1_000)
+        #expect(key.key.isValidSignature(signature, for: message))
+        #expect(try sessions.load(scope: scope)?.usablePair(now: 1_000) == pair)
+    }
+
     @Test func rotatingTokenNeverReplayedAfterHTTPFailureOrLostResponse() async throws {
         for mode in ["503", "408", "drop"] {
             let fixture = try await Fixture(mode: mode)
@@ -246,15 +288,25 @@ struct TeamAuthTLSTests {
         }
     }
 
-    @Test func signInCoordinatorUsesActualTLSChallengeExchangeAndBoundReservation() async throws {
+    // Fresh listener/certificate for each case. Every case must pass; this is not
+    // retry-on-failure or replay of a request/credential against the same service.
+    @Test(arguments: 0..<3) func signInCoordinatorUsesActualTLSChallengeExchangeAndBoundReservation(iteration: Int) async throws {
         let fixture = try await Fixture(mode: "success")
         let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
         let store = TeamAccountSessionStore(testService: "local-tls-signin", keychain: SessionMemoryKeychain())
         let instant = ContinuousClock.now
+        let trace = SignInTransportTrace(try fixture.client())
         let owner = TeamAccountSignInCoordinator(provider: .apple, scope: scope, store: store,
-            identity: SyntheticAppleIdentity(), transport: try fixture.client(),
+            identity: SyntheticAppleIdentity(), transport: trace,
             clock: { TeamSignInMoment(wallTime: 1_000, instant: instant) })
-        let result = try await owner.signIn(consent: true)
+        let result: TeamAuthSessionPair
+        do { result = try await owner.signIn(consent: true) }
+        catch {
+            // Fixed error cases and public path/count only; never token/body data.
+            let routes = try fixture.records("attempts").compactMap { $0["path"] as? String }
+            Issue.record("Local TLS sign-in failure case\(iteration): \(await trace.failures), routes=\(routes), bodies=\(try fixture.records("bodies").count)")
+            throw error
+        }
         #expect(try store.load(scope: scope)?.usablePair(now: 2_000) == result)
         let requests = try fixture.records("attempts")
         #expect(requests.compactMap { $0["path"] as? String } == ["/api/v1/auth/challenge", "/api/v1/auth/exchange"])

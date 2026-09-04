@@ -14,6 +14,11 @@ mode = sys.argv[2]
 token = lambda char: char * 42 + "A"
 
 
+def key_thumbprint(jwk):
+    canonical = json.dumps(jwk, sort_keys=True, separators=(",", ":")).encode()
+    return base64.urlsafe_b64encode(hashlib.sha256(canonical).digest()).decode().rstrip("=")
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -66,9 +71,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
                                        "state": "PENDING", "expiresAt": 20000} for i in range(100)]}
         if self.path == "/api/v1/devices/lookup":
             fields = {"registration": None}
+            saved = root / "device-registration.json"
+            if saved.exists():
+                registration = json.loads(saved.read_text())
+                request = json.loads(body)
+                if registration["deviceId"] == request["deviceId"] and registration["keyThumbprint"] == key_thumbprint(request["publicKey"]):
+                    fields["registration"] = registration
         if self.path == "/api/v1/devices/challenge":
             request = json.loads(body)
-            thumb = base64.urlsafe_b64encode(hashlib.sha256(json.dumps(request["publicKey"], sort_keys=True, separators=(",", ":")).encode()).digest()).decode().rstrip("=")
+            thumb = key_thumbprint(request["publicKey"])
             fields = {"audience": "https://" + self.headers["Host"], "authorityEpoch": "public-epoch",
                       "accountId": "public-account", "sessionId": "public-session",
                       "deviceId": request["deviceId"], "keyThumbprint": thumb,
@@ -80,6 +91,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             challenge = json.loads((root / "device-public.json").read_text())
             fields = {key: challenge[key] for key in ("accountId", "deviceId", "keyThumbprint", "authorityEpoch")}
             fields["enrollmentId"] = "public-enrollment"
+            (root / "device-registration.json").write_text(json.dumps(fields))
         if mode in ("503", "408"):
             status = int(mode)
             fields = {"error": "uncertain" if mode == "503" else "request_timeout"}

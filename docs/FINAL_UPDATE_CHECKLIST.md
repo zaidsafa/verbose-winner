@@ -77,8 +77,13 @@ checkboxes deliberately remain open until checked against the exact next candida
   routes now compile and pass intercepted/localhost TLS tests, sharing the auth
   client's unresolved slot with strict 4 KiB/32 KiB parsing. Dedicated device
   custody now implements protected reservation/pending/recovery with same-key
-  preservation and synthetic fault/race tests. Real hardware/protection acceptance,
-  current session-generation/monotonic ownership and live enrollment remain open.
+  preservation and synthetic fault/race tests. A current access-only ticket and
+  session/device-generation-bound registration owner now enforce wall/monotonic
+  checks and fresh lookup/recovery without proof replay. Consent/join UI, real
+  hardware/protection/provider acceptance and live enrollment remain open.
+  See TEAM_DEVICE_REGISTRATION_IOS.md; one older localhostTLS test failed once
+  and has not reproduced with added mandatory cases/diagnostics. Keep that caveat
+  in final regression rather than claiming its underlying cause was fixed.
   See TEAM_DEVICE_CUSTODY_IOS.md; no normal navigation has been activated.
   See TEAM_ONBOARDING_HTTP_IOS.md; no acceptance checkbox is closed by this layer.
 

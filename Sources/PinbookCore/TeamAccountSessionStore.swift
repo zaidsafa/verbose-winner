@@ -90,6 +90,30 @@ public struct TeamAccountSessionSnapshot: Sendable, CustomStringConvertible, Cus
     }
 }
 
+/// Volatile access-only capability. A snapshot of identity/expiry is NOT proof
+/// of continuing authority; requireCurrentAccess must precede protected work.
+struct TeamAccountAccessTicket: TeamOnboardingDiagnostic {
+    let scope: TeamAccountSessionScope
+    let accountID: String
+    let sessionID: String
+    let accessToken: String
+    let accessExpiresAt: Int64
+    let sessionExpiresAt: Int64
+    let generation: UUID
+    let observedAt: Int64
+    init(snapshot: TeamAccountSessionSnapshot) throws {
+        guard snapshot.phase == .active, let pair = snapshot.pair else { throw TeamAccountSessionError.reauthenticationRequired }
+        scope = snapshot.scope; accountID = snapshot.accountID; sessionID = snapshot.sessionID
+        accessToken = pair.accessToken; accessExpiresAt = pair.accessExpiresAt
+        sessionExpiresAt = snapshot.sessionExpiresAt; generation = snapshot.generation; observedAt = snapshot.observedAt
+    }
+    func usableToken(now: Int64) throws -> String {
+        try TeamAccountSessionCodec.checkClock(now, since: observedAt)
+        guard now < accessExpiresAt, now < sessionExpiresAt else { throw TeamAccountSessionError.reauthenticationRequired }
+        return accessToken
+    }
+}
+
 /// Volatile dispatch capability returned ONLY after the durable marker write
 /// succeeds. Never persist this value or put it in a portable backup.
 public struct TeamAccountRefreshLease: Sendable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
@@ -203,7 +227,7 @@ enum TeamAccountSessionCodec {
 }
 
 /// Separate, inactive account-session custody. Public construction ALWAYS uses
-/// passcode-required/unlocked/non-sync/non-backup Keychain protection. Removing a
+/// passcode-required/unlocked/non-sync/device-only Keychain protection. Removing a
 /// passcode may force reauthentication; archive keys and user files are untouched.
 public struct TeamAccountSessionStore: Sendable {
     private let service: String
@@ -284,6 +308,20 @@ public struct TeamAccountSessionStore: Sendable {
         case .session(let value): return value
         case .login: throw TeamAccountSessionError.loginPending
         }
+    }
+    func accessTicket(scope: TeamAccountSessionScope, now: Int64) throws -> TeamAccountAccessTicket {
+        guard let current = try load(scope: scope) else { throw TeamAccountSessionError.reauthenticationRequired }
+        _ = try current.usablePair(now: now)
+        return try TeamAccountAccessTicket(snapshot: current)
+    }
+    func requireCurrentAccess(_ ticket: TeamAccountAccessTicket, now: Int64) throws {
+        guard let current = try load(scope: ticket.scope) else { throw TeamAccountSessionError.staleOperation }
+        let pair = try current.usablePair(now: now)
+        guard current.generation == ticket.generation, current.accountID == ticket.accountID,
+              current.sessionID == ticket.sessionID, current.observedAt == ticket.observedAt,
+              pair.accessToken == ticket.accessToken, pair.accessExpiresAt == ticket.accessExpiresAt,
+              current.sessionExpiresAt == ticket.sessionExpiresAt else { throw TeamAccountSessionError.staleOperation }
+        _ = try ticket.usableToken(now: now)
     }
     public func loginReservation(scope: TeamAccountSessionScope) throws -> TeamAccountLoginReservation? {
         switch try loadRecord(scope: scope) {

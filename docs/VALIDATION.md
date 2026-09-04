@@ -1,5 +1,54 @@
 # Validation plan
 
+## 2026-09-04 current-session/monotonic device registration owner (inactive)
+
+- Existing onboarding compatibility **8/8 PASS** after access-only ticket support:
+  `/private/tmp/pinbook-ios-access-ticket-compatibility.log`; owner compilation plus
+  the same suite **8/8 PASS**:
+  `/private/tmp/pinbook-ios-registration-owner-compile.log`.
+- Initial12new ticket/registration/recovery/lifecycle cases **12/12 PASS**,0.032s:
+  `/private/tmp/pinbook-ios-registration-owner-focused.log`.
+- Initial full core **162 tests, 1 failure**, NOT a pass:
+  `/private/tmp/pinbook-ios-registration-owner-core.log`. Existing real-localhostTLS
+  sign-in test returned fixed transportFailure; exact underlying cause was not
+  captured. New account-bound registration/TLS tests passed in that run. No claim
+  that the failure was caused by, or fixed by, registration changes.
+- Isolated existingTLS sign-in **1/1 PASS**,0.224s:
+  `/private/tmp/pinbook-ios-registration-owner-tls-regression-focused.log`.
+  Added bounded TEST-ONLY route/error/count tracing, no raw tokens/body details or
+  production logging. Full rerun **162/162 PASS**,14.157s:
+  `/private/tmp/pinbook-ios-registration-owner-core-diagnostic.log`.
+- Expanded that sign-in test to THREE mandatory fresh listener/certificate cases.
+  Any case failure still fails the suite: no retry-on-failure or credential replay.
+  Full **162/162 PASS** including all3cases,14.342s:
+  `/private/tmp/pinbook-ios-registration-owner-core-repeated.log`.
+- Added stale-device-generation coverage and monotonic expiry during signing before
+  dispatch. Final full core **163/163 PASS**,13.498s, including all3TLS cases:
+  `/private/tmp/pinbook-ios-registration-owner-final-core.log`.
+  Existing intermittentTLS failure remains a recorded final-regression caveat;
+  repeated green runs do not prove an underlying fix.
+- Thirteen new core tests now cover exact access-only session ticket, refresh/
+  sign-out/re-login/forgery/expiry; fresh lookup including REGISTERED; late commit;
+  pending wait/recovery/same-key null; foreign/absent registrations; current session
+  AFTER device reads/signing/metadata commit; stale device generations; wall and
+  monotonic operation/proof limits; retained busy ownership on uncooperative cancel;
+  and absent/expired/canceled access before key creation.
+- New composed actual localhostTLS owner test checks lookup→challenge→complete→lookup,
+  bearer handling, captured raw64P256 verification, durable metadata and unchanged
+  account credentials. Uses synthetic Keychain API/CryptoKit fixture keys only.
+- Initial Simulator test compilation **PASS**:
+  `/private/tmp/pinbook-ios-registration-owner-test-build.log`. Final expanded test
+  compilation **PASS**:
+  `/private/tmp/pinbook-ios-registration-owner-final-test-build.log`.
+  No app-host/UI run, actual SecureEnclave/Keychain protection or real provider proof.
+  Fresh Woo GUI release is still absent; unchanged task activity is not a live GUI
+  operation and was not counted as a verified wait. Useful headless work continued.
+- No normal navigation, real account/key activation, shared resource, phone,
+  signing/version, source push or TestFlight change. Next consent/durable-join gates
+  are listed in TEAM_DEVICE_REGISTRATION_IOS.md and the complete final checklist.
+- Unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-registration-owner-release.log`.
+
 ## 2026-09-04 protected device identity and uncertain-proof recovery (inactive)
 
 - Onboarding compatibility **8/8 PASS** after adding the validating prepared-

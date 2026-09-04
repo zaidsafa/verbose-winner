@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B20000000000000000000017 /* TeamDeviceRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* TeamDeviceRegistration.swift */; };
+		B30000000000000000000010 /* TeamDeviceRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000010 /* TeamDeviceRegistrationTests.swift */; };
 		B20000000000000000000016 /* TeamDeviceCustody.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* TeamDeviceCustody.swift */; };
 		B3000000000000000000000F /* TeamDeviceCustodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000F /* TeamDeviceCustodyTests.swift */; };
 		B20000000000000000000014 /* TeamStrictJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* TeamStrictJSON.swift */; };
@@ -111,6 +113,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A20000000000000000000017 /* TeamDeviceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceRegistration.swift; sourceTree = "<group>"; };
+		A30000000000000000000010 /* TeamDeviceRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeviceRegistrationTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* TeamDeviceCustody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceCustody.swift; sourceTree = "<group>"; };
 		A3000000000000000000000F /* TeamDeviceCustodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeviceCustodyTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* TeamStrictJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamStrictJSON.swift; sourceTree = "<group>"; };
@@ -275,6 +279,7 @@
 				A20000000000000000000014 /* TeamStrictJSON.swift */,
 				A20000000000000000000015 /* TeamOnboardingHTTP.swift */,
 				A20000000000000000000016 /* TeamDeviceCustody.swift */,
+				A20000000000000000000017 /* TeamDeviceRegistration.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -296,6 +301,7 @@
 				A3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift */,
 				A3000000000000000000000E /* TeamStrictJSONTests.swift */,
 				A3000000000000000000000F /* TeamDeviceCustodyTests.swift */,
+				A30000000000000000000010 /* TeamDeviceRegistrationTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -538,6 +544,7 @@
 				B20000000000000000000014 /* TeamStrictJSON.swift in Sources */,
 				B20000000000000000000015 /* TeamOnboardingHTTP.swift in Sources */,
 				B20000000000000000000016 /* TeamDeviceCustody.swift in Sources */,
+				B20000000000000000000017 /* TeamDeviceRegistration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -559,6 +566,7 @@
 				B3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift in Sources */,
 				B3000000000000000000000E /* TeamStrictJSONTests.swift in Sources */,
 				B3000000000000000000000F /* TeamDeviceCustodyTests.swift in Sources */,
+				B30000000000000000000010 /* TeamDeviceRegistrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
