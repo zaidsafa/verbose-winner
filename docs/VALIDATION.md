@@ -1,5 +1,40 @@
 # Validation plan
 
+## 2026-09-04 thirteen-route native onboarding transport (inactive)
+
+- Four strict protocol-JSON tests **PASS**:
+  `/private/tmp/pinbook-ios-onboarding-json-tests.log`. Initial missing-try compile
+  error was corrected before this successful focused run (the focused log was
+  reused; no retained standalone copy of that first compile output).
+- Initial six intercepted route tests **6/6 PASS** in0.041s:
+  `/private/tmp/pinbook-ios-onboarding-http-tests.log`. Two further clock/expiry and
+  prepared-proof tests were added for final full validation.
+- Initial full core **129 tests, 1 failure**, not a pass:
+  `/private/tmp/pinbook-ios-onboarding-full-core.log`. Existing boundary test still
+  expected the old32KiB auth limit; updated to verify4096accepted/4097rejected after
+  intentionally narrowing auth/nonlist onboarding to4KiB. Google remains32KiB.
+- Final full core **133/133 PASS** in14.704s:
+  `/private/tmp/pinbook-ios-onboarding-final-core.log`, scratch
+  `/private/tmp/pinbook-google-core.K7cTEo`, `-j 2`. Includes four parser tests,
+  eight intercepted onboarding tests and two new real localhost TLS tests plus
+  all existing custody/archive/auth/provider-wire regression suites.
+- All13routes, public/protected bearer scopes, exact field/role/device binding,
+  strictfalse vs numericzero, duplicate decoded JSON, list caps/uniqueIDs, null vs
+  error, one retained HTTP slot across auth/onboarding, native cancellation,
+  clock rollback/access expiry and proof revalidation covered. Actual local TLS
+  covers preview/current/list and ambiguous join503/lost response without replay
+  or saved-session mutation. Fixtures are synthetic; no deployed backend/provider.
+- Simulator **build-for-testing PASS**:
+  `/private/tmp/pinbook-ios-onboarding-final-test-build.log`. No app-host runtime
+  inferred; existing Apple/Google UIKit fake-driver and device tests still await
+  fresh shared-GUI coordination. Existing test-only UIWindow deprecation, mutable
+  test-clock capture and deliberate callback-vs-async SDK warnings remain.
+- Financial data/backup keys, normal navigation, shared infrastructure, provider
+  setup, signing/version settings and published build0.1.0(3) unchanged. No source
+  push, real account activation, physical acceptance or TestFlight upload.
+- Final unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-onboarding-final-release.log`.
+
 ## 2026-09-04 Google native browser and bounded code exchange (inactive)
 
 - Exact AppAuth3.0.0 resolved at a972daac82d449d58ab119e91c68153e29ddac33;

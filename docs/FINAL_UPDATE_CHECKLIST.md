@@ -73,8 +73,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   ownership with app-owned bounded code exchange and no provider-token persistence;
   actual SDK/core tests pass, UIKit execution and live setup remain gates.
   Internal P256 enrollment canonical bytes and public signature
-  interoperability pass in both Node/Swift directions; private-key custody,
-  operation generation/deadlines, routes and live enrollment remain unimplemented.
+  interoperability pass in both Node/Swift directions. Thirteen typed onboarding
+  routes now compile and pass intercepted/localhost TLS tests, sharing the auth
+  client's unresolved slot with strict 4 KiB/32 KiB parsing. Private-key custody,
+  current durable generation/monotonic ownership and live enrollment remain open.
+  See TEAM_ONBOARDING_HTTP_IOS.md; no acceptance checkbox is closed by this layer.
 
 - Personal Files import now coordinates/read-checks off-main, is cancellable and
   bounds actual file bytes to 128 MiB. Export uses the same limit. Legacy backups

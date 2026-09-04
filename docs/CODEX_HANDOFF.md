@@ -27,6 +27,21 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Thirteen typed onboarding routes now share the retained auth HTTP client's
+  unresolved slot; public/protected auth, exact scopes/roles/device keys, null vs
+  uncertainty, 4 KiB/32 KiB limits and strict duplicate-safe JSON are enforced.
+  Full core **133/133 PASS**, including two actual localhost TLS onboarding tests;
+  Simulator build-for-testing PASS. See TEAM_ONBOARDING_HTTP_IOS.md and VALIDATION.md.
+  Unsigned iPhone Release also PASS at
+  `/private/tmp/pinbook-ios-onboarding-final-release.log`.
+  No new app-host/UI run, private device-key custody or normal navigation activation.
+  Next: dedicated bounded key custody/pending recovery, current-session generation
+  plus monotonic registration owner, then invited sign-in/two-stage consent/join.
+  Android b0e97af has corresponding inactive custody/registration source; its
+  TEAM_ANDROID_DEVICE_CUSTODY.md and TEAM_ANDROID_DEVICE_REGISTRATION.md were read.
+  That is contract guidance, not iOS Keychain or physical-provider evidence.
+  No shared infrastructure mutation, source push or TestFlight upload.
+
 - Google native adapter implemented using exact AppAuth3.0.0 for the system browser,
   fresh state/S256/raw nonce and app-owned bounded token HTTP. No GIDSignIn singleton,
   stored provider tokens, AppAuth shared URLSession override or Drive scope. Six
@@ -37,10 +52,9 @@ Updated: 2026-09-04 (Asia/Shanghai)
   from task activity alone. Real clients/redirects/origin/claim acceptance and normal
   navigation remain absent. See TEAM_GOOGLE_IDENTITY_ADAPTER_IOS.md.
   Final unsigned Release also PASS: `/private/tmp/pinbook-ios-google-final-release.log`.
-  No runtime UIKit pass is inferred from it. Next safe integration step is reading
-  Android's exact TEAM_ONBOARDING_HTTP_V1.md contract before implementing iOS
-  invitation-preview/claim, registration and membership transport; do not invent
-  routes or conflate invitation account consent with explicit device/team join.
+  No runtime UIKit pass is inferred from it. The subsequent onboarding transport
+  checkpoint above supersedes this step; invitation account consent remains
+  separate from explicit device registration/team join.
 - Future local core runs should use `--scratch-path /private/tmp/pinbook-google-core.K7cTEo`
   with `-j 2` for now. The old repository `.build/build.db` failed with disk I/O errors
   and zero matching SDK tests; no success counted.91GiB disk free, no active build
@@ -66,11 +80,11 @@ Updated: 2026-09-04 (Asia/Shanghai)
 - Read Android0082c7cb invited-admission contract: claim/login is separate from
   key registration and explicit team join; first owner still needs controlled
   bootstrap. Admission persists independently of invite expiry/revoke. Native UI
-  must distinguish those consents. No pre-login preview/claim HTTP route is assigned;
-  do not invent one or activate the existing ordinary-login transport for this path.
+  must distinguish those consents. Later TEAM_ONBOARDING_HTTP_V1.md assigns the
+  literal public preview/claim routes, now implemented locally as noted above.
 - Google10.0.0 isolation/dependency/cancellation findings are recorded in
-  TEAM_GOOGLE_IDENTITY_ISOLATION_IOS.md. No Google dependency or live configuration
-  has been adopted; SDK versus AppAuth custody/ownership decision remains open.
+  TEAM_GOOGLE_IDENTITY_ISOLATION_IOS.md. The later AppAuth decision above supersedes
+  the original undecided dependency state; live configuration remains absent.
 
 - Apple adapter now implemented; see TEAM_APPLE_IDENTITY_ADAPTER_IOS.md. Six
   fake-driver tests compile in the exact Debug test build; final unsigned iPhone

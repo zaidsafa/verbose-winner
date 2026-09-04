@@ -12,7 +12,7 @@ public enum TeamAuthServerError: String, Sendable {
 /// No URLs, tokens, raw response bodies or underlying provider errors in diagnostics.
 public enum TeamAuthHTTPError: Error, Equatable, Sendable {
     case invalidConfiguration, invalidRequest, invalidResponse, responseTooLarge
-    case redirectRefused, transport, server(TeamAuthServerError)
+    case redirectRefused, transport, busy, server(TeamAuthServerError)
 }
 
 public struct TeamAuthChallenge: Sendable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
@@ -65,10 +65,8 @@ enum TeamAuthWire {
         (1...128).contains(value.utf8.count) && value.utf8.allSatisfy(urlByte)
     }
     static func object(_ data: Data, keys: Set<String>) throws -> [String: Any] {
-        guard data.count <= maximumResponseBytes else { throw TeamAuthHTTPError.responseTooLarge }
-        guard !data.starts(with: [0xef, 0xbb, 0xbf]), String(data: data, encoding: .utf8) != nil,
-              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              Set(object.keys) == keys else { throw TeamAuthHTTPError.invalidResponse }
+        let object = try TeamStrictJSON.object(data)
+        guard Set(object.keys) == keys else { throw TeamAuthHTTPError.invalidResponse }
         return object
     }
     static func string(_ object: [String: Any], _ key: String, secret: Bool = false) throws -> String {
@@ -83,6 +81,12 @@ enum TeamAuthWire {
         guard number.isFinite, number >= 0, number <= Double(maximumSafeTime),
               number.rounded(.towardZero) == number else { throw TeamAuthHTTPError.invalidResponse }
         return Int64(number)
+    }
+    static func boolean(_ object: [String: Any], _ key: String) throws -> Bool {
+        guard let value = object[key] as? NSNumber, CFGetTypeID(value) == CFBooleanGetTypeID() else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        return value.boolValue
     }
     static func challenge(_ data: Data) throws -> TeamAuthChallenge {
         let object = try object(data, keys: ["challengeId", "nonce", "expiresAt"])
@@ -143,13 +147,15 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
     private let configuration: URLSessionConfiguration
     private let localTestAnchor: Data?
     private let responseProfile: ResponseProfile
+    private let maximumResponseBytes: Int
 
     init(request: URLRequest, configuration: URLSessionConfiguration, localTestAnchor: Data?,
-         responseProfile: ResponseProfile = .pinbook) {
+         responseProfile: ResponseProfile = .pinbook, maximumResponseBytes: Int = TeamAuthWire.maximumResponseBytes) {
         self.request = request
         self.configuration = configuration
         self.localTestAnchor = localTestAnchor
         self.responseProfile = responseProfile
+        self.maximumResponseBytes = maximumResponseBytes
     }
 
     func run() async throws -> TeamAuthResponse {
@@ -264,7 +270,7 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
             finish(.failure(TeamAuthHTTPError.invalidResponse))
             return
         }
-        guard response.expectedContentLength <= TeamAuthWire.maximumResponseBytes else {
+        guard response.expectedContentLength <= maximumResponseBytes else {
             completionHandler(.cancel)
             finish(.failure(TeamAuthHTTPError.responseTooLarge))
             return
@@ -279,7 +285,7 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         lock.lock()
         guard !finished else { lock.unlock(); return }
-        guard data.count <= TeamAuthWire.maximumResponseBytes - bytes.count else {
+        guard data.count <= maximumResponseBytes - bytes.count else {
             lock.unlock()
             finish(.failure(TeamAuthHTTPError.responseTooLarge))
             return
@@ -300,6 +306,18 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
     }
 }
 
+private final class TeamAuthRequestSlot: @unchecked Sendable {
+    private let lock = NSLock()
+    private var active = false
+    func acquire() throws {
+        try lock.withLock {
+            guard !active else { throw TeamAuthHTTPError.busy }
+            active = true
+        }
+    }
+    func release() { lock.withLock { active = false } }
+}
+
 /// Inactive until an approved origin/provider setup and protected session custody
 /// are supplied. Construction does not connect. No application retry loop.
 public final class TeamAuthHTTPClient: @unchecked Sendable {
@@ -307,9 +325,12 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
     private let origin: URL
     private let protocolClasses: [AnyClass]?
     private let localTestAnchor: Data?
+    private let clock: @Sendable () -> Int64
+    private let slot = TeamAuthRequestSlot()
 
     public convenience init(origin: URL) throws { try self.init(origin: origin, protocolClasses: nil) }
-    init(origin: URL, protocolClasses: [AnyClass]?, localTestAnchor: Data? = nil) throws {
+    init(origin: URL, protocolClasses: [AnyClass]?, localTestAnchor: Data? = nil,
+         clock: @escaping @Sendable () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }) throws {
         guard origin.scheme == "https", let host = origin.host, !host.isEmpty,
               origin.user == nil, origin.password == nil, origin.query == nil, origin.fragment == nil,
               origin.path.isEmpty || origin.path == "/", origin.port.map({ (1...65535).contains($0) }) ?? true else {
@@ -323,6 +344,7 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
         guard localTestAnchor == nil else { throw TeamAuthHTTPError.invalidConfiguration }
         #endif
         self.origin = origin; self.protocolClasses = protocolClasses; self.localTestAnchor = localTestAnchor
+        self.clock = clock
     }
 
     static func configuration(protocolClasses: [AnyClass]? = nil) -> URLSessionConfiguration {
@@ -380,25 +402,71 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
 
     private func send(_ route: String, fields: [String: String]?, bearer: String? = nil,
                       expectedStatus: Int = 200) async throws -> Data {
+        try await sendPath("auth/\(route)", fields: fields, bearer: bearer, expectedStatus: expectedStatus, maximumResponseBytes: 4096)
+    }
+
+    func onboarding(_ route: TeamOnboardingRoute, fields: [String: Any], session: TeamAccountSessionSnapshot? = nil) async throws -> (data: Data, receivedAt: Int64) {
         try Task.checkCancellation()
-        var request = URLRequest(url: origin.appendingPathComponent("api/v1/auth/\(route)"))
+        let start = try onboardingTime()
+        let bearer: String?
+        if route.requiresSession {
+            guard let session, session.scope.origin.absoluteString == origin.appendingPathComponent("").absoluteString else {
+                throw TeamAuthHTTPError.invalidRequest
+            }
+            bearer = try session.usablePair(now: start).accessToken
+        } else {
+            guard session == nil else { throw TeamAuthHTTPError.invalidRequest }
+            bearer = nil
+        }
+        let data = try await sendPath(route.rawValue, fields: fields, bearer: bearer, expectedStatus: 200,
+            maximumResponseBytes: route == .listInvitations ? 32 * 1024 : 4096)
+        let end = clock()
+        guard end >= start, end <= TeamAuthWire.maximumSafeTime else { throw TeamAuthHTTPError.invalidResponse }
+        if let session { _ = try session.usablePair(now: end) }
+        return (data, end)
+    }
+
+    func onboardingTime() throws -> Int64 {
+        let value = clock()
+        guard value >= 0, value <= TeamAuthWire.maximumSafeTime else { throw TeamAuthHTTPError.invalidRequest }
+        return value
+    }
+
+    func acceptsDeviceBinding(_ binding: TeamDeviceEnrollmentWire.Binding, session: TeamAccountSessionSnapshot) -> Bool {
+        let raw = origin.absoluteString
+        let canonical = raw.hasSuffix("/") ? String(raw.dropLast()) : raw
+        return TeamDeviceEnrollmentWire.canonicalAudience(binding.audience) && binding.audience == canonical &&
+            binding.accountID == session.accountID && binding.sessionID == session.sessionID &&
+            TeamAuthWire.identifier(binding.authorityEpoch) && TeamAuthWire.identifier(binding.deviceID) &&
+            TeamAuthWire.credential(binding.keyThumbprint) && binding.accessExpiresAt == session.pair?.accessExpiresAt
+    }
+
+    private func sendPath(_ path: String, fields: [String: Any]?, bearer: String?,
+                          expectedStatus: Int, maximumResponseBytes: Int) async throws -> Data {
+        try Task.checkCancellation()
+        try slot.acquire()
+        defer { slot.release() } // URL exchange does not return before native invalidation.
+        try Task.checkCancellation()
+        var request = URLRequest(url: origin.appendingPathComponent("api/v1/\(path)"))
         request.httpMethod = fields == nil ? "GET" : "POST"
         request.httpShouldHandleCookies = false
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
         if let bearer {
             guard TeamAuthWire.credential(bearer) else { throw TeamAuthHTTPError.invalidRequest }
             request.setValue("Bearer \(bearer)", forHTTPHeaderField: "Authorization")
         }
         if let fields {
-            let body = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+            let body = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys, .withoutEscapingSlashes])
             guard body.count <= 20_000 else { throw TeamAuthHTTPError.invalidRequest }
             request.httpBodyStream = InputStream(data: body)
             request.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         let result = try await TeamAuthURLExchange(request: request,
-            configuration: Self.configuration(protocolClasses: protocolClasses), localTestAnchor: localTestAnchor).run()
+            configuration: Self.configuration(protocolClasses: protocolClasses), localTestAnchor: localTestAnchor,
+            maximumResponseBytes: maximumResponseBytes).run()
         try Task.checkCancellation()
         guard result.status == expectedStatus else { throw TeamAuthWire.serverError(result.body, status: result.status) }
         if expectedStatus == 204, !result.body.isEmpty { throw TeamAuthHTTPError.invalidResponse }

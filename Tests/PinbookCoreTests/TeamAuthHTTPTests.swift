@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import Testing
 #if SWIFT_PACKAGE
 @testable import PinbookCore
@@ -49,6 +50,13 @@ private struct StubResponse: Sendable {
     var chunks: [Data] = []
     var hangs = false
     var redirect: URL?
+    var beforeDelivery: (@Sendable () -> Void)?
+}
+private final class OnboardingClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: Int64 = 1_000
+    func now() -> Int64 { lock.withLock { value } }
+    func set(_ next: Int64) { lock.withLock { value = next } }
 }
 private struct CapturedRequest: Sendable {
     let path: String
@@ -102,11 +110,175 @@ private final class AuthStubProtocol: URLProtocol, @unchecked Sendable {
             client?.urlProtocol(self, wasRedirectedTo: URLRequest(url: redirect), redirectResponse: response)
             return
         }
+        plan.beforeDelivery?()
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         for chunk in plan.chunks { client?.urlProtocol(self, didLoad: chunk) }
         if !plan.hangs { client?.urlProtocolDidFinishLoading(self) }
     }
     override func stopLoading() { Self.state.stopped(request.url!.host!) }
+}
+
+@Suite(.serialized)
+struct TeamOnboardingHTTPTests {
+    private func fixture(_ plans: [StubResponse], clock: @escaping @Sendable () -> Int64 = { 1_000 }) throws -> (TeamAuthHTTPClient, String, TeamAccountSessionSnapshot) {
+        let host = "onboarding-\(UUID().uuidString.lowercased()).invalid"
+        let origin = URL(string: "https://\(host)")!
+        AuthStubProtocol.state.configure(host, plans)
+        let pair = try TeamAuthWire.pair(pairJSON())
+        let snapshot = try TeamAccountSessionCodec.active(pair: pair, scope: .init(origin: origin, providerID: "public-ios"), now: 1_000)
+        return (try TeamAuthHTTPClient(origin: origin, protocolClasses: [AuthStubProtocol.self], clock: clock), host, snapshot)
+    }
+    private func preview(role: String = "MEMBER") -> [String: Any] {
+        ["inviteId": "public-invite", "teamId": "public-team", "role": role, "expiresAt": 20_000]
+    }
+    private func membership(role: String = "MEMBER") -> [String: Any] {
+        ["teamId": "public-team", "accountId": "public-account", "enrollmentId": "public-enrollment", "role": role, "membershipRevision": 1]
+    }
+    private func check(_ host: String, paths: [String], fields: [Set<String>], publicCount: Int = 0) throws {
+        let requests = AuthStubProtocol.state.requests(host)
+        #expect(requests.map(\.path) == paths.map { "/api/v1/\($0)" })
+        #expect(requests.count == fields.count)
+        for (index, request) in requests.enumerated() {
+            #expect(request.method == "POST")
+            #expect(request.header("Authorization") == (index < publicCount ? nil : "Bearer \(tokenA)"))
+            #expect(request.header("Cookie") == nil)
+            #expect(request.header("Accept-Encoding") == "identity")
+            #expect(request.header("Content-Length") == String(request.body.count))
+            let object = try TeamStrictJSON.object(request.body)
+            #expect(Set(object.keys) == fields[index])
+        }
+    }
+    @Test func invitationAndMembershipRoutesUseExactSchemasAndExplicitRole() async throws {
+        var issued = preview(role: "REVIEWER"); issued["token"] = tokenC
+        let row: [String: Any] = ["inviteId": "public-invite", "role": "REVIEWER", "state": "PENDING", "expiresAt": 20_000]
+        let plans = try [preview(), ["challengeId": tokenA, "nonce": tokenB, "expiresAt": 121_000],
+            JSONSerialization.jsonObject(with: pairJSON()) as! [String: Any], membership(role: "OWNER"), membership(),
+            membership(role: "REVIEWER"), issued, ["invitations": [row]], ["inviteId": "public-invite", "state": "REVOKED"]].map { StubResponse(chunks: [try json($0)]) }
+        let (client, host, session) = try fixture(plans)
+        defer { AuthStubProtocol.state.clear(host) }
+        #expect(try await client.previewInvitation(token: tokenC).teamID == "public-team")
+        let challenge = try await client.invitedChallenge(providerID: "public-ios", token: tokenC, teamID: "public-team", role: .member)
+        let flow = TeamNativeSignInFlow()
+        let context = try await flow.begin(provider: .apple, providerID: "public-ios", challengeID: challenge.challengeID, nonce: challenge.nonce, expiresAt: challenge.expiresAt, now: 1_000)
+        let submission = try await flow.acceptApple(attemptID: context.id, returnedState: context.state, identityToken: Data("public.header.signature".utf8), now: 1_000)
+        #expect(try await client.invitedExchange(submission, token: tokenC, teamID: "public-team", role: .member).accountID == session.accountID)
+        #expect(try await client.createTeam(teamID: "public-team", enrollmentID: "public-enrollment", session: session).role == .owner)
+        #expect(try await client.currentTeam(teamID: "public-team", enrollmentID: "public-enrollment", session: session).role == .member)
+        #expect(try await client.acceptInvitation(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .reviewer, session: session).role == .reviewer)
+        let invite = try await client.issueInvitation(teamID: "public-team", enrollmentID: "public-enrollment", role: .reviewer, session: session)
+        #expect(invite.token == tokenC && !String(reflecting: invite).contains(tokenC))
+        #expect(try await client.listInvitations(teamID: "public-team", enrollmentID: "public-enrollment", session: session).count == 1)
+        try await client.revokeInvitation(teamID: "public-team", enrollmentID: "public-enrollment", inviteID: "public-invite", session: session)
+        try check(host, paths: ["invitations/preview", "auth/invited-challenge", "auth/invited-exchange", "teams/create", "teams/current", "teams/accept", "teams/invites", "teams/invites/list", "teams/invites/revoke"], fields: [["token"], ["providerId", "token", "teamId", "role"], ["providerId", "token", "teamId", "role", "challengeId", "idToken"], ["teamId", "enrollmentId"], ["teamId", "enrollmentId"], ["token", "teamId", "enrollmentId", "role"], ["teamId", "enrollmentId", "role"], ["teamId", "enrollmentId"], ["teamId", "enrollmentId", "inviteId"]], publicCount: 3)
+    }
+    @Test func deviceRoutesBindExactKeyAndOnlyExplicitNullMeansAbsence() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        let key = try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
+        let binding = TeamDeviceEnrollmentWire.Binding(audience: "https://\(host)", authorityEpoch: "public-epoch", accountID: session.accountID, sessionID: session.sessionID, deviceID: "public-device", keyThumbprint: key.thumbprint, accessExpiresAt: 10_000)
+        let challenge: [String: Any] = ["audience": binding.audience, "authorityEpoch": binding.authorityEpoch, "accountId": binding.accountID, "sessionId": binding.sessionID, "deviceId": binding.deviceID, "keyThumbprint": binding.keyThumbprint, "challengeId": tokenA, "nonce": tokenB, "expiresAt": 9_000]
+        let registration: [String: Any] = ["enrollmentId": "public-enrollment", "accountId": binding.accountID, "deviceId": binding.deviceID, "keyThumbprint": binding.keyThumbprint, "authorityEpoch": binding.authorityEpoch]
+        AuthStubProtocol.state.configure(host, try [challenge, registration, ["registration": registration], ["registration": NSNull()], ["enrollmentId": "public-enrollment", "active": false]].map { StubResponse(chunks: [try json($0)]) })
+        let prepared = try await client.deviceChallenge(key: key, expected: binding, session: session)
+        #expect(try prepared.message(expected: binding, now: 1_000).count > 0)
+        let result = try await client.completeDevice(challenge: prepared, signature: Data(repeating: 1, count: 64), expected: binding, session: session)
+        #expect(result.keyThumbprint == key.thumbprint)
+        #expect(try await client.lookupDevice(key: key, expected: binding, session: session)?.enrollmentID == "public-enrollment")
+        #expect(try await client.lookupDevice(key: key, expected: binding, session: session) == nil)
+        try await client.revokeDevice(enrollmentID: "public-enrollment", session: session)
+        try check(host, paths: ["devices/challenge", "devices/complete", "devices/lookup", "devices/lookup", "devices/revoke"], fields: [["deviceId", "publicKey"], ["challengeId", "signature"], ["deviceId", "publicKey"], ["deviceId", "publicKey"], ["enrollmentId"]])
+        for object: [String: Any] in [[:], ["registration": false], ["registration": [:]], ["registration": registration, "extra": 1]] {
+            AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(object)])])
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) { try await client.lookupDevice(key: key, expected: binding, session: session) }
+        }
+        for field in ["accountId", "deviceId", "keyThumbprint", "authorityEpoch"] {
+            var wrong = registration; wrong[field] = field == "keyThumbprint" ? tokenC : "wrong"
+            AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(["registration": wrong])])])
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) { try await client.lookupDevice(key: key, expected: binding, session: session) }
+        }
+        AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(["enrollmentId": "public-enrollment", "active": 0])])])
+        await #expect(throws: TeamAuthHTTPError.invalidResponse) { try await client.revokeDevice(enrollmentID: "public-enrollment", session: session) }
+    }
+    @Test func membershipConfusionAndDecodedDuplicateFieldsReject() async throws {
+        var wrong = membership(); wrong["accountId"] = "other-account"
+        var other = membership(); other["teamId"] = "other-team"
+        let (client, host, session) = try fixture(try [wrong, other, membership(role: "OWNER")].map { StubResponse(chunks: [try json($0)]) })
+        defer { AuthStubProtocol.state.clear(host) }
+        for _ in 0..<3 {
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) { try await client.acceptInvitation(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session) }
+        }
+        AuthStubProtocol.state.configure(host, [StubResponse(chunks: [Data(#"{"inviteId":"a","teamId":"public-team","role":"MEMBER","\u0072ole":"REVIEWER","expiresAt":20000}"#.utf8)])])
+        await #expect(throws: TeamAuthHTTPError.invalidResponse) { try await client.previewInvitation(token: tokenC) }
+    }
+    @Test func onlyListAllowsLargeBoundedResponseAndRejectsDuplicateOrExcessEntries() async throws {
+        let rows: [[String: Any]] = (0..<100).map { ["inviteId": "invite-\($0)", "role": "MEMBER", "state": "EXPIRED", "expiresAt": 1] }
+        let data = try json(["invitations": rows]); #expect(data.count > 4096)
+        let (client, host, session) = try fixture([StubResponse(chunks: [data]), StubResponse(chunks: [data]),
+            StubResponse(chunks: [try json(["invitations": rows + [rows[0]]])]),
+            StubResponse(chunks: [try json(["invitations": [rows[0], rows[0]]])])])
+        defer { AuthStubProtocol.state.clear(host) }
+        #expect(try await client.listInvitations(teamID: "public-team", enrollmentID: "public-enrollment", session: session).count == 100)
+        await #expect(throws: TeamAuthHTTPError.responseTooLarge) { try await client.previewInvitation(token: tokenC) }
+        for _ in 0..<2 {
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) { try await client.listInvitations(teamID: "public-team", enrollmentID: "public-enrollment", session: session) }
+        }
+    }
+    @Test func wrongOriginOrExpiredSnapshotNeverDispatchesAndPublicFailureLeavesSessionUsable() async throws {
+        let (client, host, session) = try fixture([StubResponse(status: 401, chunks: [try json(["error": "unauthorized"])])])
+        defer { AuthStubProtocol.state.clear(host) }
+        let otherClient = try TeamAuthHTTPClient(origin: URL(string: "https://other.invalid")!, protocolClasses: [AuthStubProtocol.self], clock: { 1_000 })
+        await #expect(throws: TeamAuthHTTPError.invalidRequest) { try await otherClient.currentTeam(teamID: "public-team", enrollmentID: "public-enrollment", session: session) }
+        let expiredClient = try TeamAuthHTTPClient(origin: session.scope.origin, protocolClasses: [AuthStubProtocol.self], clock: { 10_000 })
+        await #expect(throws: TeamAccountSessionError.reauthenticationRequired) { try await expiredClient.currentTeam(teamID: "public-team", enrollmentID: "public-enrollment", session: session) }
+        #expect(AuthStubProtocol.state.requests(host).isEmpty)
+        do { _ = try await client.previewInvitation(token: tokenC); Issue.record("Expected public failure") } catch {}
+        #expect(try session.usablePair(now: 1_000).accessToken == tokenA)
+        #expect(AuthStubProtocol.state.requests(host).count == 1)
+    }
+    @Test func ordinaryAuthenticationAndOnboardingShareOneUnresolvedSlot() async throws {
+        let (client, host, _) = try fixture([StubResponse(hangs: true), StubResponse(chunks: [try json(preview())])])
+        defer { AuthStubProtocol.state.clear(host) }
+        let operation = Task { try await client.challenge(providerID: "public-ios") }
+        for _ in 0..<100 where AuthStubProtocol.state.requests(host).isEmpty { try await Task.sleep(for: .milliseconds(10)) }
+        #expect(AuthStubProtocol.state.requests(host).count == 1)
+        await #expect(throws: TeamAuthHTTPError.busy) { try await client.previewInvitation(token: tokenC) }
+        operation.cancel()
+        await #expect(throws: CancellationError.self) { try await operation.value }
+        #expect(try await client.previewInvitation(token: tokenC).teamID == "public-team")
+        #expect(AuthStubProtocol.state.requests(host).count == 2)
+    }
+    @Test func responseRechecksSessionExpiryAndClockRollbackWithoutRetry() async throws {
+        for end: Int64 in [999, 10_000, TeamAuthWire.maximumSafeTime + 1] {
+            let clock = OnboardingClock()
+            let (client, host, session) = try fixture([StubResponse(chunks: [try json(membership())], beforeDelivery: { clock.set(end) })], clock: { clock.now() })
+            defer { AuthStubProtocol.state.clear(host) }
+            do { _ = try await client.currentTeam(teamID: "public-team", enrollmentID: "public-enrollment", session: session); Issue.record("Accepted stale response") }
+            catch { #expect(error is TeamAuthHTTPError || error is TeamAccountSessionError) }
+            #expect(AuthStubProtocol.state.requests(host).count == 1)
+        }
+        for start: Int64 in [-1, TeamAuthWire.maximumSafeTime + 1] {
+            let (client, host, _) = try fixture([], clock: { start })
+            defer { AuthStubProtocol.state.clear(host) }
+            await #expect(throws: TeamAuthHTTPError.invalidRequest) { try await client.previewInvitation(token: tokenC) }
+            #expect(AuthStubProtocol.state.requests(host).isEmpty)
+        }
+    }
+    @Test func preparedProofIsRevalidatedBeforeDispatch() async throws {
+        let clock = OnboardingClock()
+        let (client, host, session) = try fixture([], clock: { clock.now() })
+        defer { AuthStubProtocol.state.clear(host) }
+        let key = try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
+        let binding = TeamDeviceEnrollmentWire.Binding(audience: "https://\(host)", authorityEpoch: "public-epoch", accountID: session.accountID, sessionID: session.sessionID, deviceID: "public-device", keyThumbprint: key.thumbprint, accessExpiresAt: 10_000)
+        let data = try json(["audience": binding.audience, "authorityEpoch": binding.authorityEpoch, "accountId": binding.accountID, "sessionId": binding.sessionID, "deviceId": binding.deviceID, "keyThumbprint": binding.keyThumbprint, "challengeId": tokenA, "nonce": tokenB, "expiresAt": 9_000])
+        AuthStubProtocol.state.configure(host, [StubResponse(chunks: [data])])
+        let prepared = try await client.deviceChallenge(key: key, expected: binding, session: session)
+        for size in [0, 63, 65] {
+            await #expect(throws: TeamAuthHTTPError.invalidRequest) { try await client.completeDevice(challenge: prepared, signature: Data(repeating: 1, count: size), expected: binding, session: session) }
+        }
+        clock.set(9_000)
+        await #expect(throws: TeamAuthHTTPError.invalidRequest) { try await client.completeDevice(challenge: prepared, signature: Data(repeating: 1, count: 64), expected: binding, session: session) }
+        #expect(AuthStubProtocol.state.requests(host).count == 1)
+    }
 }
 
 @Suite(.serialized)
@@ -310,9 +482,10 @@ struct TeamAuthHTTPTests {
 
     @Test func actualBodyCapAppliesWithoutContentLengthAndAtExactBoundary() async throws {
         let body = try challengeJSON()
-        let exact = body + Data(repeating: 32, count: TeamAuthWire.maximumResponseBytes - body.count)
+        // Ordinary auth now shares onboarding's narrower 4 KiB route cap.
+        let exact = body + Data(repeating: 32, count: 4096 - body.count)
         let (client, host) = try fixture([StubResponse(chunks: [exact]), StubResponse(chunks: [exact, Data([32])]),
-            StubResponse(headers: safeHeaders.merging(["Content-Length": "32769"]) { _, new in new })])
+            StubResponse(headers: safeHeaders.merging(["Content-Length": "4097"]) { _, new in new })])
         defer { AuthStubProtocol.state.clear(host) }
         _ = try await client.challenge(providerID: "public-ios")
         for _ in 0..<2 {

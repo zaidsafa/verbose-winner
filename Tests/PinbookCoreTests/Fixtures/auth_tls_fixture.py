@@ -30,7 +30,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         # Record the attempt before reading, so retries with exhausted streams
         # cannot hide behind a body timeout. All values are public test fixtures.
         with (root / "attempts.jsonl").open("a") as output:
-            output.write(json.dumps({"method": self.command, "path": self.path}) + "\n")
+            output.write(json.dumps({"method": self.command, "path": self.path,
+                                     "authorization": self.headers.get("Authorization")}) + "\n")
         if not 0 <= size <= 20_000:
             self.close_connection = True
             return
@@ -51,6 +52,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             fields = {"accountId": "public-account", "sessionId": "public-session",
                       "accessToken": token("C"), "refreshToken": token("D"),
                       "accessExpiresAt": 10000, "sessionExpiresAt": 30000}
+        if self.path == "/api/v1/invitations/preview":
+            fields = {"inviteId": "public-invite", "teamId": "public-team",
+                      "role": "MEMBER", "expiresAt": 20000}
+        if self.path == "/api/v1/teams/current":
+            fields = {"teamId": "public-team", "accountId": "public-account",
+                      "enrollmentId": "public-enrollment", "role": "MEMBER",
+                      "membershipRevision": 1}
+        if self.path == "/api/v1/teams/invites/list":
+            fields = {"invitations": [{"inviteId": f"public-invite-{i}", "role": "MEMBER",
+                                       "state": "PENDING", "expiresAt": 20000} for i in range(100)]}
         if mode in ("503", "408"):
             status = int(mode)
             fields = {"error": "uncertain" if mode == "503" else "request_timeout"}

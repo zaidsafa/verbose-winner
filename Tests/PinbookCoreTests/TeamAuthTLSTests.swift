@@ -84,7 +84,7 @@ struct TeamAuthTLSTests {
             else { Issue.record("Synthetic TLS server did not confirm exit; retained its private fixture directory") }
         }
         func client() throws -> TeamAuthHTTPClient {
-            try TeamAuthHTTPClient(origin: origin, protocolClasses: nil, localTestAnchor: anchor)
+            try TeamAuthHTTPClient(origin: origin, protocolClasses: nil, localTestAnchor: anchor, clock: { 1_000 })
         }
         func records(_ name: String) throws -> [[String: Any]] {
             let url = directory.appendingPathComponent(name + ".jsonl")
@@ -112,6 +112,43 @@ struct TeamAuthTLSTests {
         #expect(try fixture.records("attempts").count == 1)
         let body = try #require(fixture.records("bodies").first?["body"] as? String)
         #expect(try JSONSerialization.jsonObject(with: Data(body.utf8)) as? [String: String] == ["refreshToken": pair.refreshToken])
+    }
+
+    @Test func onboardingUsesActualTLSBodiesScopedBearerAndBoundedList() async throws {
+        let fixture = try await Fixture(mode: "success")
+        let client = try fixture.client()
+        let snapshot = try TeamAccountSessionCodec.active(pair: pair,
+            scope: .init(origin: fixture.origin, providerID: "public-ios"), now: 1_000)
+        let invitation = String(repeating: "E", count: 42) + "A"
+        #expect(try await client.previewInvitation(token: invitation).role == .member)
+        #expect(try await client.currentTeam(teamID: "public-team", enrollmentID: "public-enrollment", session: snapshot).role == .member)
+        #expect(try await client.listInvitations(teamID: "public-team", enrollmentID: "public-enrollment", session: snapshot).count == 100)
+        let attempts = try fixture.records("attempts")
+        #expect(attempts.compactMap { $0["path"] as? String } == ["/api/v1/invitations/preview", "/api/v1/teams/current", "/api/v1/teams/invites/list"])
+        #expect(attempts.first?["authorization"] is NSNull)
+        #expect(attempts.dropFirst().allSatisfy { $0["authorization"] as? String == "Bearer \(pair.accessToken)" })
+        let bodies = try fixture.records("bodies")
+        #expect(bodies.count == 3)
+        let raw = try #require(bodies.first?["body"] as? String)
+        #expect(try TeamStrictJSON.object(Data(raw.utf8))["token"] as? String == invitation)
+    }
+
+    @Test func ambiguousOnboardingNeverAutomaticallyReplaysOrMutatesSavedAccount() async throws {
+        for mode in ["503", "drop"] {
+            let fixture = try await Fixture(mode: mode)
+            let client = try fixture.client()
+            let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
+            let store = TeamAccountSessionStore(testService: "onboarding-tls", keychain: SessionMemoryKeychain())
+            let snapshot = try store.saveInitial(pair, scope: scope, now: 1_000, consent: true)
+            do {
+                _ = try await client.acceptInvitation(token: String(repeating: "E", count: 42) + "A", teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: snapshot)
+                Issue.record("Expected ambiguous invitation result")
+            } catch { #expect(error is TeamAuthHTTPError) }
+            try await Task.sleep(for: .milliseconds(150))
+            #expect(try fixture.records("attempts").count == 1)
+            #expect(try fixture.records("bodies").count == 1)
+            #expect(try store.load(scope: scope)?.usablePair(now: 1_000) == pair)
+        }
     }
 
     @Test func rotatingTokenNeverReplayedAfterHTTPFailureOrLostResponse() async throws {

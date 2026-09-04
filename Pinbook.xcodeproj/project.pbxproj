@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B20000000000000000000014 /* TeamStrictJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* TeamStrictJSON.swift */; };
+		B20000000000000000000015 /* TeamOnboardingHTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* TeamOnboardingHTTP.swift */; };
+		B3000000000000000000000E /* TeamStrictJSONTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000E /* TeamStrictJSONTests.swift */; };
 		B60000000000000000000001 /* AppAuth in Frameworks */ = {isa = PBXBuildFile; productRef = U60000000000000000000001 /* AppAuth */; };
 		B60000000000000000000002 /* AppAuth in Frameworks */ = {isa = PBXBuildFile; productRef = U60000000000000000000002 /* AppAuth */; };
 		B10000000000000000000001 /* PinbookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* PinbookApp.swift */; };
@@ -106,6 +109,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A20000000000000000000014 /* TeamStrictJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamStrictJSON.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* TeamOnboardingHTTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamOnboardingHTTP.swift; sourceTree = "<group>"; };
+		A3000000000000000000000E /* TeamStrictJSONTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamStrictJSONTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000001 /* PinbookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000002 /* PersistenceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceModels.swift; sourceTree = "<group>"; };
 		A10000000000000000000003 /* PinbookTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookTheme.swift; sourceTree = "<group>"; };
@@ -262,6 +268,8 @@
 				A20000000000000000000011 /* TeamGoogleTokenClient.swift */,
 				A20000000000000000000012 /* TeamGoogleIdentityAuthorizer.swift */,
 				A20000000000000000000013 /* TeamGoogleOAuthRequest.swift */,
+				A20000000000000000000014 /* TeamStrictJSON.swift */,
+				A20000000000000000000015 /* TeamOnboardingHTTP.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -281,6 +289,7 @@
 				A3000000000000000000000B /* TeamDeviceEnrollmentWireTests.swift */,
 				A3000000000000000000000C /* TeamGoogleIdentityAuthorizerTests.swift */,
 				A3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift */,
+				A3000000000000000000000E /* TeamStrictJSONTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -520,6 +529,8 @@
 				B20000000000000000000011 /* TeamGoogleTokenClient.swift in Sources */,
 				B20000000000000000000012 /* TeamGoogleIdentityAuthorizer.swift in Sources */,
 				B20000000000000000000013 /* TeamGoogleOAuthRequest.swift in Sources */,
+				B20000000000000000000014 /* TeamStrictJSON.swift in Sources */,
+				B20000000000000000000015 /* TeamOnboardingHTTP.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -539,6 +550,7 @@
 				B3000000000000000000000B /* TeamDeviceEnrollmentWireTests.swift in Sources */,
 				B3000000000000000000000C /* TeamGoogleIdentityAuthorizerTests.swift in Sources */,
 				B3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift in Sources */,
+				B3000000000000000000000E /* TeamStrictJSONTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
