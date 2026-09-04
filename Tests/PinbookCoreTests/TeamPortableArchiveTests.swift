@@ -11,6 +11,230 @@ import Testing
 
 private final class ArchiveFixtureBundleMarker {}
 
+private final class SetupMemoryKeychain: TeamRecoveryKeychain, @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: [String: Any]?
+    private var unavailableRead = false
+    private var failAfterAdd = false
+    private var writes = 0
+    var insertionCount: Int { lock.withLock { writes } }
+    func setReadUnavailable(_ value: Bool) { lock.withLock { unavailableRead = value } }
+    func failOneAddAfterStoring() { lock.withLock { failAfterAdd = true } }
+    func add(_ query: [String: Any]) -> OSStatus {
+        lock.withLock {
+            guard value == nil else { return errSecDuplicateItem }
+            value = query
+            writes += 1
+            if failAfterAdd { failAfterAdd = false; return errSecNotAvailable }
+            return errSecSuccess
+        }
+    }
+    func copy(_ query: [String: Any]) -> (OSStatus, CFTypeRef?) {
+        lock.withLock {
+            if unavailableRead { return (errSecInteractionNotAllowed, nil) }
+            guard let value,
+                  value[kSecAttrService as String] as? String == query[kSecAttrService as String] as? String,
+                  value[kSecAttrAccount as String] as? String == query[kSecAttrAccount as String] as? String else {
+                return (errSecItemNotFound, nil)
+            }
+            return (errSecSuccess, value as CFDictionary)
+        }
+    }
+}
+
+@Test func keySetupRequiresConsentExportAndSavedCopyConfirmationBeforeCustody() async throws {
+    let backend = SetupMemoryKeychain()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-setup", keychain: backend)
+    let flow = try TeamRecoveryKeySetup(accountId: "alice", store: store)
+    do {
+        _ = try await flow.begin(.createNew, consent: false)
+        Issue.record("Consent is required")
+    } catch let error as TeamRecoveryKeySetupError { #expect(error == .consentRequired) }
+    let id = try await flow.begin(.createNew, consent: true)
+    let text = try await flow.textForExport(setupID: id)
+    #expect(text.count == 64 && backend.insertionCount == 0)
+    #expect(try store.load(accountId: "alice") == nil)
+    do {
+        try await flow.complete(setupID: id, lastEightCharacters: String(text.suffix(8)), separateCopyConfirmed: true)
+        Issue.record("Export acknowledgment is required")
+    } catch let error as TeamRecoveryKeySetupError { #expect(error == .exportRequired) }
+    let wrongCopy = (text.first == "0" ? "1" : "0") + text.dropFirst()
+    do {
+        try await flow.verifyExportedCopy(setupID: id, canonicalText: wrongCopy)
+        Issue.record("Wrong exported content must fail even if its final eight characters match")
+    } catch let error as TeamRecoveryKeySetupError { #expect(error == .confirmationRequired) }
+    try await flow.verifyExportedCopy(setupID: id, canonicalText: text)
+    for (suffix, acknowledgment) in [(String(text.suffix(8)), false), ("not-hex!", true)] {
+        do {
+            try await flow.complete(setupID: id, lastEightCharacters: suffix, separateCopyConfirmed: acknowledgment)
+            Issue.record("Saved-copy confirmation is required")
+        } catch let error as TeamRecoveryKeySetupError { #expect(error == .confirmationRequired) }
+    }
+    #expect(backend.insertionCount == 0)
+    try await flow.complete(setupID: id, lastEightCharacters: String(text.suffix(8)).uppercased(), separateCopyConfirmed: true)
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == TeamRecoveryKeyText.decode(text))
+    do {
+        _ = try await flow.textForExport(setupID: id)
+        Issue.record("Completed setup must release its staged key")
+    } catch let error as TeamRecoveryKeySetupError { #expect(error == .expired) }
+}
+
+@Test func keySetupPreservesExistingKeysAndTokenScopedCancellation() async throws {
+    let backend = SetupMemoryKeychain()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-copy", keychain: backend)
+    try store.storeNew(publicTestKey(), accountId: "alice")
+    let flow = try TeamRecoveryKeySetup(accountId: "alice", store: store)
+    do {
+        _ = try await flow.begin(.createNew, consent: true)
+        Issue.record("Existing keys must not be replaced")
+    } catch let error as TeamRecoveryKeyError { #expect(error == .alreadyExists) }
+    let old = try await flow.begin(.copyExisting, consent: true)
+    let current = try await flow.begin(.copyExisting, consent: true)
+    await flow.cancel(setupID: old)
+    let text = try await flow.textForExport(setupID: current)
+    let expectedText = try TeamRecoveryKeyText.encode(publicTestKey())
+    #expect(text == expectedText)
+    try await flow.verifyExportedCopy(setupID: current, canonicalText: text)
+    try await flow.complete(setupID: current, lastEightCharacters: String(text.suffix(8)), separateCopyConfirmed: true)
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == publicTestKey())
+}
+
+@Test func keySetupNeverGeneratesOnReadFailureAndReconcilesAmbiguousOwnAdd() async throws {
+    let backend = SetupMemoryKeychain()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-retry", keychain: backend)
+    let flow = try TeamRecoveryKeySetup(accountId: "alice", store: store)
+    backend.setReadUnavailable(true)
+    do {
+        _ = try await flow.begin(.createNew, consent: true)
+        Issue.record("Unavailable is not missing")
+    } catch let error as TeamRecoveryKeyError { #expect(error == .unavailable(errSecInteractionNotAllowed)) }
+    #expect(backend.insertionCount == 0)
+    backend.setReadUnavailable(false)
+    let id = try await flow.begin(.createNew, consent: true)
+    let text = try await flow.textForExport(setupID: id)
+    try await flow.verifyExportedCopy(setupID: id, canonicalText: text)
+    backend.failOneAddAfterStoring()
+    do {
+        try await flow.complete(setupID: id, lastEightCharacters: String(text.suffix(8)), separateCopyConfirmed: true)
+        Issue.record("Ambiguous add must surface until readback is confirmed")
+    } catch let error as TeamRecoveryKeyError { #expect(error == .unavailable(errSecNotAvailable)) }
+    #expect(backend.insertionCount == 1)
+    try await flow.complete(setupID: id, lastEightCharacters: String(text.suffix(8)), separateCopyConfirmed: true)
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == TeamRecoveryKeyText.decode(text))
+}
+
+@Test func keySetupLosesRaceWithoutReplacingAnotherKey() async throws {
+    let backend = SetupMemoryKeychain()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-race", keychain: backend)
+    let flow = try TeamRecoveryKeySetup(accountId: "alice", store: store)
+    let id = try await flow.begin(.createNew, consent: true)
+    let text = try await flow.textForExport(setupID: id)
+    try await flow.verifyExportedCopy(setupID: id, canonicalText: text)
+    try store.storeNew(publicTestKey(), accountId: "alice")
+    do {
+        try await flow.complete(setupID: id, lastEightCharacters: String(text.suffix(8)), separateCopyConfirmed: true)
+        Issue.record("The key already saved by another operation must win")
+    } catch let error as TeamRecoveryKeyError { #expect(error == .alreadyExists) }
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == publicTestKey())
+}
+
+@Test func keySetupCancelledOrStaleFlowCannotSaveOrEraseNewSetup() async throws {
+    let backend = SetupMemoryKeychain()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-cancel", keychain: backend)
+    let flow = try TeamRecoveryKeySetup(accountId: "alice", store: store)
+    let old = try await flow.begin(.createNew, consent: true)
+    let oldText = try await flow.textForExport(setupID: old)
+    await flow.cancel(setupID: old)
+    do {
+        try await flow.verifyExportedCopy(setupID: old, canonicalText: oldText)
+        Issue.record("A cancelled export callback must be ignored")
+    } catch let error as TeamRecoveryKeySetupError { #expect(error == .expired) }
+    let current = try await flow.begin(.createNew, consent: true)
+    await flow.cancel(setupID: old)
+    let text = try await flow.textForExport(setupID: current)
+    #expect(text.count == 64 && backend.insertionCount == 0)
+    await flow.cancel(setupID: current)
+    #expect(try store.load(accountId: "alice") == nil)
+}
+
+#if os(iOS)
+@Test func keySetupVerifiesActualLocalFileReadbackBeforeRetention() async throws {
+    let backend = SetupMemoryKeychain()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-file", keychain: backend)
+    let flow = try TeamRecoveryKeySetup(accountId: "alice", store: store)
+    let id = try await flow.begin(.createNew, consent: true)
+    let text = try await flow.textForExport(setupID: id)
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("pinbook-key-file-test-\(UUID())")
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let file = root.appendingPathComponent("synthetic-key.txt")
+    try Data(text.utf8).write(to: file, options: .atomic)
+    let readback = try await BackupFileRead.load(file, maximumBytes: 64)
+    let readText = try #require(String(data: readback, encoding: .ascii))
+    try await flow.verifyExportedCopy(setupID: id, canonicalText: readText)
+    try await flow.complete(setupID: id, lastEightCharacters: String(readText.suffix(8)), separateCopyConfirmed: true)
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == TeamRecoveryKeyText.decode(text))
+}
+#endif
+
+@Test func recoveryPresentationRejectsLateWorkAfterBackgroundAndReactivation() throws {
+    var state = TeamRecoveryPresentation()
+    #expect(state.begin(.readKey) == nil)
+    state.activate()
+    let oldValue = state.begin(.readKey)
+    let old = try #require(oldValue)
+    #expect(state.accepts(old))
+    #expect(state.begin(.prepare) == nil)
+    state.invalidate()
+    #expect(!state.isWorking && !state.accepts(old))
+    state.activate()
+    let currentValue = state.begin(.prepare)
+    let current = try #require(currentValue)
+    #expect(!state.accepts(old))
+    state.finish(old)
+    #expect(state.isWorking && state.accepts(current))
+    let accepted = state.acceptPreview(current)
+    #expect(accepted)
+    state.finish(current)
+    #expect(!state.isWorking && !state.accepts(current))
+}
+
+@Test func recoveryPresentationPreservesUncertainWriteUntilAnAuthoritativePreview() throws {
+    var state = TeamRecoveryPresentation()
+    state.activate()
+    let writeValue = state.begin(.restore)
+    let write = try #require(writeValue)
+    #expect(state.needsReconciliation)
+    state.invalidate()
+    let lateWriteAccepted = state.acceptRestore(write)
+    #expect(!lateWriteAccepted)
+    #expect(state.needsReconciliation)
+    state.activate()
+    let exportValue = state.begin(.exportArchive)
+    let export = try #require(exportValue)
+    let wrongRestore = state.acceptRestore(export)
+    let wrongPreview = state.acceptPreview(export)
+    #expect(!wrongRestore && !wrongPreview)
+    state.finish(export)
+    #expect(state.needsReconciliation)
+    let previewValue = state.begin(.prepare)
+    let preview = try #require(previewValue)
+    let previewAccepted = state.acceptPreview(preview)
+    #expect(previewAccepted)
+    #expect(!state.needsReconciliation)
+    state.finish(preview)
+    let confirmedValue = state.begin(.restore)
+    let confirmed = try #require(confirmedValue)
+    let confirmationAccepted = state.acceptRestore(confirmed)
+    #expect(confirmationAccepted)
+    #expect(!state.needsReconciliation)
+}
+
 @Test func recoveryKeyTextMatchesSharedPublicFixtures() throws {
     struct Vectors: Decodable {
         struct Valid: Decodable { let name: String; let input: String; let canonical: String }
@@ -129,6 +353,7 @@ private struct PublicArchiveVector: Decodable {
     let archive = try TeamPortableArchive(accountId: "alice", exportedAt: 2000, notes: [])
     let compact = try TeamArchiveJWE.encrypt(archive, recoveryKey: publicTestKey())
     let first = try await session.prepare(compact, recoveryKey: publicTestKey())
+    await session.cancelPreview(previewID: UUID())
     do {
         _ = try await session.confirm(previewID: UUID())
         Issue.record("Unknown correlation ID must fail")

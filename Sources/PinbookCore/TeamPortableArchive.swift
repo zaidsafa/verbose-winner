@@ -149,6 +149,152 @@ public enum TeamRecoverySessionError: Error, Equatable {
     case previewExpired
 }
 
+public enum TeamRecoveryKeySetupError: Error, Equatable {
+    case consentRequired, expired, exportRequired, confirmationRequired, missingKey, keyChanged
+}
+
+public enum TeamRecoveryKeySetupIntent: Sendable { case createNew, copyExisting }
+
+/// A volatile setup transaction, separate from archive restore and remote authority.
+/// No key is created by merely opening a screen or finding a missing Keychain item.
+public actor TeamRecoveryKeySetup {
+    private struct Pending {
+        let id: UUID
+        let key: SymmetricKey
+        let intent: TeamRecoveryKeySetupIntent
+        var exportVerified = false
+    }
+    private let accountId: String
+    private let store: TeamRecoveryKeyStore
+    private var pending: Pending?
+
+    public init(accountId: String, store: TeamRecoveryKeyStore = TeamRecoveryKeyStore()) throws {
+        try TeamDeliveryRules.requireID(accountId)
+        self.accountId = accountId
+        self.store = store
+    }
+
+    public func begin(_ intent: TeamRecoveryKeySetupIntent, consent: Bool) throws -> UUID {
+        try Task.checkCancellation()
+        pending = nil
+        guard consent else { throw TeamRecoveryKeySetupError.consentRequired }
+        let existing = try store.load(accountId: accountId)
+        let key: SymmetricKey
+        switch intent {
+        case .createNew:
+            guard existing == nil else { throw TeamRecoveryKeyError.alreadyExists }
+            key = TeamArchiveJWE.generateRecoveryKey()
+        case .copyExisting:
+            guard let existing else { throw TeamRecoveryKeySetupError.missingKey }
+            key = existing
+        }
+        try Task.checkCancellation()
+        let id = UUID()
+        pending = Pending(id: id, key: key, intent: intent)
+        return id
+    }
+
+    /// Plaintext secret output only for the explicit system file export workflow.
+    /// Never automatically copy to clipboard, logs, defaults or an archive bundle.
+    public func textForExport(setupID: UUID) throws -> String {
+        try Task.checkCancellation()
+        guard let pending, pending.id == setupID else { throw TeamRecoveryKeySetupError.expired }
+        return try TeamRecoveryKeyText.encode(pending.key)
+    }
+
+    /// Checks the actual exported file readback. This is a matching-copy check,
+    /// not proof that the provider will retain it or that it is safely off-device.
+    public func verifyExportedCopy(setupID: UUID, canonicalText: String) throws {
+        guard let pending, pending.id == setupID else { throw TeamRecoveryKeySetupError.expired }
+        let expected = try TeamRecoveryKeyText.encode(pending.key)
+        guard canonicalText == expected else {
+            throw TeamRecoveryKeySetupError.confirmationRequired
+        }
+        self.pending?.exportVerified = true
+    }
+
+    public func cancel(setupID: UUID) {
+        if pending?.id == setupID { pending = nil }
+    }
+
+    /// User re-enters the last eight characters from their copy and acknowledges
+    /// separate safe storage. This usability check is not a cryptographic backup proof.
+    public func complete(setupID: UUID, lastEightCharacters: String, separateCopyConfirmed: Bool) throws {
+        guard let pending, pending.id == setupID else { throw TeamRecoveryKeySetupError.expired }
+        guard pending.exportVerified else { throw TeamRecoveryKeySetupError.exportRequired }
+        guard separateCopyConfirmed else { throw TeamRecoveryKeySetupError.confirmationRequired }
+        let trimmed = lastEightCharacters.trimmingCharacters(in: CharacterSet(charactersIn: " \t\n\r\u{000b}\u{000c}"))
+        let expected = try TeamRecoveryKeyText.encode(pending.key).suffix(8)
+        guard trimmed.utf8.count == 8, trimmed.lowercased() == expected else {
+            throw TeamRecoveryKeySetupError.confirmationRequired
+        }
+        try Task.checkCancellation()
+        switch pending.intent {
+        case .createNew:
+            do { try store.storeNew(pending.key, accountId: accountId) }
+            catch TeamRecoveryKeyError.alreadyExists {
+                // A prior ambiguous add may have stored exactly this same key.
+                // Reconcile by reading, never overwrite an unrelated existing key.
+                guard try store.load(accountId: accountId) == pending.key else {
+                    throw TeamRecoveryKeyError.alreadyExists
+                }
+            }
+        case .copyExisting: break
+        }
+        guard try store.load(accountId: accountId) == pending.key else {
+            throw TeamRecoveryKeySetupError.keyChanged
+        }
+        // A successful add/readback is retained even if cancellation arrived during
+        // Keychain access. No post-write cancellation or rollback claim.
+        self.pending = nil
+    }
+}
+
+/// Main-actor-owned UI bookkeeping only. Contains no key, URL, plaintext or authority.
+/// Old completion callbacks cannot publish into a newly foregrounded operation.
+public struct TeamRecoveryPresentation: Sendable {
+    public enum Operation: Equatable, Sendable { case readKey, exportArchive, prepare, restore }
+    public struct Ticket: Equatable, Sendable {
+        fileprivate let id: UUID
+        fileprivate let operation: Operation
+    }
+    public private(set) var isActive = false
+    public private(set) var needsReconciliation = false
+    private var running: Ticket?
+    public var isWorking: Bool { running != nil }
+    public init() {}
+
+    public mutating func activate() { isActive = true }
+    public mutating func invalidate() { isActive = false; running = nil }
+
+    public mutating func begin(_ operation: Operation) -> Ticket? {
+        guard isActive, running == nil else { return nil }
+        let ticket = Ticket(id: UUID(), operation: operation)
+        running = ticket
+        // A dispatched write can have committed before a dismissed UI hears back.
+        if operation == .restore { needsReconciliation = true }
+        return ticket
+    }
+
+    public func accepts(_ ticket: Ticket) -> Bool { isActive && running == ticket }
+
+    public mutating func finish(_ ticket: Ticket) {
+        if running == ticket { running = nil }
+    }
+
+    public mutating func acceptPreview(_ ticket: Ticket) -> Bool {
+        guard accepts(ticket), ticket.operation == .prepare else { return false }
+        needsReconciliation = false
+        return true
+    }
+
+    public mutating func acceptRestore(_ ticket: Ticket) -> Bool {
+        guard accepts(ticket), ticket.operation == .restore else { return false }
+        needsReconciliation = false
+        return true
+    }
+}
+
 /// Counts and an ephemeral UI correlation ID only; never an account/session credential.
 public struct TeamRecoveryPreview: Identifiable, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
     public let id: UUID
@@ -170,9 +316,9 @@ public actor TeamArchiveRecoverySession {
     public init(store: TeamInboxStore) { self.store = store }
 
     public func prepare(_ compact: String, recoveryKey: SymmetricKey) throws -> TeamRecoveryPreview {
+        try Task.checkCancellation()
         // A new attempt invalidates any previous confirmation, even if it fails.
         pending = nil
-        try Task.checkCancellation()
         let candidate = try TeamArchiveImport.prepare(compact, recoveryKey: recoveryKey,
                                                        expectedAccountId: store.target.userId)
         let changes = try store.previewArchiveRestore(candidate)
@@ -185,6 +331,11 @@ public actor TeamArchiveRecoverySession {
     }
 
     public func cancelPreview() { pending = nil }
+
+    /// Late UI teardown must not invalidate a newer preview created after reactivation.
+    public func cancelPreview(previewID: UUID) {
+        if pending?.id == previewID { pending = nil }
+    }
 
     public func confirm(previewID: UUID) throws -> TeamArchiveRestoreResult {
         guard let prepared = pending, prepared.id == previewID else {

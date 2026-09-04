@@ -9,6 +9,7 @@ struct PinbookLaunchConfiguration: Equatable {
     var themeMode: String?
     var onboardingMode = PinbookOnboardingMode.automatic
     var showsTeamRecoveryPreviewFixture = false
+    var showsTeamKeySetupFixture = false
 
     static let production = PinbookLaunchConfiguration()
 
@@ -28,6 +29,7 @@ struct PinbookLaunchConfiguration: Equatable {
         usesFixtures = fixtureMode == "populated"
         usesEphemeralStore = fixtureMode == "populated" || fixtureMode == "empty"
         showsTeamRecoveryPreviewFixture = usesEphemeralStore && arguments.contains("-PinbookTeamRecoveryPreview")
+        showsTeamKeySetupFixture = usesEphemeralStore && arguments.contains("-PinbookTeamKeySetup")
         onboardingMode = usesEphemeralStore ? .skip : .automatic
 
         switch arguments.value(after: "-PinbookTab") {

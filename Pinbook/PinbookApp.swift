@@ -42,7 +42,10 @@ struct PinbookApp: App {
     var body: some Scene {
         WindowGroup {
 #if DEBUG
-            if launchConfiguration.showsTeamRecoveryPreviewFixture {
+            if launchConfiguration.showsTeamKeySetupFixture {
+                TeamRecoveryKeySetupDebugHost()
+                    .modifier(PinbookLanguageEnvironment())
+            } else if launchConfiguration.showsTeamRecoveryPreviewFixture {
                 TeamRecoveryPreviewDebugHost()
                     .modifier(PinbookLanguageEnvironment())
             } else {

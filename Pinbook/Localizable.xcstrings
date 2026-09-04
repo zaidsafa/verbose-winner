@@ -1,6 +1,1322 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Manage recovery key": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إدارة مفتاح الاسترداد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理恢复密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理復原金鑰"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gérer la clé de récupération"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestionar clave de recuperación"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellungsschlüssel verwalten"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci chiave di recupero"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerenciar chave de recuperação"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma anahtarını yönet"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kelola kunci pemulihan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復元キーを管理"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복구 키 관리"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Управление ключом восстановления"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुनर्प्राप्ति कुंजी प्रबंधित करें"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بازیابی کی کلید کا انتظام"
+          }
+        }
+      }
+    },
+    "Anyone with this key and your archive can read your notes. Save the key separately. Pinbook cannot recover a lost key.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن لأي شخص يملك هذا المفتاح وأرشيفك قراءة ملاحظاتك. احفظ المفتاح بشكل منفصل. لا يستطيع Pinbook استعادة مفتاح مفقود."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何同时拥有此密钥和归档的人都能阅读你的笔记。请单独保存密钥。Pinbook 无法找回丢失的密钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何同時擁有此金鑰和封存檔的人都能閱讀你的筆記。請另外儲存金鑰。Pinbook 無法找回遺失的金鑰。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toute personne possédant cette clé et votre archive peut lire vos notes. Conservez la clé séparément. Pinbook ne peut pas récupérer une clé perdue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cualquier persona con esta clave y tu archivo puede leer tus notas. Guarda la clave por separado. Pinbook no puede recuperar una clave perdida."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder mit diesem Schlüssel und deinem Archiv kann deine Notizen lesen. Bewahre den Schlüssel getrennt auf. Pinbook kann verlorene Schlüssel nicht wiederherstellen."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiunque possieda questa chiave e il tuo archivio può leggere le tue note. Conserva la chiave separatamente. Pinbook non può recuperare una chiave persa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualquer pessoa com esta chave e seu arquivo pode ler suas notas. Guarde a chave separadamente. O Pinbook não pode recuperar uma chave perdida."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu anahtara ve arşivinize sahip olan herkes notlarınızı okuyabilir. Anahtarı ayrı saklayın. Pinbook kaybolan bir anahtarı kurtaramaz."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siapa pun yang memiliki kunci ini dan arsip Anda dapat membaca catatan Anda. Simpan kunci secara terpisah. Pinbook tidak dapat memulihkan kunci yang hilang."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このキーとアーカイブを持つ人は誰でもノートを読むことができます。キーは別に保管してください。Pinbookは紛失したキーを復元できません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 키와 보관 파일을 가진 사람은 누구나 노트를 읽을 수 있습니다. 키는 별도로 보관하세요. Pinbook은 분실한 키를 복구할 수 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Любой, у кого есть этот ключ и ваш архив, может прочитать ваши заметки. Храните ключ отдельно. Pinbook не может восстановить потерянный ключ."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जिसके पास यह कुंजी और आपका आर्काइव है, वह आपके नोट पढ़ सकता है। कुंजी को अलग रखें। Pinbook खोई हुई कुंजी वापस नहीं ला सकता।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جس کے پاس یہ کلید اور آپ کا آرکائیو ہو، وہ آپ کے نوٹس پڑھ سکتا ہے۔ کلید الگ رکھیں۔ Pinbook گم شدہ کلید واپس نہیں لا سکتا۔"
+          }
+        }
+      }
+    },
+    "If you cancel after export, the key file stays where you saved it.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إذا ألغيت بعد التصدير، يبقى ملف المفتاح في المكان الذي حفظته فيه."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果导出后取消，密钥文件仍会保留在你保存的位置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果匯出後取消，金鑰檔案仍會保留在你儲存的位置。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si vous annulez après l’export, le fichier de clé reste à l’emplacement choisi."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si cancelas después de exportar, el archivo de la clave permanece donde lo guardaste."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn du nach dem Export abbrichst, bleibt die Schlüsseldatei am gewählten Speicherort."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se annulli dopo l’esportazione, il file della chiave rimane dove lo hai salvato."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se você cancelar após a exportação, o arquivo da chave permanecerá onde foi salvo."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktardıktan sonra iptal ederseniz anahtar dosyası kaydettiğiniz yerde kalır."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika Anda membatalkan setelah ekspor, file kunci tetap berada di lokasi penyimpanannya."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書き出し後にキャンセルしても、キーファイルは保存先に残ります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내보낸 후 취소해도 키 파일은 저장한 위치에 남습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "При отмене после экспорта файл ключа остаётся там, где вы его сохранили."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निर्यात के बाद रद्द करने पर कुंजी की फ़ाइल उसी जगह रहती है जहाँ आपने उसे सहेजा था।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "برآمد کے بعد منسوخ کرنے پر کلید کی فائل وہیں رہتی ہے جہاں آپ نے اسے محفوظ کیا تھا۔"
+          }
+        }
+      }
+    },
+    "I understand that this key must be kept private.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أفهم أن هذا المفتاح يجب أن يبقى سريًا."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我明白此密钥必须保密。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我明白此金鑰必須保密。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je comprends que cette clé doit rester privée."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entiendo que esta clave debe mantenerse privada."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich verstehe, dass dieser Schlüssel geheim bleiben muss."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprendo che questa chiave deve rimanere privata."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entendo que esta chave deve ser mantida em sigilo."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu anahtarın gizli tutulması gerektiğini anlıyorum."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saya memahami bahwa kunci ini harus dirahasiakan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このキーを秘密に保つ必要があることを理解しています。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 키를 비밀로 유지해야 함을 이해합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я понимаю, что этот ключ нужно хранить в тайне."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मैं समझता हूँ कि इस कुंजी को गोपनीय रखना ज़रूरी है।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "میں سمجھتا ہوں کہ اس کلید کو خفیہ رکھنا ضروری ہے۔"
+          }
+        }
+      }
+    },
+    "Create recovery key": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إنشاء مفتاح استرداد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建恢复密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立復原金鑰"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer une clé de récupération"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear clave de recuperación"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellungsschlüssel erstellen"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea chiave di recupero"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Criar chave de recuperação"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma anahtarı oluştur"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buat kunci pemulihan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復元キーを作成"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복구 키 만들기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создать ключ восстановления"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुनर्प्राप्ति कुंजी बनाएँ"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بازیابی کی کلید بنائیں"
+          }
+        }
+      }
+    },
+    "Back up saved key": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نسخ المفتاح المحفوظ احتياطيًا"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份已保存的密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "備份已儲存的金鑰"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegarder la clé enregistrée"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respaldar la clave guardada"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherten Schlüssel sichern"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esegui il backup della chiave salvata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fazer backup da chave salva"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı anahtarı yedekle"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cadangkan kunci tersimpan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みキーをバックアップ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 키 백업"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создать копию сохранённого ключа"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहेजी गई कुंजी का बैकअप लें"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محفوظ کلید کا بیک اپ لیں"
+          }
+        }
+      }
+    },
+    "Save key file": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حفظ ملف المفتاح"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存密钥文件"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存金鑰檔案"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer le fichier de clé"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar archivo de clave"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüsseldatei speichern"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva file della chiave"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar arquivo da chave"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtar dosyasını kaydet"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simpan file kunci"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーファイルを保存"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키 파일 저장"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить файл ключа"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुंजी की फ़ाइल सहेजें"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کلید کی فائل محفوظ کریں"
+          }
+        }
+      }
+    },
+    "Key file saved": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم حفظ ملف المفتاح"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密钥文件已保存"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金鑰檔案已儲存"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichier de clé enregistré"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo de clave guardado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüsseldatei gespeichert"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File della chiave salvato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivo da chave salvo"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtar dosyası kaydedildi"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File kunci disimpan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーファイルを保存しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키 파일이 저장됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл ключа сохранён"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुंजी की फ़ाइल सहेजी गई"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کلید کی فائل محفوظ ہو گئی"
+          }
+        }
+      }
+    },
+    "Last 8 characters from the saved key": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر 8 أحرف من المفتاح المحفوظ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存密钥的最后 8 个字符"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已儲存金鑰的最後 8 個字元"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les 8 derniers caractères de la clé enregistrée"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los últimos 8 caracteres de la clave guardada"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die letzten 8 Zeichen des gespeicherten Schlüssels"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli ultimi 8 caratteri della chiave salvata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os últimos 8 caracteres da chave salva"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı anahtarın son 8 karakteri"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8 karakter terakhir dari kunci yang disimpan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存したキーの末尾8文字"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장한 키의 마지막 8자"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последние 8 символов сохранённого ключа"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहेजी गई कुंजी के आखिरी 8 अक्षर"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محفوظ کلید کے آخری 8 حروف"
+          }
+        }
+      }
+    },
+    "I saved the key separately from my archive.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حفظت المفتاح بشكل منفصل عن أرشيفي."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已将密钥与归档分开保存。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已將金鑰與封存檔分開儲存。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J’ai conservé la clé séparément de mon archive."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardé la clave separada de mi archivo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe den Schlüssel getrennt von meinem Archiv aufbewahrt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho conservato la chiave separatamente dal mio archivio."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardei a chave separada do meu arquivo."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtarı arşivimden ayrı sakladım."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saya menyimpan kunci terpisah dari arsip saya."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーをアーカイブとは別に保管しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키를 보관 파일과 별도로 저장했습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я сохранил ключ отдельно от архива."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मैंने कुंजी को अपने आर्काइव से अलग सहेजा है।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "میں نے کلید اپنے آرکائیو سے الگ محفوظ کی ہے۔"
+          }
+        }
+      }
+    },
+    "Finish setup": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إنهاء الإعداد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成设置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成設定"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminer la configuration"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finalizar configuración"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einrichtung abschließen"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completa configurazione"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluir configuração"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurulumu tamamla"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selesaikan pengaturan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を完了"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정 완료"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершить настройку"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटअप पूरा करें"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سیٹ اپ مکمل کریں"
+          }
+        }
+      }
+    },
+    "Key setup could not be confirmed. Check the saved key before trying again. Existing keys are never replaced.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذر تأكيد إعداد المفتاح. تحقق من المفتاح المحفوظ قبل المحاولة مجددًا. لا يتم استبدال المفاتيح الموجودة مطلقًا."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认密钥设置。请检查已保存的密钥后重试。绝不会替换现有密钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法確認金鑰設定。請檢查已儲存的金鑰後重試。絕不會取代現有金鑰。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La configuration de la clé n’a pas pu être confirmée. Vérifiez la clé enregistrée avant de réessayer. Les clés existantes ne sont jamais remplacées."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo confirmar la configuración de la clave. Comprueba la clave guardada antes de volver a intentarlo. Las claves existentes nunca se reemplazan."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Schlüsseleinrichtung konnte nicht bestätigt werden. Prüfe den gespeicherten Schlüssel, bevor du es erneut versuchst. Vorhandene Schlüssel werden nie ersetzt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile confermare la configurazione della chiave. Controlla la chiave salvata prima di riprovare. Le chiavi esistenti non vengono mai sostituite."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível confirmar a configuração da chave. Verifique a chave salva antes de tentar novamente. As chaves existentes nunca são substituídas."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtar kurulumu doğrulanamadı. Yeniden denemeden önce kayıtlı anahtarı kontrol edin. Mevcut anahtarlar asla değiştirilmez."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pengaturan kunci tidak dapat dikonfirmasi. Periksa kunci yang disimpan sebelum mencoba lagi. Kunci yang ada tidak pernah diganti."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーの設定を確認できませんでした。再試行する前に保存したキーを確認してください。既存のキーは置き換えられません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키 설정을 확인할 수 없습니다. 다시 시도하기 전에 저장된 키를 확인하세요. 기존 키는 교체되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось подтвердить настройку ключа. Перед повторной попыткой проверьте сохранённый ключ. Существующие ключи никогда не заменяются."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुंजी के सेटअप की पुष्टि नहीं हो सकी। दोबारा कोशिश करने से पहले सहेजी गई कुंजी जाँचें। मौजूदा कुंजी कभी बदली नहीं जाती।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کلید کے سیٹ اپ کی تصدیق نہیں ہو سکی۔ دوبارہ کوشش کرنے سے پہلے محفوظ کلید چیک کریں۔ موجودہ کلیدیں کبھی تبدیل نہیں کی جاتیں۔"
+          }
+        }
+      }
+    },
+    "Recovery key saved on this device.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم حفظ مفتاح الاسترداد على هذا الجهاز."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复密钥已保存在此设备上。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復原金鑰已儲存在此裝置上。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clé de récupération enregistrée sur cet appareil."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave de recuperación guardada en este dispositivo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellungsschlüssel auf diesem Gerät gespeichert."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiave di recupero salvata su questo dispositivo."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chave de recuperação salva neste dispositivo."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma anahtarı bu cihaza kaydedildi."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci pemulihan disimpan di perangkat ini."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスに復元キーを保存しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기기에 복구 키가 저장되었습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ восстановления сохранён на этом устройстве."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस डिवाइस पर पुनर्प्राप्ति कुंजी सहेजी गई।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس آلے پر بازیابی کی کلید محفوظ ہو گئی۔"
+          }
+        }
+      }
+    },
+    "A restore may have completed. Import and preview the archive again to check the current records.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ربما اكتمل الاسترداد. استورد الأرشيف واعرض معاينته مجددًا للتحقق من السجلات الحالية."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复可能已完成。请重新导入并预览归档，以检查当前记录。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復原可能已完成。請重新匯入並預覽封存檔，以檢查目前的記錄。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La restauration a peut-être abouti. Importez l’archive et affichez à nouveau l’aperçu pour vérifier les données actuelles."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La restauración podría haberse completado. Importa y previsualiza el archivo otra vez para comprobar los registros actuales."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellung wurde möglicherweise abgeschlossen. Importiere das Archiv erneut und prüfe die aktuellen Einträge in der Vorschau."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il ripristino potrebbe essere stato completato. Importa l’archivio e visualizza di nuovo l’anteprima per verificare i dati attuali."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A restauração pode ter sido concluída. Importe o arquivo e visualize a prévia novamente para verificar os registros atuais."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri yükleme tamamlanmış olabilir. Güncel kayıtları kontrol etmek için arşivi yeniden içe aktarıp önizleyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pemulihan mungkin telah selesai. Impor dan pratinjau arsip kembali untuk memeriksa catatan saat ini."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復元が完了している可能性があります。現在の記録を確認するには、アーカイブをもう一度読み込み、プレビューしてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복원이 완료되었을 수 있습니다. 현재 기록을 확인하려면 보관 파일을 다시 가져와 미리보기를 확인하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановление могло завершиться. Импортируйте архив и снова откройте предпросмотр, чтобы проверить текущие записи."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बहाली पूरी हो चुकी हो सकती है। मौजूदा रिकॉर्ड जाँचने के लिए आर्काइव को फिर से आयात करके प्रीव्यू देखें।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ممکن ہے بحالی مکمل ہو گئی ہو۔ موجودہ ریکارڈ دیکھنے کے لیے آرکائیو دوبارہ درآمد کریں اور پیش منظر دیکھیں۔"
+          }
+        }
+      }
+    },
     "Only received text notes are included. This does not restore team access, sent drafts, revisions or attachments.": {
       "localizations": {
         "ar": {

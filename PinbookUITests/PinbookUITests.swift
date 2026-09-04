@@ -2,6 +2,34 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testRecoveryKeySetupRequiresConsentAndClearsOnBackground() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamKeySetup", "-PinbookLanguage", "en"]
+        app.launch()
+        let create = app.buttons["key-setup-create"]
+        XCTAssertTrue(create.waitForExistence(timeout: 10))
+        XCTAssertFalse(create.isEnabled)
+        XCTAssertTrue(app.staticTexts["Anyone with this key and your archive can read your notes. Save the key separately. Pinbook cannot recover a lost key."].exists)
+        // SwiftUI exposes the labeled row as a Switch containing the actual
+        // native switch. Tap that control, not the center of the multiline label.
+        let consent = app.switches.matching(identifier: "key-setup-consent").firstMatch
+        consent.switches.firstMatch.tap()
+        XCTAssertTrue(create.wait(for: \.isEnabled, toEqual: true, timeout: 5))
+        create.tap()
+        XCTAssertTrue(app.buttons["key-setup-export"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["key-setup-finish"].isEnabled)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Pinbook recovery key setup before file export"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        XCTAssertTrue(create.waitForExistence(timeout: 5))
+        XCTAssertFalse(create.isEnabled)
+        XCTAssertFalse(app.secureTextFields["key-setup-confirmation"].exists)
+    }
+
+    @MainActor
     func testReceivedNotePreviewRequiresConfirmationBeforeRestore() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamRecoveryPreview", "-PinbookLanguage", "en"]
@@ -249,6 +277,7 @@ final class PinbookUITests: XCTestCase {
         exportEvidence.name = "Pinbook native Files export picker"
         exportEvidence.lifetime = .keepAlways
         add(exportEvidence)
+        dismissNativeFilesPicker(in: app, revealing: "Export backup")
         app.terminate()
 
         app.launch()
@@ -261,7 +290,20 @@ final class PinbookUITests: XCTestCase {
         importEvidence.name = "Pinbook native Files import picker"
         importEvidence.lifetime = .keepAlways
         add(importEvidence)
+        dismissNativeFilesPicker(in: app, revealing: "Import and preview")
         app.terminate()
+    }
+
+    @MainActor
+    private func dismissNativeFilesPicker(in app: XCUIApplication, revealing buttonLabel: String) {
+        // The native provider can be rendered by another process and absent from
+        // our AX tree. Dismiss its visible sheet using the standard pull-down
+        // gesture. Killing the host with this sheet still open left later tests
+        // dimmed/noninteractive on iOS26.5; verify dismissal before terminating.
+        let header = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12))
+        let bottom = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+        header.press(forDuration: 0.1, thenDragTo: bottom)
+        XCTAssertTrue(app.buttons[buttonLabel].wait(for: \.isHittable, toEqual: true, timeout: 5))
     }
 
     @MainActor

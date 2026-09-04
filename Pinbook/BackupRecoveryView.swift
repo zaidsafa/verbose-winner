@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 import CryptoKit
+import Security
 
 struct BackupRecoveryView: View {
     @Environment(\.modelContext) private var modelContext
@@ -432,18 +433,22 @@ private func backupActivitySummary(_ activity: BackupActivityItem) -> String {
 /// must supply its scoped store after the full activation gates are satisfied.
 struct TeamReceivedArchiveRecoveryView: View {
     @Environment(\.pinbookSkin) private var skin
+    @Environment(\.scenePhase) private var scenePhase
     private let accountId: String
     private let keyStore: TeamRecoveryKeyStore
     @State private var session: TeamArchiveRecoverySession
     @State private var keyText = ""
-    @State private var isWorking = false
+    @State private var presentation = TeamRecoveryPresentation()
     @State private var showingImporter = false
     @State private var showingExporter = false
     @State private var exportDocument: TeamEncryptedArchiveDocument?
     @State private var preview: TeamRecoveryPreview?
     @State private var operationError: LocalizedStringKey?
     @State private var restored = false
+    @State private var showingKeySetup = false
     @State private var operationTask: Task<Void, Never>?
+
+    private var isWorking: Bool { presentation.isWorking }
 
     init(store: TeamInboxStore, keyStore: TeamRecoveryKeyStore = TeamRecoveryKeyStore()) {
         accountId = store.target.userId
@@ -457,9 +462,15 @@ struct TeamReceivedArchiveRecoveryView: View {
                 Text("Only received text notes are included. This does not restore team access, sent drafts, revisions or attachments.")
                     .font(.footnote)
                     .accessibilityIdentifier("team-recovery-scope")
+                if presentation.needsReconciliation {
+                    Text("A restore may have completed. Import and preview the archive again to check the current records.")
+                        .font(.footnote)
+                        .accessibilityIdentifier("team-recovery-reconcile")
+                }
             }
             Section("Recovery key") {
                 SecureField("Recovery key", text: $keyText)
+                    .environment(\.layoutDirection, .leftToRight)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .privacySensitive()
@@ -467,6 +478,7 @@ struct TeamReceivedArchiveRecoveryView: View {
                 Button("Use saved recovery key", systemImage: "key") {
                     operationTask = Task { await loadSavedKey() }
                 }
+                Button("Manage recovery key", systemImage: "key.horizontal") { showingKeySetup = true }
                 Text("Enter 64 hexadecimal characters without separators. Imported keys are used only for this restore and are not saved.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -502,12 +514,14 @@ struct TeamReceivedArchiveRecoveryView: View {
                 operationError = "Backup operation failed"
             }
         }
-        .sheet(item: $preview, onDismiss: {
-            Task { await session.cancelPreview() }
-        }) { candidate in
+        .sheet(item: $preview) { candidate in
             TeamReceivedArchivePreviewView(preview: candidate) {
                 await confirm(candidate)
             }
+            .onDisappear { Task { await session.cancelPreview(previewID: candidate.id) } }
+        }
+        .sheet(isPresented: $showingKeySetup) {
+            TeamRecoveryKeySetupView(accountId: accountId, store: keyStore)
         }
         .alert("Backup operation failed", isPresented: Binding(
             get: { operationError != nil }, set: { if !$0 { operationError = nil } }
@@ -519,13 +533,27 @@ struct TeamReceivedArchiveRecoveryView: View {
         } message: {
             Text("Existing notes were preserved. No team access or delivery receipts were restored.")
         }
-        .onDisappear {
-            operationTask?.cancel()
-            keyText = ""
-            preview = nil
-            exportDocument = nil
-            Task { await session.cancelPreview() }
+        .onAppear { if scenePhase == .active { presentation.activate() } }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { presentation.activate() }
+            else { clearSensitiveState() }
         }
+        .onDisappear { clearSensitiveState() }
+    }
+
+    @MainActor private func clearSensitiveState() {
+        presentation.invalidate()
+        operationTask?.cancel()
+        keyText = ""
+        let previousID = preview?.id
+        preview = nil
+        exportDocument = nil
+        showingImporter = false
+        showingExporter = false
+        showingKeySetup = false
+        operationError = nil
+        restored = false
+        if let previousID { Task { await session.cancelPreview(previewID: previousID) } }
     }
 
     private func savedKey() async throws -> SymmetricKey? {
@@ -540,35 +568,38 @@ struct TeamReceivedArchiveRecoveryView: View {
     }
 
     @MainActor private func loadSavedKey() async {
-        guard !isWorking else { return }
-        isWorking = true
-        defer { isWorking = false }
+        guard let ticket = presentation.begin(.readKey) else { return }
+        defer { presentation.finish(ticket) }
         do {
             let key = try await savedKey()
+            guard presentation.accepts(ticket) else { return }
             guard let key else { operationError = "No recovery key is saved on this device. Enter your separately saved key to import."; return }
             keyText = try TeamRecoveryKeyText.encode(key)
         } catch is CancellationError { }
-        catch { operationError = "The saved recovery key is unavailable. It has not been replaced." }
+        catch { if presentation.accepts(ticket) { operationError = "The saved recovery key is unavailable. It has not been replaced." } }
     }
 
     @MainActor private func exportArchive() async {
-        guard !isWorking else { return }
-        isWorking = true
-        defer { isWorking = false }
+        guard let ticket = presentation.begin(.exportArchive) else { return }
+        defer { presentation.finish(ticket) }
         do {
             let key = try await savedKey()
+            guard presentation.accepts(ticket) else { return }
             guard let key else { operationError = "No recovery key is saved on this device. Enter your separately saved key to import."; return }
             let compact = try await session.export(exportedAt: .nowMilliseconds, recoveryKey: key)
+            guard presentation.accepts(ticket) else { return }
             exportDocument = TeamEncryptedArchiveDocument(data: Data(compact.utf8))
             showingExporter = true
         } catch is CancellationError { }
-        catch { operationError = "Backup operation failed" }
+        catch { if presentation.accepts(ticket) { operationError = "Backup operation failed" } }
     }
 
     @MainActor private func importArchive(_ url: URL) async {
-        guard !isWorking else { return }
-        isWorking = true
-        defer { isWorking = false; keyText = "" }
+        guard let ticket = presentation.begin(.prepare) else { return }
+        defer {
+            if presentation.accepts(ticket) { keyText = "" }
+            presentation.finish(ticket)
+        }
         do {
             let key = try TeamRecoveryKeyText.decode(keyText)
             keyText = ""
@@ -576,27 +607,216 @@ struct TeamReceivedArchiveRecoveryView: View {
             guard data.allSatisfy({ $0 < 128 }) else { throw TeamArchiveError.invalidFormat }
             try Task.checkCancellation()
             let candidate = try await session.prepare(String(decoding: data, as: UTF8.self), recoveryKey: key)
-            try Task.checkCancellation()
+            guard !Task.isCancelled, presentation.acceptPreview(ticket) else {
+                await session.cancelPreview(previewID: candidate.id)
+                return
+            }
             preview = candidate
-        } catch is CancellationError {
-            await session.cancelPreview()
-        } catch {
-            await session.cancelPreview()
-            operationError = "The archive or recovery key is invalid, unavailable or belongs to another account. Nothing was restored."
+        } catch is CancellationError { }
+        catch {
+            if presentation.accepts(ticket) {
+                operationError = "The archive or recovery key is invalid, unavailable or belongs to another account. Nothing was restored."
+            }
         }
     }
 
     @MainActor private func confirm(_ candidate: TeamRecoveryPreview) async -> Bool {
+        guard let ticket = presentation.begin(.restore) else { return false }
+        defer { presentation.finish(ticket) }
         do {
             _ = try await session.confirm(previewID: candidate.id)
+            guard presentation.acceptRestore(ticket) else { return false }
             preview = nil
             restored = true
             return true
         } catch {
-            preview = nil
-            operationError = "The restore preview is no longer valid. Import and preview the archive again."
+            if presentation.accepts(ticket) {
+                preview = nil
+                operationError = "The restore preview is no longer valid. Import and preview the archive again."
+            }
             return false
         }
+    }
+}
+
+/// Explicit local key setup/copy. No automatic generation, clipboard, shared upload
+/// or saved bookmark. The exported plaintext key file belongs to the user's destination.
+private struct TeamRecoveryKeySetupView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var flow: TeamRecoveryKeySetup?
+    @State private var setupID: UUID?
+    @State private var presentation = TeamRecoveryPresentation()
+    @State private var consent = false
+    @State private var separateCopy = false
+    @State private var confirmation = ""
+    @State private var exported = false
+    @State private var showingExporter = false
+    @State private var document: TeamRecoveryKeyDocument?
+    @State private var operation: Task<Void, Never>?
+    @State private var failed = false
+    @State private var saved = false
+    let accountId: String
+    let store: TeamRecoveryKeyStore
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Anyone with this key and your archive can read your notes. Save the key separately. Pinbook cannot recover a lost key.")
+                    Text("If you cancel after export, the key file stays where you saved it.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                if setupID == nil {
+                    Section {
+                        Toggle("I understand that this key must be kept private.", isOn: $consent)
+                            .accessibilityIdentifier("key-setup-consent")
+                        Button("Create recovery key") { operation = Task { await begin(.createNew) } }
+                            .accessibilityIdentifier("key-setup-create")
+                            .disabled(!consent)
+                        Button("Back up saved key") { operation = Task { await begin(.copyExisting) } }
+                            .disabled(!consent)
+                    }
+                } else {
+                    Section {
+                        Button("Save key file", systemImage: "square.and.arrow.up") {
+                            operation = Task { await exportKey() }
+                        }
+                        .accessibilityIdentifier("key-setup-export")
+                        if exported { Label("Key file saved", systemImage: "checkmark.circle") }
+                    }
+                    Section {
+                        SecureField("Last 8 characters from the saved key", text: $confirmation)
+                            .environment(\.layoutDirection, .leftToRight)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.asciiCapable)
+                            .privacySensitive()
+                            .accessibilityIdentifier("key-setup-confirmation")
+                        Toggle("I saved the key separately from my archive.", isOn: $separateCopy)
+                        Button("Finish setup") { operation = Task { await complete() } }
+                            .accessibilityIdentifier("key-setup-finish")
+                            .disabled(!exported || !separateCopy || confirmation.isEmpty)
+                    }
+                }
+            }
+            .disabled(presentation.isWorking)
+            .navigationTitle("Recovery key")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", role: .cancel) { clear(); dismiss() }
+                }
+            }
+            .overlay { if presentation.isWorking { ProgressView() } }
+            .fileExporter(isPresented: $showingExporter, document: document,
+                          contentType: .plainText,
+                          defaultFilename: "pinbook-recovery-key-\(setupID?.uuidString.prefix(8).lowercased() ?? "copy").txt") { result in
+                document = nil
+                guard presentation.isActive, let setupID, let flow else { return }
+                switch result {
+                case .success(let url):
+                    operation = Task {
+                        do {
+                            let data = try await BackupFileRead.load(url, maximumBytes: 64)
+                            guard let text = String(data: data, encoding: .ascii) else { throw TeamArchiveError.invalidKey }
+                            try Task.checkCancellation()
+                            try await flow.verifyExportedCopy(setupID: setupID, canonicalText: text)
+                            if presentation.isActive, self.setupID == setupID { exported = true }
+                        } catch { if presentation.isActive { failed = true } }
+                    }
+                case .failure(let error):
+                    if (error as NSError).code != NSUserCancelledError { failed = true }
+                }
+            }
+            .alert("Recovery key", isPresented: $failed) {
+                Button("OK") { failed = false }
+            } message: {
+                Text("Key setup could not be confirmed. Check the saved key before trying again. Existing keys are never replaced.")
+            }
+            .alert("Recovery key", isPresented: $saved) {
+                Button("OK") { clear(); dismiss() }
+            } message: {
+                Text("Recovery key saved on this device.")
+            }
+        }
+        .onAppear {
+            do { if flow == nil { flow = try TeamRecoveryKeySetup(accountId: accountId, store: store) } }
+            catch { failed = true }
+            if scenePhase == .active { presentation.activate() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { clear(); dismiss() }
+            else { presentation.activate() }
+        }
+        .onDisappear { clear() }
+    }
+
+    @MainActor private func clear() {
+        presentation.invalidate()
+        operation?.cancel()
+        if let setupID, let flow { Task { await flow.cancel(setupID: setupID) } }
+        setupID = nil
+        document = nil
+        confirmation = ""
+        exported = false
+        separateCopy = false
+        consent = false
+        showingExporter = false
+        failed = false
+        saved = false
+    }
+
+    @MainActor private func begin(_ intent: TeamRecoveryKeySetupIntent) async {
+        guard let flow, let ticket = presentation.begin(.readKey) else { return }
+        defer { presentation.finish(ticket) }
+        do {
+            let id = try await flow.begin(intent, consent: consent)
+            guard presentation.accepts(ticket), !Task.isCancelled else {
+                await flow.cancel(setupID: id)
+                return
+            }
+            setupID = id
+        } catch { if presentation.accepts(ticket) { failed = true } }
+    }
+
+    @MainActor private func exportKey() async {
+        guard let flow, let setupID, let ticket = presentation.begin(.exportArchive) else { return }
+        defer { presentation.finish(ticket) }
+        do {
+            let text = try await flow.textForExport(setupID: setupID)
+            guard presentation.accepts(ticket), !Task.isCancelled else { return }
+            document = TeamRecoveryKeyDocument(data: Data(text.utf8))
+            showingExporter = true
+        } catch { if presentation.accepts(ticket) { failed = true } }
+    }
+
+    @MainActor private func complete() async {
+        guard let flow, let setupID, let ticket = presentation.begin(.readKey) else { return }
+        defer { presentation.finish(ticket) }
+        do {
+            try await flow.complete(setupID: setupID, lastEightCharacters: confirmation,
+                                    separateCopyConfirmed: separateCopy)
+            guard presentation.accepts(ticket) else { return }
+            confirmation = ""
+            self.setupID = nil
+            saved = true
+        } catch { if presentation.accepts(ticket) { failed = true } }
+    }
+}
+
+private struct TeamRecoveryKeyDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.plainText] }
+    let data: Data
+    init(data: Data) { self.data = data }
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents, data.count == 64,
+              let text = String(data: data, encoding: .ascii) else { throw TeamArchiveError.invalidKey }
+        _ = try TeamRecoveryKeyText.decode(text)
+        self.data = data
+    }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
     }
 }
 
@@ -666,6 +886,30 @@ private struct TeamReceivedArchivePreviewView: View {
 }
 
 #if DEBUG
+/// Entirely in-memory test custody; never reads or writes real Keychain items.
+private final class TeamKeySetupDebugKeychain: TeamRecoveryKeychain, @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: [String: Any]?
+    func add(_ query: [String: Any]) -> OSStatus {
+        lock.withLock {
+            guard value == nil else { return errSecDuplicateItem }
+            value = query
+            return errSecSuccess
+        }
+    }
+    func copy(_ query: [String: Any]) -> (OSStatus, CFTypeRef?) {
+        lock.withLock {
+            guard let value else { return (errSecItemNotFound, nil) }
+            return (errSecSuccess, value as CFDictionary)
+        }
+    }
+}
+
+struct TeamRecoveryKeySetupDebugHost: View {
+    @State private var store = TeamRecoveryKeyStore(testService: "public-ui-fixture", keychain: TeamKeySetupDebugKeychain())
+    var body: some View { TeamRecoveryKeySetupView(accountId: "public-test-user", store: store) }
+}
+
 /// Public synthetic data only, reachable solely with both the ephemeral-store and
 /// explicit preview-fixture launch flags. Never reads production custody/accounts.
 struct TeamRecoveryPreviewDebugHost: View {

@@ -89,7 +89,10 @@ import Darwin
 @MainActor
 @Test func productionBootstrapCreatesOnlyInfrastructureRecords() throws {
     #expect(!PinbookLaunchConfiguration.production.showsTeamRecoveryPreviewFixture)
+    #expect(!PinbookLaunchConfiguration.production.showsTeamKeySetupFixture)
 #if DEBUG
+    #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamKeySetup"]).showsTeamKeySetupFixture)
+    #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamKeySetup"]).showsTeamKeySetupFixture)
     #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamRecoveryPreview"]).showsTeamRecoveryPreviewFixture)
     #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamRecoveryPreview"]).showsTeamRecoveryPreviewFixture)
 #endif
@@ -167,7 +170,7 @@ import Darwin
         let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
         let data = try Data(contentsOf: url)
         let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
-        #expect(values.count == 272)
+        #expect(values.count == 286)
         for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed."] {
             let value = try #require(values[key])
             #expect(!value.isEmpty && value != key)
