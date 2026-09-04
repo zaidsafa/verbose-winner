@@ -2,6 +2,34 @@
 
 Updated: September 4, 2026
 
+## Build 3 candidate
+
+Owner authorized TestFlight publication and source export. Build 2 was freshly
+verified as Testing with both existing groups. Build 3 is being prepared with the
+same user-facing functionality and inactive internal team/archive foundations.
+No sign-in, cloud service, team sharing or recovery-key UI is enabled.
+
+Suggested build 3 What to Test:
+
+Build 3 is a regression-testing update with internal foundations for future
+features; team sharing is not available in this build.
+
+Please test the introduction and language selection, including both Chinese
+scripts and Arabic/Urdu right-to-left layout. Check all five themes in Light and
+Dark appearance, currency search/symbols, expenses, partial payments and balances.
+Using disposable test data, test local backup/export and restore through Files,
+receipts, PDF/CSV sharing, reminders and both Home Screen widgets. Keep a separate
+backup before testing restore. Report crashes, unreadable text or unexpected data
+changes, with the screen name, language and steps to reproduce.
+
+Review notes remain offline-first/no sign-in. Internal archive cryptography uses
+Apple CryptoKit only, with no third-party or proprietary cryptographic primitive;
+it is not exposed in the app. The existing NO non-exempt encryption declaration is
+retained based on Apple's OS-cryptography guidance, not a claim of no encryption.
+Reference: [Apple encryption export guidance](https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations).
+
+## Prior build 2 record
+
 Build `0.1.0 (2)` has been uploaded, both existing test groups assigned, and external Submit for Review clicked with automatic tester notification checked. Final review status could not be refreshed because the Mac locked. Do not duplicate the upload/submission. The remaining angle-bracket values below are future-publication placeholders, not values to submit.
 
 ## App record

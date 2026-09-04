@@ -2,6 +2,21 @@
 
 Updated: 2026-09-04 (Asia/Shanghai)
 
+## Authorized TestFlight build 3 preparation
+
+- Owner explicitly approved the additional archive source export and continuing
+  through TestFlight. Push of `ce246cf` and `0183278` succeeded; remote exact tip
+  `01832788f50ccfee00cfb00d5a262fb0f40256b2` was independently verified.
+- App Store Connect was refreshed: build `0.1.0 (2)` is now **Testing**, with both
+  existing internal and external Zaid testing groups assigned. This closes the
+  prior locked-screen status gap, not proof of tester installation.
+- Build 3 increments app and widget together, keeping version `0.1.0`, identifiers
+  and signing team unchanged. Preparing signed archive and full Simulator tests.
+  No app/widget entry point invokes team inbox or encrypted archive code; team
+  sharing and recovery UI remain disabled until the documented activation gates.
+- Publication target is TestFlight and the existing groups only, not public
+  App Store release, new testers, public invitation links or Infrastructure.
+
 ## Current isolated team-delivery workstream
 
 - Portable received-text archive/restore is now implemented locally. Read
