@@ -5,6 +5,19 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest durable personal-cloud upload-ownership checkpoint
+
+The protected Keychain upload owner passed the complete focused transport suite
+on the separate physical **iPhone 16 Pro, iOS 26.6.1** QA app: **10/10 PASS**,
+1 suite, zero skips or failures. This includes a real Keychain reservation,
+process-owner reopen, exact receipt settlement and cleanup. Exact result:
+`/private/tmp/Pinbook-QA-Physical-Cloud-Upload-20260905.xcresult`.
+
+The QA app returned to a successful normal launch. The connected Android phone
+was deliberately untouched: this checkpoint has no provider adapter, authenticated
+staging route, remote bytes, scheduler or automatic merge, so it cannot honestly
+exercise two-device notes sync. No TestFlight build was replaced.
+
 ## Latest ACCEPT/ACK/CANCEL journal-event checkpoint
 
 The exact canonical event source at commit `4651e45` passed the complete app-host

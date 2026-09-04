@@ -51,7 +51,12 @@ checkboxes deliberately remain open until checked against the exact next candida
       upload identity and existing local preview/snapshot/transaction gates. See
       `PERSONAL_CLOUD_SYNC_V1.md`. The inactive Swift port/guard now structurally
       permits only list, bounded verified download and immutable append, with
-      complete core/app-host/Release coverage; no provider is enabled yet.
+      complete core/app-host/Release coverage. A protected Keychain upload owner
+      now persists the exact operation identity and content authority before the
+      provider call, reuses it after an ambiguous result, rejects changed bytes or
+      concurrent dispatch, and clears only after an exact receipt. Signed
+      Simulator and separate physical-iPhone Keychain tests pass; no provider is
+      enabled yet.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
@@ -73,6 +78,14 @@ checkboxes deliberately remain open until checked against the exact next candida
       infrastructure access or deployment outside its owning task.
 
 ## Current local implementation checkpoint
+
+- Personal cloud upload ownership now has an inactive crash-safe iOS boundary.
+  The protected non-synchronizing Keychain stores only redacted operation
+  authority before dispatch; exact retry, conflicting-content, concurrent-owner,
+  corrupted-state and receipt-settlement cases pass. Complete core, signed
+  app-host, physical iPhone focused QA and ordinary Release pass. No Drive/iCloud
+  adapter, OAuth, scheduler, remote bytes, merge or UI activation exists.
+  See `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the
   committed server contract. ACCEPT derives deterministic event/object identity,

@@ -1,5 +1,36 @@
 # Validation plan
 
+## 2026-09-05 durable personal-cloud upload ownership (inactive)
+
+- Added `PersonalCloudUploadOwner` above the immutable transport guard. It
+  persists operation identity, creation time, exact byte count and SHA-256 before
+  awaiting a provider, then clears only after an exact verified receipt. A retry
+  after an ambiguous failure or process reopen must use the same identity and
+  exact content authority; changed content, concurrent dispatch and corrupted
+  stored authority fail closed.
+- The production store uses the Data Protection Keychain with
+  `AfterFirstUnlockThisDeviceOnly`, no synchronization and content-hash CAS. It
+  stores no backup bytes, account, filename or credential.
+- Focused Swift package **9/9 PASS**. Complete Swift core **341/341 PASS**, 30
+  suites, 17.428s. The initial sandbox attempt was blocked before compilation by
+  module-cache permissions and was not counted.
+- Signed iOS 26.5 Simulator focused **10/10 PASS**, including actual Keychain
+  reopen/clear. The preceding unsigned-host run failed only that real-Keychain
+  case with `-34018` because disabling signing removes the entitlement; it was not
+  counted as product evidence.
+- Signed iOS 26.5 Simulator app-host **367 PASS + 4 expected physical-only
+  SKIPS**, 371 total, 0 failures:
+  `/private/tmp/Pinbook-Cloud-Upload-AppHost-20260905.xcresult`.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** focused
+  **10/10 PASS**, 0 skips or failures, including real Keychain reopen/clear:
+  `/private/tmp/Pinbook-QA-Physical-Cloud-Upload-20260905.xcresult`. The QA app
+  was returned to normal launch afterward.
+- Ordinary unsigned production Release **BUILD SUCCEEDED**, bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- No Android-device operation, Drive/iCloud adapter, OAuth token, remote file,
+  scheduler, automatic merge, production UI, archive/upload, source push or
+  TestFlight action occurred. See `PERSONAL_CLOUD_SYNC_V1.md`.
+
 ## 2026-09-05 immutable personal-cloud transport guard (inactive)
 
 - Replaced the unused blind `download/upload` port with a provider-neutral

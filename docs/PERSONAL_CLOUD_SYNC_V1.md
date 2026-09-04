@@ -78,13 +78,23 @@ duplicate object/operation identities, caps inventory, verifies exact byte count
 and SHA-256 after download, and rejects an append receipt that does not match the
 persisted operation identity, creation time, bytes and digest.
 
-- Focused guard tests: **5/5 PASS**.
-- Complete Swift core: **337/337 PASS**, 30 suites.
-- Signed iOS 26.5 Simulator app-host: **362 PASS + 4 expected physical-only
-  SKIPS**, 366 total, 0 failures.
+`PersonalCloudUploadOwner` now owns the crash-safe write boundary. Before calling
+any provider it stores only the random operation identity, creation time, exact
+byte count and SHA-256 in the app's protected, non-synchronizing Data Protection
+Keychain. An ambiguous failure or app restart can reuse that identity only for the
+same bytes and timestamp. Different content and a second concurrent dispatch fail
+closed; the reservation clears only after an exact verified provider receipt.
+Backup bytes, account identity, filenames and credentials never enter this state.
+
+- Focused transport and upload-owner tests: **10/10 PASS** on signed Simulator and
+  the separate physical iPhone QA app, including a real Keychain reopen/clear.
+- Complete Swift core: **341/341 PASS**, 30 suites.
+- Signed iOS 26.5 Simulator app-host: **367 PASS + 4 expected physical-only
+  SKIPS**, 371 total, 0 failures.
 - Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
 
 Exact paths and the initial sandbox-blocked attempt are recorded in
 `VALIDATION.md`. This source still has no Drive/iCloud adapter, token, scheduler,
-remote bytes, automatic merge or production UI entry.
+remote bytes, automatic merge or production UI entry. The existing TestFlight
+build was not replaced.

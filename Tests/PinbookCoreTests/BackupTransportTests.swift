@@ -49,6 +49,66 @@ private func snapshot(_ suffix: String, data: Data, createdAt: Int64) throws
         byteCount: data.count, sha256: backupDigest(data))
 }
 
+private final class BackupUploadStateStub: BackupUploadStateStoring, @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: Data?
+    private(set) var replacements = 0
+
+    init(_ value: Data? = nil) { self.value = value }
+
+    func load() -> Data? { lock.withLock { value } }
+
+    func replace(expected: Data?, next: Data?) throws {
+        try lock.withLock {
+            guard value == expected else { throw PersonalCloudUploadError.staleOperation }
+            value = next
+            replacements += 1
+        }
+    }
+}
+
+private enum BackupUploadFixtureError: Error { case unavailable }
+
+private actor BackupUploadTransport: BackupTransport {
+    enum Mode { case success, failure, blocked }
+    let mode: Mode
+    private(set) var appendCalls = 0
+    private(set) var appendedOperationID: String?
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    init(_ mode: Mode) { self.mode = mode }
+
+    func list(after cursor: String?) throws -> RemoteBackupPage {
+        try RemoteBackupPage(snapshots: [], nextCursor: nil)
+    }
+
+    func download(_ snapshot: RemoteBackupSnapshot, maximumBytes: Int) throws -> Data { Data() }
+
+    func append(_ backup: Data, operationID: String, createdAt: Int64,
+                sha256: String) async throws -> RemoteBackupSnapshot {
+        appendCalls += 1
+        appendedOperationID = operationID
+        if mode == .failure { throw BackupUploadFixtureError.unavailable }
+        if mode == .blocked {
+            await withCheckedContinuation { continuation = $0 }
+        }
+        return try RemoteBackupSnapshot(
+            objectID: "file_" + operationID,
+            operationID: operationID,
+            createdAt: createdAt,
+            byteCount: backup.count,
+            sha256: sha256
+        )
+    }
+
+    func isBlocked() -> Bool { appendCalls == 1 && continuation != nil }
+
+    func release() {
+        continuation?.resume()
+        continuation = nil
+    }
+}
+
 struct BackupTransportTests {
     @Test func inventoryFollowsEveryPageAndSortsDeterministically() async throws {
         let firstObject = try snapshot("one", data: Data("one".utf8), createdAt: 20)
@@ -124,4 +184,117 @@ struct BackupTransportTests {
             try RemoteBackupPage(snapshots: [], nextCursor: "contains space")
         }
     }
+
+    @Test func uploadReservationPersistsBeforeAppendAndClearsOnlyAfterExactReceipt() async throws {
+        let state = BackupUploadStateStub()
+        let owner = PersonalCloudUploadOwner(
+            state: state,
+            makeOperationID: { "google_file_1" }
+        )
+        let backup = Data("backup-v8".utf8)
+        let ticket = try owner.reserve(backup, createdAt: 10)
+
+        #expect(state.replacements == 1)
+        #expect(try owner.pendingUpload() == ticket)
+        #expect(String(describing: ticket) == "PendingBackupUpload(<redacted>)")
+        #expect(Mirror(reflecting: ticket).children.isEmpty)
+
+        let transport = BackupUploadTransport(.success)
+        let receipt = try await owner.append(backup, ticket: ticket, using: transport)
+        #expect(receipt.operationID == ticket.operationID)
+        #expect(await transport.appendedOperationID == "google_file_1")
+        #expect(try owner.pendingUpload() == nil)
+        #expect(state.replacements == 2)
+    }
+
+    @Test func ambiguousFailureRetainsAndReusesOnlyTheExactUploadIdentity() async throws {
+        let state = BackupUploadStateStub()
+        let owner = PersonalCloudUploadOwner(
+            state: state,
+            makeOperationID: { "google_file_2" }
+        )
+        let backup = Data("same-backup-v8".utf8)
+        let ticket = try owner.reserve(backup, createdAt: 20)
+        let failed = BackupUploadTransport(.failure)
+
+        await #expect(throws: BackupUploadFixtureError.unavailable) {
+            try await owner.append(backup, ticket: ticket, using: failed)
+        }
+        #expect(try owner.pendingUpload() == ticket)
+        #expect(try owner.reserve(backup, createdAt: 20) == ticket)
+        #expect(throws: PersonalCloudUploadError.unresolvedUpload) {
+            try owner.reserve(Data("newer-backup".utf8), createdAt: 21)
+        }
+
+        let reopened = PersonalCloudUploadOwner(
+            state: state,
+            makeOperationID: { "must_not_be_used" }
+        )
+        #expect(try reopened.reserve(backup, createdAt: 20) == ticket)
+        let success = BackupUploadTransport(.success)
+        _ = try await reopened.append(backup, ticket: ticket, using: success)
+        #expect(await success.appendedOperationID == "google_file_2")
+        #expect(try reopened.pendingUpload() == nil)
+    }
+
+    @Test func uploadOwnerRejectsChangedBytesAndConcurrentDispatch() async throws {
+        let state = BackupUploadStateStub()
+        let owner = PersonalCloudUploadOwner(
+            state: state,
+            makeOperationID: { "google_file_3" }
+        )
+        let backup = Data("backup-v8".utf8)
+        let ticket = try owner.reserve(backup, createdAt: 30)
+
+        await #expect(throws: PersonalCloudUploadError.staleOperation) {
+            try await owner.append(Data("changed".utf8), ticket: ticket,
+                                   using: BackupUploadTransport(.success))
+        }
+
+        let blocked = BackupUploadTransport(.blocked)
+        let first = Task { try await owner.append(backup, ticket: ticket, using: blocked) }
+        for _ in 0..<1_000 {
+            if await blocked.isBlocked() { break }
+            await Task.yield()
+        }
+        #expect(await blocked.isBlocked())
+        await #expect(throws: PersonalCloudUploadError.busy) {
+            try await owner.append(backup, ticket: ticket, using: blocked)
+        }
+        await blocked.release()
+        _ = try await first.value
+        #expect(await blocked.appendCalls == 1)
+        #expect(try owner.pendingUpload() == nil)
+    }
+
+    @Test func malformedPersistedUploadAuthorityFailsClosed() {
+        let state = BackupUploadStateStub(Data("not-json".utf8))
+        let owner = PersonalCloudUploadOwner(state: state)
+        #expect(throws: PersonalCloudUploadError.invalidRecord) {
+            try owner.pendingUpload()
+        }
+        #expect(throws: PersonalCloudUploadError.invalidRecord) {
+            try owner.reserve(Data("backup".utf8), createdAt: 1)
+        }
+    }
+
+    #if os(iOS)
+    @Test func protectedKeychainReservationSurvivesReopenAndClearsAfterReceipt() async throws {
+        let service = "pinbook.cloud-upload-test." + UUID().uuidString
+        let backup = Data("keychain-backup-v8".utf8)
+        let owner = try PersonalCloudUploadOwner(
+            testService: service,
+            makeOperationID: { "google_file_keychain" }
+        )
+        let ticket = try owner.reserve(backup, createdAt: 40)
+        let reopened = try PersonalCloudUploadOwner(testService: service)
+        #expect(try reopened.pendingUpload() == ticket)
+        _ = try await reopened.append(
+            backup,
+            ticket: ticket,
+            using: BackupUploadTransport(.success)
+        )
+        #expect(try reopened.pendingUpload() == nil)
+    }
+    #endif
 }

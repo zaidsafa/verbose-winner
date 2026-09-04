@@ -44,14 +44,14 @@ public struct RemoteBackupSnapshot: Equatable, Hashable, Sendable,
         else { throw BackupTransportError.integrityMismatch }
     }
 
-    fileprivate static func opaqueID(_ value: String) -> Bool {
+    static func opaqueID(_ value: String) -> Bool {
         (1...128).contains(value.utf8.count) && value.utf8.allSatisfy {
             (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0)
                 || $0 == 45 || $0 == 95
         }
     }
 
-    fileprivate static func hexDigest(_ value: String) -> Bool {
+    static func hexDigest(_ value: String) -> Bool {
         value.utf8.count == 64 && value.utf8.allSatisfy {
             (48...57).contains($0) || (97...102).contains($0)
         }
