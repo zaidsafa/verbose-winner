@@ -49,6 +49,16 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Personal automatic cloud sync now has an inactive safe cross-client contract:
+  Google Drive `appDataFolder` first, iCloud as a later user-selected alternative,
+  never both automatic authorities together. The design replaces mutable-file
+  overwrite with immutable snapshots, complete bounded pagination and persisted
+  idempotent upload identity, then routes verified bytes through existing backup-v8
+  preview/snapshot/transaction gates. Android was notified of its committed
+  first-page/unbounded-read/blind-update risks. No OAuth client, token, entitlement,
+  schedule, remote object or production UI was enabled. See
+  `PERSONAL_CLOUD_SYNC_V1.md`.
+
 - Android/server accepted-event contract checkpoint `2725a49` now has inactive
   iOS model/vector parity. ACCEPT freezes deterministic event/object identity,
   exact sender authority, intent/JWE hashes and sizes, ordered audience, all

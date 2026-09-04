@@ -38,6 +38,9 @@ The compatibility reference is Android Pinbook 0.4.2 (`versionCode 8`) at `442ae
 - Drive will use per-user authorization with only `drive.appdata`; tokens must remain in memory or protected system storage and no central Pinbook backend is planned.
 - Google Drive is the first planned transport because it preserves Android/iOS interoperability. Apple does not require iCloud for App Store distribution.
 - A future iCloud/CloudKit adapter may implement the same `BackupTransport` port as an alternative provider. Automatic Google Drive and iCloud replication must not run simultaneously until a single-authority and cross-provider conflict design is proven.
+- The inactive cross-platform safety contract uses immutable append-only snapshots,
+  complete bounded pagination and a persisted idempotent upload identity instead
+  of overwriting one mutable remote file. See `PERSONAL_CLOUD_SYNC_V1.md`.
 - A future sync adapter must feed remote bytes into the implemented validation, restore-preview, snapshot, and transactional-apply boundary rather than bypassing it.
 - OCR will be an optional on-device enhancement behind `ReceiptTextRecognizing`.
 

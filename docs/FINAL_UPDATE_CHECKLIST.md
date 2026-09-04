@@ -46,6 +46,10 @@ checkboxes deliberately remain open until checked against the exact next candida
       conditional-update guard, first-page-only discovery and unbounded response
       reads. These are source-level concurrency/bounds risks, not observed data
       loss; Android notified. Do not blindly mirror them into iOS automatic sync.
+      The inactive replacement contract now specifies Drive-first immutable
+      append-only snapshots, complete bounded pagination, persisted idempotent
+      upload identity and existing local preview/snapshot/transaction gates. See
+      `PERSONAL_CLOUD_SYNC_V1.md`; no provider is enabled yet.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
