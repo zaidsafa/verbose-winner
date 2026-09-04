@@ -2,7 +2,89 @@ import Foundation
 import SwiftData
 import Testing
 import UIKit
+import Darwin
 @testable import Pinbook
+
+@Test func personalBackupReaderChecksActualBytesAndShortReads() throws {
+    var chunks = [Data("ab".utf8), Data("cd".utf8), Data()]
+    let data = try BackupFileRead.readBounded(maximumBytes: 4) { requested in
+        #expect(requested <= 5)
+        return chunks.removeFirst()
+    }
+    #expect(data == Data("abcd".utf8))
+    #expect(chunks.isEmpty)
+    #expect(try BackupFileRead.readBounded(maximumBytes: 0) { _ in Data() }.isEmpty)
+    #expect(throws: BackupRecoveryError.fileTooLarge) {
+        try BackupFileRead.readBounded(maximumBytes: 4) { _ in Data(repeating: 0, count: 5) }
+    }
+    var reads = 0
+    #expect(throws: BackupRecoveryError.fileTooLarge) {
+        try BackupFileRead.readBounded(maximumBytes: 4) { _ in
+            reads += 1
+            return Data(repeating: 0, count: reads == 1 ? 4 : 1)
+        }
+    }
+    #expect(reads == 2)
+    #expect(throws: BackupRecoveryError.fileAccessFailed) {
+        try BackupFileRead.readBounded { _ in throw BackupRecoveryError.fileAccessFailed }
+    }
+}
+
+@Test func personalBackupReaderRejectsUnsafeFilesAndCoordinatesLocalRead() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("PinbookRead-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let file = directory.appendingPathComponent("backup.json")
+    let bytes = Data("{\"formatVersion\":8}".utf8)
+    try bytes.write(to: file)
+    #expect(try await BackupFileRead.load(file) == bytes)
+    #expect(try BackupFileRead.readRegularFile(file, maximumBytes: bytes.count) == bytes)
+    #expect(throws: BackupRecoveryError.fileTooLarge) {
+        try BackupFileRead.readRegularFile(file, maximumBytes: bytes.count - 1)
+    }
+    let link = directory.appendingPathComponent("link.json")
+    try FileManager.default.createSymbolicLink(at: link, withDestinationURL: file)
+    let fifo = directory.appendingPathComponent("pipe.json")
+    #expect(mkfifo(fifo.path, 0o600) == 0)
+    for url in [directory, link, fifo, directory.appendingPathComponent("missing.json"), URL(string: "https://example.invalid/backup.json")!] {
+        #expect(throws: BackupRecoveryError.fileAccessFailed) {
+            try BackupFileRead.readRegularFile(url)
+        }
+    }
+}
+
+@Test func personalBackupReaderHonorsCancellation() async throws {
+    let task = Task {
+        withUnsafeCurrentTask { $0?.cancel() }
+        return try BackupFileRead.readBounded { _ in
+            Issue.record("Cancelled reads must not request content")
+            return Data()
+        }
+    }
+    do {
+        _ = try await task.value
+        Issue.record("Cancelled read should fail")
+    } catch is CancellationError { }
+}
+
+@MainActor
+@Test func cancelledPersonalRestoreDoesNotCreatePreviewOrMutateRecords() async throws {
+    let container = try inMemoryContainer()
+    let context = container.mainContext
+    try PinbookBootstrap.prepare(context)
+    let data = try JSONEncoder().encode(PinbookBackup())
+    let task = Task { @MainActor in
+        withUnsafeCurrentTask { $0?.cancel() }
+        return try await BackupRecoveryService(context: context).prepareRestore(data: data)
+    }
+    do {
+        _ = try await task.value
+        Issue.record("Cancelled restore must not create a preview")
+    } catch is CancellationError { }
+    #expect(try context.fetch(FetchDescriptor<BackupActivityItem>()).isEmpty)
+    #expect(try context.fetch(FetchDescriptor<BackupSnapshotItem>()).isEmpty)
+    #expect(try context.fetch(FetchDescriptor<ExpenseItem>()).isEmpty)
+}
 
 @MainActor
 @Test func productionBootstrapCreatesOnlyInfrastructureRecords() throws {
@@ -80,8 +162,8 @@ import UIKit
         let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
         let data = try Data(contentsOf: url)
         let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
-        #expect(values.count == 256)
-        for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data."] {
+        #expect(values.count == 257)
+        for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed."] {
             let value = try #require(values[key])
             #expect(!value.isEmpty && value != key)
         }

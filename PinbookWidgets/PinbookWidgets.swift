@@ -43,7 +43,7 @@ private struct QuickExpenseWidget: Widget {
         }
         .configurationDisplayName("Quick Expense")
         .description("Open a new expense without showing financial details on the Home Screen.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 
@@ -63,12 +63,14 @@ private struct BalanceOverviewWidget: Widget {
         }
         .configurationDisplayName("Balance Overview")
         .description("Open the private in-app summary. Amounts stay off the Home Screen.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 
 private struct PinbookWidgetCard: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.widgetRenderingMode) private var renderingMode
+    @Environment(\.showsWidgetContainerBackground) private var showsBackground
     let eyebrow: LocalizedStringKey
     let title: LocalizedStringKey
     let detail: LocalizedStringKey
@@ -76,20 +78,60 @@ private struct PinbookWidgetCard: View {
     let colors: [Color]
     let destination: URL
 
+    private var foreground: Color {
+        renderingMode == .fullColor && showsBackground ? .white : .primary
+    }
+
     var body: some View {
+        Group {
+            switch family {
+            case .accessoryCircular:
+                ZStack {
+                    AccessoryWidgetBackground()
+                    Image(systemName: symbol)
+                        .font(.title2.weight(.semibold))
+                        .widgetAccentable()
+                }
+                .accessibilityLabel(Text(title))
+            case .accessoryInline:
+                Label(title, systemImage: symbol)
+            case .accessoryRectangular:
+                VStack(alignment: .leading, spacing: 3) {
+                    Label(eyebrow, systemImage: symbol)
+                        .font(.caption.weight(.semibold))
+                        .widgetAccentable()
+                    Text(title)
+                        .font(.headline)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
+            default:
+                homeScreenCard
+            }
+        }
+        .widgetURL(destination)
+        .containerBackground(for: .widget) {
+            if family == .systemSmall || family == .systemMedium {
+                LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var homeScreenCard: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 7) {
                 Label(eyebrow, systemImage: "lock.fill")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.72))
+                    .foregroundStyle(foreground.opacity(0.85))
                 Spacer(minLength: 4)
                 Text(title)
                     .font(family == .systemSmall ? .title3.bold() : .title2.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(foreground)
                     .minimumScaleFactor(0.78)
                 Text(detail)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.74))
+                    .foregroundStyle(foreground.opacity(0.85))
                     .lineLimit(2)
             }
 
@@ -97,16 +139,12 @@ private struct PinbookWidgetCard: View {
                 Spacer(minLength: 4)
                 Image(systemName: symbol)
                     .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(foreground)
+                    .widgetAccentable()
                     .frame(width: 62, height: 62)
-                    .background(.white.opacity(0.16), in: Circle())
-                    .overlay { Circle().stroke(.white.opacity(0.22), lineWidth: 1) }
+                    .background(foreground.opacity(0.16), in: Circle())
+                    .overlay { Circle().stroke(foreground.opacity(0.22), lineWidth: 1) }
             }
         }
-        .widgetURL(destination)
-        .containerBackground(for: .widget) {
-            LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-        }
-        .accessibilityElement(children: .combine)
     }
 }

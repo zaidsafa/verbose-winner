@@ -24,6 +24,7 @@ struct BackupRecoveryView: View {
     @State private var isWorking = false
     @State private var operationError: String?
     @State private var completionMessage: String?
+    @State private var importTask: Task<Void, Never>?
 
     private var service: BackupRecoveryService { BackupRecoveryService(context: modelContext) }
     private var recordCount: Int {
@@ -35,7 +36,7 @@ struct BackupRecoveryView: View {
     private var healthStatus: String {
         latestSuccessfulExport == nil
             ? String(localized: "Not exported yet", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
-            : String(localized: "Healthy local export", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+            : String(localized: "Backup exported", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
     }
 
     var body: some View {
@@ -50,6 +51,8 @@ struct BackupRecoveryView: View {
         .background(skin.backdrop.ignoresSafeArea())
         .navigationTitle("Backup & Recovery")
         .navigationBarTitleDisplayMode(.inline)
+        .disabled(isWorking)
+        .onDisappear { importTask?.cancel() }
         .overlay {
             if isWorking { ProgressView().controlSize(.large) }
         }
@@ -75,7 +78,8 @@ struct BackupRecoveryView: View {
         }
         .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.json]) { result in
             switch result {
-            case .success(let url): Task { await importBackup(from: url) }
+            case .success(let url):
+                importTask = Task { await importBackup(from: url) }
             case .failure(let error):
                 if (error as NSError).code != NSUserCancelledError { operationError = error.localizedDescription }
             }
@@ -206,12 +210,14 @@ struct BackupRecoveryView: View {
         guard !isWorking else { return }
         isWorking = true
         defer { isWorking = false }
-        let accessed = url.startAccessingSecurityScopedResource()
-        defer { if accessed { url.stopAccessingSecurityScopedResource() } }
         do {
-            let data = try Data(contentsOf: url, options: [.mappedIfSafe])
+            let data = try await BackupFileRead.load(url)
+            try Task.checkCancellation()
             preparedRestore = try await service.prepareRestore(data: data)
+            try Task.checkCancellation()
             showingPreview = true
+        } catch is CancellationError {
+            preparedRestore = nil
         } catch {
             operationError = error.localizedDescription
         }

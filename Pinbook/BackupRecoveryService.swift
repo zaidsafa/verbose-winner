@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
@@ -24,6 +25,7 @@ enum BackupRecoveryError: LocalizedError, Equatable {
     case previewExpired
     case invalidSnapshot
     case fileAccessFailed
+    case fileTooLarge
 
     var errorDescription: String? {
         switch self {
@@ -33,6 +35,90 @@ enum BackupRecoveryError: LocalizedError, Equatable {
         case .previewExpired: String(localized: "Local data changed after the preview. Preview the backup again.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
         case .invalidSnapshot: String(localized: "This recovery snapshot is invalid.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
         case .fileAccessFailed: String(localized: "The selected backup file could not be read.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+        case .fileTooLarge: String(localized: "This backup exceeds the 128 MiB limit. Your records have not been changed.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+        }
+    }
+}
+
+/// A single coordinated read. Only cancellation crosses threads; the coordinator
+/// explicitly supports cancellation from another thread. No URL or content is logged.
+final class BackupFileRead: @unchecked Sendable {
+    static let maximumBytes = 128 * 1024 * 1024
+    private let coordinator = NSFileCoordinator()
+
+    static func load(_ url: URL) async throws -> Data {
+        let operation = BackupFileRead()
+        let task = Task.detached(priority: .userInitiated) { try operation.read(url) }
+        return try await withTaskCancellationHandler {
+            let data = try await task.value
+            try Task.checkCancellation()
+            return data
+        } onCancel: {
+            task.cancel()
+            operation.coordinator.cancel()
+        }
+    }
+
+    private func read(_ url: URL) throws -> Data {
+        try Task.checkCancellation()
+        guard url.isFileURL, !url.path.utf8.contains(0) else {
+            throw BackupRecoveryError.fileAccessFailed
+        }
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+        var coordinationError: NSError?
+        var result: Result<Data, Error> = .failure(BackupRecoveryError.fileAccessFailed)
+        coordinator.coordinate(readingItemAt: url, options: .withoutChanges,
+                               error: &coordinationError) { coordinatedURL in
+            result = Result { try Self.readRegularFile(coordinatedURL) }
+        }
+        try Task.checkCancellation()
+        guard coordinationError == nil else { throw BackupRecoveryError.fileAccessFailed }
+        return try result.get()
+    }
+
+    static func readRegularFile(_ url: URL, maximumBytes: Int = maximumBytes) throws -> Data {
+        try Task.checkCancellation()
+        guard url.isFileURL, !url.path.utf8.contains(0) else {
+            throw BackupRecoveryError.fileAccessFailed
+        }
+        let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+        guard descriptor >= 0 else { throw BackupRecoveryError.fileAccessFailed }
+        defer { Darwin.close(descriptor) }
+        var info = stat()
+        guard fstat(descriptor, &info) == 0, (info.st_mode & S_IFMT) == S_IFREG,
+              info.st_size >= 0 else { throw BackupRecoveryError.fileAccessFailed }
+        guard info.st_size <= maximumBytes else { throw BackupRecoveryError.fileTooLarge }
+        return try readBounded(maximumBytes: maximumBytes) { count in
+            var data = Data(count: count)
+            let actual = data.withUnsafeMutableBytes { buffer in
+                var result: Int
+                repeat { result = Darwin.read(descriptor, buffer.baseAddress, count) }
+                while result < 0 && errno == EINTR
+                return result
+            }
+            guard actual >= 0 else { throw BackupRecoveryError.fileAccessFailed }
+            data.count = actual
+            return data
+        }
+    }
+
+    /// Actual bytes, not provider metadata, enforce the cap even if the file grows.
+    static func readBounded(maximumBytes: Int = maximumBytes,
+                            read: (Int) throws -> Data) throws -> Data {
+        guard (0...Self.maximumBytes).contains(maximumBytes) else {
+            throw BackupRecoveryError.fileTooLarge
+        }
+        var data = Data()
+        while true {
+            try Task.checkCancellation()
+            let requested = min(64 * 1024, maximumBytes - data.count + 1)
+            let chunk = try read(requested)
+            guard chunk.count <= requested, chunk.count <= maximumBytes - data.count else {
+                throw BackupRecoveryError.fileTooLarge
+            }
+            if chunk.isEmpty { return data }
+            data.append(chunk)
         }
     }
 }
@@ -71,6 +157,7 @@ struct BackupRecoveryService {
         do {
             let backup = try await captureBackup(exportedAt: now)
             let data = try encode(backup)
+            guard data.count <= BackupFileRead.maximumBytes else { throw BackupRecoveryError.fileTooLarge }
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [.withFullDate]
             let date = formatter.string(from: Date(timeIntervalSince1970: Double(now) / 1_000))
@@ -97,9 +184,20 @@ struct BackupRecoveryService {
 
     func prepareRestore(data: Data) async throws -> PreparedRestore {
         do {
-            let incoming = try JSONDecoder().decode(PinbookBackup.self, from: data)
-            try BackupValidator.validate(incoming)
+            guard data.count <= BackupFileRead.maximumBytes else { throw BackupRecoveryError.fileTooLarge }
+            let decoding = Task.detached(priority: .userInitiated) {
+                try Task.checkCancellation()
+                let incoming = try JSONDecoder().decode(PinbookBackup.self, from: data)
+                try BackupValidator.validate(incoming)
+                try Task.checkCancellation()
+                return incoming
+            }
+            let incoming = try await withTaskCancellationHandler {
+                try await decoding.value
+            } onCancel: { decoding.cancel() }
+            try Task.checkCancellation()
             let baseline = try await captureBackup(exportedAt: nil)
+            try Task.checkCancellation()
             let plan = try makeBackupMergePlan(local: baseline, remote: incoming)
             try validateReferences(plan.merged)
             try recordActivity(
@@ -111,6 +209,8 @@ struct BackupRecoveryService {
                 conflictCount: plan.preview.totalConflicts
             )
             return PreparedRestore(baseline: baseline, incoming: incoming, plan: plan)
+        } catch is CancellationError {
+            throw CancellationError()
         } catch {
             try? recordActivity(
                 kind: .failedRestore,

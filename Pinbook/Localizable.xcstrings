@@ -1,6 +1,106 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "This backup exceeds the 128 MiB limit. Your records have not been changed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This backup exceeds the 128 MiB limit. Your records have not been changed."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتجاوز هذه النسخة الاحتياطية الحد الأقصى البالغ 128 ميبيبايت. لم يتم تغيير سجلاتك."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此备份超过 128 MiB 的大小限制。你的记录未被更改。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此備份超過 128 MiB 的大小限制。你的記錄未被更改。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette sauvegarde dépasse la limite de 128 Mio. Vos données n’ont pas été modifiées."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta copia de seguridad supera el límite de 128 MiB. Tus registros no se han modificado."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo backup supera il limite di 128 MiB. I tuoi dati non sono stati modificati."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Backup überschreitet das Limit von 128 MiB. Deine Einträge wurden nicht geändert."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este backup excede o limite de 128 MiB. Seus registros não foram alterados."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu yedek 128 MiB sınırını aşıyor. Kayıtlarınız değiştirilmedi."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cadangan ini melebihi batas 128 MiB. Catatan Anda tidak diubah."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このバックアップは上限の128 MiBを超えています。記録は変更されていません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 백업은 128 MiB 제한을 초과합니다. 기록은 변경되지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эта резервная копия превышает лимит 128 МиБ. Ваши записи не изменены."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह बैकअप 128 MiB की सीमा से बड़ा है। आपके रिकॉर्ड नहीं बदले गए हैं।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ بیک اپ 128 MiB کی حد سے بڑا ہے۔ آپ کے ریکارڈ تبدیل نہیں کیے گئے۔"
+          }
+        }
+      }
+    },
     "%lld": {
       "localizations": {
         "ar": {
