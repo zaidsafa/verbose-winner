@@ -68,3 +68,23 @@ Official implementation references:
 - https://developers.google.com/workspace/drive/api/guides/appdata
 - https://developers.google.com/workspace/drive/api/reference/rest/v3/files/list
 - https://developers.google.com/workspace/drive/api/guides/manage-uploads
+
+## Implemented inactive guard and evidence
+
+`BackupTransport` now exposes only paginated inventory, bounded download and
+immutable append. It has no update or delete method. `BackupTransportGuard`
+validates redacted opaque metadata, follows every page, rejects cursor loops and
+duplicate object/operation identities, caps inventory, verifies exact byte count
+and SHA-256 after download, and rejects an append receipt that does not match the
+persisted operation identity, creation time, bytes and digest.
+
+- Focused guard tests: **5/5 PASS**.
+- Complete Swift core: **337/337 PASS**, 30 suites.
+- Signed iOS 26.5 Simulator app-host: **362 PASS + 4 expected physical-only
+  SKIPS**, 366 total, 0 failures.
+- Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+
+Exact paths and the initial sandbox-blocked attempt are recorded in
+`VALIDATION.md`. This source still has no Drive/iCloud adapter, token, scheduler,
+remote bytes, automatic merge or production UI entry.

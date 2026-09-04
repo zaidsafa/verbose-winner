@@ -1,5 +1,32 @@
 # Validation plan
 
+## 2026-09-05 immutable personal-cloud transport guard (inactive)
+
+- Replaced the unused blind `download/upload` port with a provider-neutral
+  immutable contract: paginated inventory, exact bounded download and append-only
+  upload. No update/delete method exists. Metadata is opaque and diagnostic output
+  is redacted.
+- The guard follows all cursors, rejects cursor loops, duplicate object/operation
+  IDs and inventory overflow, requests no more than the advertised exact byte
+  count, verifies SHA-256, and requires the append receipt to match the persisted
+  operation ID/time/bytes/digest.
+- Focused **5/5 PASS**, 1 suite, 0.001s:
+  `/private/tmp/pinbook-cloud-transport-focused-20260905.log`. The first focused
+  command was blocked before compilation by sandbox denial of Swift's module cache;
+  its misleading piped shell exit was not counted.
+- Complete Swift core **337/337 PASS**, 30 suites, 15.207s:
+  `/private/tmp/pinbook-cloud-transport-full-core-20260905.log`.
+- Signed iOS 26.5 Simulator app-host **362 PASS + 4 expected physical-only
+  SKIPS**, 366 total, 0 failures, 31 suites, 8.071s:
+  `/private/tmp/Pinbook-Cloud-Transport-AppHost-20260905.xcresult` and
+  `/private/tmp/pinbook-cloud-transport-apphost-20260905.log`.
+- Ordinary unsigned production Release **BUILD SUCCEEDED**, bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`:
+  `/private/tmp/pinbook-cloud-transport-release-20260905.log`.
+- No Drive/iCloud adapter, OAuth client/token, entitlement, schedule, remote file,
+  automatic merge, production UI, archive/upload or TestFlight action occurred.
+  See `PERSONAL_CLOUD_SYNC_V1.md`.
+
 ## 2026-09-05 canonical ACCEPT/ACK/CANCEL journal event parity (inactive)
 
 - Mirrored the exact accepted-delivery journal metadata frozen in committed

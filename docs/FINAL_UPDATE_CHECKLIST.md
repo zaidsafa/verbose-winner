@@ -49,7 +49,9 @@ checkboxes deliberately remain open until checked against the exact next candida
       The inactive replacement contract now specifies Drive-first immutable
       append-only snapshots, complete bounded pagination, persisted idempotent
       upload identity and existing local preview/snapshot/transaction gates. See
-      `PERSONAL_CLOUD_SYNC_V1.md`; no provider is enabled yet.
+      `PERSONAL_CLOUD_SYNC_V1.md`. The inactive Swift port/guard now structurally
+      permits only list, bounded verified download and immutable append, with
+      complete core/app-host/Release coverage; no provider is enabled yet.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
