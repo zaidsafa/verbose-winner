@@ -1,5 +1,75 @@
 # Validation plan
 
+## 2026-09-04 continuous final-update work: personal import and widget families
+
+- Tested source checkpoint: `f6e6e26c1e3280f1202b7d2b5b74ab9d4907bf7c` (local commit).
+- Current uncommitted slice implements cancellable, coordinated, bounded personal
+  file reads, off-main decoding/validation and 128 MiB import/export admission.
+  New tests cover exact cap, short reads, extra bytes after cap, read failures,
+  symlink/directory/FIFO/missing/non-file rejection, coordinated local reading,
+  cancellation and no preview/snapshot/financial mutation after cancellation.
+- First sandboxed Simulator run could not access CoreSimulator (exit 70). Retried
+  with approved local Simulator access, without changing devices or signing config.
+- First native test run found only the stale 256-key localization-count assertion:
+  all 15 translated catalogs now have 257 keys. New functionality tests passed;
+  this run as a whole FAILED and is not counted as a pass. Evidence:
+  `/private/tmp/Pinbook-Personal-Read-Verified-2.xcresult` and
+  `/private/tmp/pinbook-ios-personal-read-simulator-2.log`.
+- Source and compiled app/widget catalog check PASS: 257 keys in each of 15
+  translated languages, plus English source; placeholder tokens match. Command:
+  `python3 scripts/localization_drafts.py --check-built-app /private/tmp/pinbook-ios-recovery-key-signed-derived/Build/Products/Debug-iphonesimulator/Pinbook.app`.
+- Core rerun PASS 50/50: `/private/tmp/pinbook-ios-core-continuation.log`.
+- Full signed Simulator app/UI regression PASSED against the updated source:
+  `/private/tmp/Pinbook-Personal-Widgets-Full.xcresult` and
+  `/private/tmp/pinbook-ios-personal-widgets-full.log`. Verified xcresult summary:
+  85 passes (75 app + 10 UI), one hardware-protection skip, zero failures;
+  finished Unix time 1788513987.968. Dedicated Simulator remains
+  `4A87A62E-C254-4FBE-8673-7D089E4165C1`; no other project device is touched.
+- Widget family layouts compile in that build, but no widget-gallery, Always On,
+  locked-device or live balance data acceptance is claimed.
+- Unsigned generic iPhone Release build PASSED:
+  `/private/tmp/pinbook-ios-personal-widgets-release.log`. No archive was created.
+- No TestFlight upload, source push, version/signing/capability change, iPhone
+  connection or shared Infrastructure mutation. Existing build 3 remains unchanged.
+
+## 2026-09-04 received-text recovery UI and key text (inactive continuation)
+
+- Local tested source commit: `a5d1cb3` (no source push or upload).
+- Shared key-text parser and public fixture passed core 52/52:
+  `/private/tmp/pinbook-ios-key-text-core.log`. Session orchestration passed 54/54:
+  `/private/tmp/pinbook-ios-recovery-session-core.log`. A temporary unused-result
+  warning in best-effort key-text scratch clearing was corrected afterward.
+- Initial native app run passed (80 discovered, one hardware-only skip):
+  `/private/tmp/pinbook-ios-recovery-flow-app.log` and
+  `/private/tmp/Pinbook-Recovery-Flow-App.xcresult`. This preceded final screen
+  cancellation cleanup, new translations and DEBUG-only UI fixture additions.
+- New recovery strings are assistant-authored across 15 translations plus English.
+  Static catalog check: 272 keys, all placeholder tokens valid. This is not a
+  native-speaker review claim. Final compiled catalog check remains pending.
+- First full screen run FAILED one UI test (two assertions): iOS supplied the
+  dialog Cancel action without the assigned SwiftUI identifier. Hierarchy showed
+  a single labelled Cancel and duplicate bridged Apply representations. Corrected
+  the English-only test to use the observed Cancel label and first matching Apply.
+  App tests and the Chinese screen test passed in this failed overall run:
+  `/private/tmp/Pinbook-Recovery-UI-Full.xcresult` and
+  `/private/tmp/pinbook-ios-recovery-ui-full.log`.
+- Exported and visually inspected the Chinese preview screenshot: dark appearance,
+  readable counts, wrapped scope explanation and visible apply action without
+  clipping. Public fixture's 1970 export timestamp is intentional synthetic data.
+  Evidence: `/private/tmp/pinbook-recovery-ui-evidence/C03A95AB-6399-4B60-85CA-C3D15F2692C7.png`.
+- Final core 55/55 PASS at `/private/tmp/pinbook-ios-recovery-session-final-core.log`,
+  including wrong-ID preservation and cancellation consuming a matched preview.
+- Unsigned iPhone Release build PASS at `/private/tmp/pinbook-ios-recovery-ui-release.log`;
+  DEBUG-only preview host excluded. No distribution archive or upload.
+- All 272 keys in compiled app/widget match 15 translated source catalogs plus
+  English source; exact placeholder check PASS.
+- Corrected full app/UI rerun PASSED: `/private/tmp/Pinbook-Recovery-UI-Verified.xcresult`
+  and `/private/tmp/pinbook-ios-recovery-ui-verified.log`. Verified xcresult summary:
+  92 passes (80 app + 12 UI), one hardware-only protection skip, zero failures;
+  finished Unix time 1788515575.215. Explicit cancel-then-confirm and Chinese
+  preview tests both passed. Real provider selection/import, new-key
+  consent/export, locked hardware and full team recovery remain unverified.
+
 ## 2026-09-04 post-release local recovery and inbox work
 
 - Exact tested source commit: `fac1834f4f1bf07942f8d2759fb5b4ec445ea503` (local only).

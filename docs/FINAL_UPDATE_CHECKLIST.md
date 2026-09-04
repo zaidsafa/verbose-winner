@@ -32,9 +32,15 @@ checkboxes deliberately remain open until checked against the exact next candida
       from automatic Drive/iCloud sync (not implemented). Final provider behavior,
       OAuth/capabilities, consent, conflicts, failures and recovery must be agreed
       and verified; do not advertise simultaneous providers without a safe design.
+      Read-only review of Android's current Drive v8 implementation found no
+      conditional-update guard, first-page-only discovery and unbounded response
+      reads. These are source-level concurrency/bounds risks, not observed data
+      loss; Android notified. Do not blindly mirror them into iOS automatic sync.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
-      revocation and account lifecycle. Provider preference is coordinated by
-      the Android task; do not send duplicate owner prompts.
+      revocation and account lifecycle. Apple+Google direction accepted from the
+      owner's direct "proceed" response to that proposed choice; Android notified.
+      Actual credentials/client IDs, provider setup and validation remain gates.
+      Do not send duplicate provider-choice prompts.
 - [ ] Reviewed group-encryption library/provider, crash-safe crypto state, bounded
       untrusted input, key rotation, offline catch-up and authorized rejoin.
 - [ ] Durable outgoing notes/drafts, revisions and reviews as distinct events;
@@ -52,12 +58,23 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- Personal Files import now coordinates/read-checks off-main, is cancellable and
+  bounds actual file bytes to 128 MiB. Export uses the same limit. Legacy backups
+  larger than this limit need an accepted recovery path before final sign-off;
+  schema remains v8. No automatic cloud sync is implied by provider coordination.
+- Both privacy-only widgets now have Lock Screen family layouts and adaptive
+  tinted/background-removed colors. Compile/tests alone do not close gallery,
+  installation, Always On or physical locked-device acceptance.
 - Received-text local store and restricted encrypted portable archive implemented;
   public cross-platform fixture round trip passed. No production entry point.
 - Bounded file reader and immutable authenticated restore candidate implemented.
   Preview is read-only; confirmation revalidates conflicts atomically.
 - Bounded local inbox paging and device-only recovery-key custody implemented
   behind inactive APIs. No normal app screen opens the team store or creates keys.
+- Shared human-readable recovery-key parser and single-use preview session now
+  implemented, plus an inactive received-text Files screen and public DEBUG UI
+  test host. Complete key setup/export/retention and full archive coverage remain
+  open; do not equate that scoped screen with complete team recovery.
 - See `VALIDATION.md` for exact tested checkpoints. This is not a complete user
   recovery flow or a physical-device acceptance claim.
 - Crypto audit/version/fix assessment: `OPENMLS_AUDIT_ADOPTION_20260904.md`.

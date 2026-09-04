@@ -2,6 +2,43 @@
 
 Date: 2026-09-04. Branch: `codex/team-delivery-foundation`.
 
+## Received-text recovery UI continuation (inactive)
+
+`TeamArchiveRecoverySession` serializes local preview/confirmation away from the UI
+actor. Every prepare attempt discards the old candidate, authenticates for the
+store's own account, computes a read-snapshot preview and returns counts/export
+time plus a new ephemeral UUID. Descriptions redact metadata. The UUID correlates
+UI actions only; it is not a login/session/enrollment credential.
+
+Cancellation discards the pending candidate. Confirming an unknown/old UUID fails
+without consuming a newer candidate. A matching confirmation consumes its candidate
+before the final cancellation check and write. It then revalidates all conflicts
+inside the store transaction. Any failed matched confirmation requires a new
+preview; a second confirmation cannot replay a consumed candidate. No cancellation
+check occurs after a successful commit: a committed restore must not be described
+as cancelled or rolled back. Export does not change preview or remote state.
+
+`TeamReceivedArchiveRecoveryView` in `BackupRecoveryView.swift` implements secure
+key input, explicit loading of existing device custody, bounded/coordinated Files
+input, immutable preview and confirmation, and ciphertext-only export using the
+already-saved key. Pasted keys are not persisted. Missing/inaccessible custody is
+not replaced or generated. Cancellation/dismissal clears visible key/candidate
+references, without claiming guaranteed memory erasure. It explains that only
+received text is covered, not team access, drafts, revisions, media or receipts.
+
+The screen is **not reachable in normal production navigation**. Key generation,
+off-device key export/confirmation, imported-key retention and secure-screen policy
+remain separate integration gates. A DEBUG-only preview host uses exclusively
+public synthetic bytes and a new temporary SQLite directory, and requires BOTH an
+ephemeral-store fixture flag and `-PinbookTeamRecoveryPreview`. Release builds have
+no branch to this host. It exercises confirmation UI without real users, keys,
+accounts or infrastructure; it does not close real Files/provider or hardware gates.
+
+Human-readable key profile and exact public vectors: `TEAM_RECOVERY_KEY_TEXT_V1.md`.
+Final core session checkpoint: 55/55; final Simulator 92 app/UI passes and one
+hardware-only skip, with 272-key compiled catalog parity. Exact evidence is in
+VALIDATION.md. This does not close real Files transfer/key setup or live activation.
+
 ## Local inbox and restore preparation continuation
 
 `TeamArchiveImport.prepare(fileURL:recoveryKey:expectedAccountId:)` now reads an

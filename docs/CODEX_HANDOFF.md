@@ -4,6 +4,14 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Owner release gate — no incremental TestFlight updates
 
+- Latest owner response was "proceed towards the goal" directly after being asked
+  to approve Apple and Google sign-in. Treat that response as approval of the
+  proposed Apple+Google pilot sign-in direction, rather than holding indefinitely
+  for the same choice. This interpretation was explicitly communicated to the
+  owner and Android task. It supersedes older "provider pending" notes below.
+  Account connections remain opt-in. Real client IDs/console setup, validation
+  contracts, credentials/access and all crypto/activation gates remain required;
+  provider selection alone does not authorize shared Infrastructure mutations.
 - Owner reports checking the published build 3 and finding it good. This is
   owner feedback, not a claim of complete physical-device regression coverage.
 - Keep build `0.1.0 (3)` available. Do not upload or distribute further interim
@@ -18,6 +26,46 @@ Updated: 2026-09-04 (Asia/Shanghai)
   gates are not complete merely because build 3 was accepted by the owner.
 
 ## Active local implementation after release hold
+
+- The personal import/widget checkpoint is committed locally at
+  `f6e6e26c1e3280f1202b7d2b5b74ab9d4907bf7c`: 50 core passes, 85 app/UI passes
+  plus one hardware skip, unsigned iPhone Release build passed; no upload/push.
+- Subsequent inactive work adds strict agreed recovery-key text, single-use
+  actor-backed restore confirmation, a scoped received-note Files recovery screen
+  and all 16-language copy. Normal production navigation still does not instantiate
+  it. DEBUG-only public fixture UI requires explicit ephemeral + preview flags.
+  See TEAM_DELIVERY_IOS.md, TEAM_RECOVERY_KEY_TEXT_V1.md and VALIDATION.md for
+  implementation, platform cancellation differences and final test state.
+- This continuation is saved locally at `a5d1cb3`: final 55/55 core tests,
+  92 app/UI passes (80 app + 12 UI), one hardware-protection skip and zero failures.
+  Unsigned iPhone Release compile and exact compiled 272-key localization checks
+  passed. Chinese preview screenshot was visually inspected. No source push/upload.
+- Next safe implementation: complete explicit recovery-key setup/off-device
+  confirmation and imported-key retention UX, secure-screen policy, authenticated
+  Apple+Google integration against the Android-owned admission contract, and
+  user-facing inbox/retry lifecycle. Finish automatic personal cloud concurrency/
+  bounded I/O and live widget App Group/privacy integration. Do not silently drop
+  sender/media/full recovery, staging or hardware acceptance from the final gate.
+- Continuous implementation resumed at the owner's request. Current additional
+  local slice: personal Files reads now use NSFileCoordinator off the main actor,
+  balanced security-scoped access, regular-file-only descriptor reads, 64 KiB
+  chunks and an actual-byte 128 MiB cap. JSON decoding/validation is off-main;
+  SwiftData capture/merge/application remain main-actor operations. Cancellation
+  stops pending coordination/reads and avoids presenting a stale cancelled import.
+- This is a new operational personal-backup size limit, not a v8 schema change.
+  Export rejects encoded backups over the same cap. Existing larger backups are
+  rejected visibly without changing financial records; large legacy/cross-platform
+  recovery acceptance remains open. This does not bound every decoded allocation
+  or make whole-account export streaming. Team v1 limits/wire are unchanged.
+- Both existing widgets now declare circular, rectangular and inline Lock Screen
+  families, with family-specific layouts. Home Screen text uses semantic foreground
+  when tinted or when its container background is removed. No financial values,
+  App Group, entitlements, capability or live snapshot sharing was added.
+- Backup status now says "Backup exported", not a blanket "Healthy local export"
+  claim based on an old successful write. It does not verify continued destination
+  availability, freshness or restoration. New size error has all 16 translations.
+- Current-slice validation is tracked in VALIDATION.md. No additional TestFlight
+  upload, source push, physical phone or shared Infrastructure change.
 
 - Tested source saved locally as `fac1834f4f1bf07942f8d2759fb5b4ec445ea503`.
   No remote push or release; the previous published source remains unchanged.
