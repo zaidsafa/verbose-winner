@@ -1,8 +1,10 @@
 # Google identity integration review — not activated
 
-Reviewed 2026-09-04. Apple+Google provider direction is accepted. No Google SDK,
-client ID, URL scheme or account has been installed/connected by this review.
-Normal navigation and personal Files backup are unchanged.
+Reviewed 2026-09-04. Apple+Google provider direction is accepted. The implementation
+now uses exact AppAuth3.0.0 for system-browser request/state/PKCE, plus Pinbook-owned
+bounded token HTTP. This supersedes the earlier undecided SDK note. No GIDSignIn,
+real client ID, URL scheme or account has been installed/connected. Normal
+navigation and personal Files backup are unchanged. See TEAM_GOOGLE_IDENTITY_ADAPTER_IOS.md.
 
 ## Verified SDK boundaries
 
@@ -25,21 +27,26 @@ configuration can raise an Objective-C exception, not a catchable Swift Error.
 The interactive request forwards the explicit nonce and configured server audience
 through AppAuth. This is source evidence, not real provider claim acceptance.
 
-## Integration decisions still needed
+## Why the implementation uses AppAuth rather than shared GIDSignIn state
 
-- If adopting GIDSignIn, reserve its entire singleton state for TEAM identity;
-  future personal Drive must use a distinct authorization owner, client flow and
-  credential namespace. Never infer separation merely from requesting fewer scopes.
-- Retain one global SDK request owner. Cancellation/expiry must reject late results
-  and quarantine ownership until the SDK's terminal callback, without claiming that
-  the underlying browser was cancelled. Never use private SDK cancellation APIs.
-- Define provider-token cleanup and error handling explicitly. A void signOut call
-  is not evidence that Keychain deletion succeeded; Pinbook account-session custody
-  remains a separate passcode-required store, never a copy of the SDK auth state.
-- An AppAuth-owned system session is the alternative if reliable cancellation and
-  volatile-only provider token custody are required. Verify native/server audience,
-  raw nonce, state, PKCE and fresh selection against the backend's exact profile;
-  do not invent an audience or accept cached identity to make an adapter work.
+- AppAuth's external-user-agent session exposes cancellation and can remain a
+  volatile request. We do not construct/persist OIDAuthState or use a cached identity.
+- AppAuth's token helper uses a process-global URLSession provider (sharedSession
+  by default), without returning a per-request cancellation handle. Pinbook instead
+  uses its own bounded ephemeral exchange; no global session override is made.
+- A single native owner keeps browser/token work occupied until actual completion.
+  Cancellation/expiry rejects late identity results. No private SDK API, signOut
+  or disconnect is needed to clean up a saved Google session, because none is saved.
+- Future personal Drive still requires a distinct authorization flow, consent and
+  credential namespace. No Drive scope is requested by team login. Pinbook's own
+  account-session custody remains its separate passcode-required Keychain store.
+
+## Remaining activation gates
+
+- Verify real native/server audience and authorized-presenter behavior against the
+  backend's exact profile. Current source follows the official SDK's audience
+  parameter in authorization and token requests and reverse-client callback path;
+  synthetic tests do not establish Google-issued claim compatibility.
 - Validate trusted public client IDs and registered reverse-client redirect scheme
   before SDK invocation. Inspect actual console inventory before creating duplicate
   clients. Android source currently contains no committed live team client IDs;

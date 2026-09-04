@@ -69,8 +69,10 @@ checkboxes deliberately remain open until checked against the exact next candida
   generation-bound commit) is implemented/tested with synthetic identity and local
   TLS, not real provider issuance. No feature acceptance checkbox is closed by this.
   The concrete Apple controller adapter now compiles for iPhone, with runtime
-  fake-driver tests awaiting a shared-GUI slot. Google SDK ownership/custody is still
-  under review. Internal P256 enrollment canonical bytes and public signature
+  fake-driver tests awaiting a shared-GUI slot. Google now uses AppAuth3.0.0 browser
+  ownership with app-owned bounded code exchange and no provider-token persistence;
+  actual SDK/core tests pass, UIKit execution and live setup remain gates.
+  Internal P256 enrollment canonical bytes and public signature
   interoperability pass in both Node/Swift directions; private-key custody,
   operation generation/deadlines, routes and live enrollment remain unimplemented.
 

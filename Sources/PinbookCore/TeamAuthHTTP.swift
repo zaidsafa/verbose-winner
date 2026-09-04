@@ -122,14 +122,15 @@ enum TeamAuthWire {
     }
 }
 
-private struct TeamAuthResponse: Sendable {
+struct TeamAuthResponse: Sendable {
     let status: Int
     let body: Data
 }
 
 /// Mutable state is protected by lock, including task cancellation and delegate
 /// callbacks. Each request owns a fresh ephemeral session and exactly one resume.
-private final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+    enum ResponseProfile { case pinbook, googleToken }
     private let lock = NSLock()
     private var continuation: CheckedContinuation<TeamAuthResponse, Error>?
     private var session: URLSession?
@@ -141,11 +142,14 @@ private final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unch
     private let request: URLRequest
     private let configuration: URLSessionConfiguration
     private let localTestAnchor: Data?
+    private let responseProfile: ResponseProfile
 
-    init(request: URLRequest, configuration: URLSessionConfiguration, localTestAnchor: Data?) {
+    init(request: URLRequest, configuration: URLSessionConfiguration, localTestAnchor: Data?,
+         responseProfile: ResponseProfile = .pinbook) {
         self.request = request
         self.configuration = configuration
         self.localTestAnchor = localTestAnchor
+        self.responseProfile = responseProfile
     }
 
     func run() async throws -> TeamAuthResponse {
@@ -254,7 +258,7 @@ private final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unch
               http.value(forHTTPHeaderField: "Content-Encoding") == nil,
               http.value(forHTTPHeaderField: "Cache-Control")?.lowercased().split(separator: ",")
                 .contains(where: { $0.trimmingCharacters(in: .whitespaces) == "no-store" }) == true,
-              http.value(forHTTPHeaderField: "X-Content-Type-Options")?.lowercased() == "nosniff",
+              (responseProfile == .googleToken || http.value(forHTTPHeaderField: "X-Content-Type-Options")?.lowercased() == "nosniff"),
               http.mimeType?.lowercased() == "application/json" else {
             completionHandler(.cancel)
             finish(.failure(TeamAuthHTTPError.invalidResponse))

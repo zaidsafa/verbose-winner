@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B60000000000000000000001 /* AppAuth in Frameworks */ = {isa = PBXBuildFile; productRef = U60000000000000000000001 /* AppAuth */; };
+		B60000000000000000000002 /* AppAuth in Frameworks */ = {isa = PBXBuildFile; productRef = U60000000000000000000002 /* AppAuth */; };
 		B10000000000000000000001 /* PinbookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* PinbookApp.swift */; };
 		B10000000000000000000002 /* PersistenceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* PersistenceModels.swift */; };
 		B10000000000000000000003 /* PinbookTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* PinbookTheme.swift */; };
@@ -43,6 +45,11 @@
 		B2000000000000000000000E /* TeamAccountSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* TeamAccountSignInCoordinator.swift */; };
 		B2000000000000000000000F /* TeamAppleIdentityAuthorizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* TeamAppleIdentityAuthorizer.swift */; };
 		B20000000000000000000010 /* TeamDeviceEnrollmentWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* TeamDeviceEnrollmentWire.swift */; };
+		B20000000000000000000011 /* TeamGoogleTokenClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* TeamGoogleTokenClient.swift */; };
+		B20000000000000000000012 /* TeamGoogleIdentityAuthorizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* TeamGoogleIdentityAuthorizer.swift */; };
+		B20000000000000000000013 /* TeamGoogleOAuthRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* TeamGoogleOAuthRequest.swift */; };
+		B3000000000000000000000C /* TeamGoogleIdentityAuthorizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000C /* TeamGoogleIdentityAuthorizerTests.swift */; };
+		B3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift */; };
 		B30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift */; };
 		B3000000000000000000000A /* TeamAppleIdentityAuthorizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000A /* TeamAppleIdentityAuthorizerTests.swift */; };
 		B3000000000000000000000B /* TeamDeviceEnrollmentWireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000B /* TeamDeviceEnrollmentWireTests.swift */; };
@@ -135,6 +142,11 @@
 		A2000000000000000000000E /* TeamAccountSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAccountSignInCoordinator.swift; sourceTree = "<group>"; };
 		A2000000000000000000000F /* TeamAppleIdentityAuthorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAppleIdentityAuthorizer.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* TeamDeviceEnrollmentWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceEnrollmentWire.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* TeamGoogleTokenClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamGoogleTokenClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* TeamGoogleIdentityAuthorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamGoogleIdentityAuthorizer.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* TeamGoogleOAuthRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamGoogleOAuthRequest.swift; sourceTree = "<group>"; };
+		A3000000000000000000000C /* TeamGoogleIdentityAuthorizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamGoogleIdentityAuthorizerTests.swift; sourceTree = "<group>"; };
+		A3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamGoogleOAuthRequestTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAccountSignInCoordinatorTests.swift; sourceTree = "<group>"; };
 		A3000000000000000000000A /* TeamAppleIdentityAuthorizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAppleIdentityAuthorizerTests.swift; sourceTree = "<group>"; };
 		A3000000000000000000000B /* TeamDeviceEnrollmentWireTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeviceEnrollmentWireTests.swift; sourceTree = "<group>"; };
@@ -160,6 +172,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B60000000000000000000001 /* AppAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,6 +180,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B60000000000000000000002 /* AppAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,6 +259,9 @@
 				A2000000000000000000000E /* TeamAccountSignInCoordinator.swift */,
 				A2000000000000000000000F /* TeamAppleIdentityAuthorizer.swift */,
 				A20000000000000000000010 /* TeamDeviceEnrollmentWire.swift */,
+				A20000000000000000000011 /* TeamGoogleTokenClient.swift */,
+				A20000000000000000000012 /* TeamGoogleIdentityAuthorizer.swift */,
+				A20000000000000000000013 /* TeamGoogleOAuthRequest.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -262,6 +279,8 @@
 				A30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift */,
 				A3000000000000000000000A /* TeamAppleIdentityAuthorizerTests.swift */,
 				A3000000000000000000000B /* TeamDeviceEnrollmentWireTests.swift */,
+				A3000000000000000000000C /* TeamGoogleIdentityAuthorizerTests.swift */,
+				A3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -313,6 +332,7 @@
 				D50000000000000000000002 /* PBXTargetDependency */,
 			);
 			name = Pinbook;
+			packageProductDependencies = (U60000000000000000000001 /* AppAuth */);
 			productName = Pinbook;
 			productReference = P10000000000000000000001 /* Pinbook.app */;
 			productType = "com.apple.product-type.application";
@@ -331,6 +351,7 @@
 				D30000000000000000000002 /* PBXTargetDependency */,
 			);
 			name = PinbookTests;
+			packageProductDependencies = (U60000000000000000000002 /* AppAuth */);
 			productName = PinbookTests;
 			productReference = P30000000000000000000001 /* PinbookTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -409,6 +430,7 @@
 				ur,
 			);
 			mainGroup = G00000000000000000000001;
+			packageReferences = (Q60000000000000000000001 /* AppAuth-iOS */);
 			productRefGroup = G90000000000000000000001 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -495,6 +517,9 @@
 				B2000000000000000000000E /* TeamAccountSignInCoordinator.swift in Sources */,
 				B2000000000000000000000F /* TeamAppleIdentityAuthorizer.swift in Sources */,
 				B20000000000000000000010 /* TeamDeviceEnrollmentWire.swift in Sources */,
+				B20000000000000000000011 /* TeamGoogleTokenClient.swift in Sources */,
+				B20000000000000000000012 /* TeamGoogleIdentityAuthorizer.swift in Sources */,
+				B20000000000000000000013 /* TeamGoogleOAuthRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -512,6 +537,8 @@
 				B30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift in Sources */,
 				B3000000000000000000000A /* TeamAppleIdentityAuthorizerTests.swift in Sources */,
 				B3000000000000000000000B /* TeamDeviceEnrollmentWireTests.swift in Sources */,
+				B3000000000000000000000C /* TeamGoogleIdentityAuthorizerTests.swift in Sources */,
+				B3000000000000000000000D /* TeamGoogleOAuthRequestTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -794,6 +821,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+/* Begin XCRemoteSwiftPackageReference section */
+		Q60000000000000000000001 /* AppAuth-iOS */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/openid/AppAuth-iOS.git";
+			requirement = {kind = exactVersion; version = 3.0.0; };
+		};
+/* End XCRemoteSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+		U60000000000000000000001 /* AppAuth */ = {isa = XCSwiftPackageProductDependency; package = Q60000000000000000000001 /* AppAuth-iOS */; productName = AppAuth; };
+		U60000000000000000000002 /* AppAuth */ = {isa = XCSwiftPackageProductDependency; package = Q60000000000000000000001 /* AppAuth-iOS */; productName = AppAuth; };
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E00000000000000000000001 /* Project object */;
 }

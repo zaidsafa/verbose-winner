@@ -12,6 +12,28 @@ private let tokenC = String(repeating: "C", count: 42) + "A"
 private let tokenD = String(repeating: "D", count: 42) + "A"
 private let safeHeaders = ["Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"]
 
+private func googleConfiguration(legacy: Bool = false) throws -> TeamGoogleNativeConfiguration {
+    try .init(providerID: "public-google-ios", nativeClientID: "123-publicnative.apps.googleusercontent.com",
+        serverClientID: "123-publicserver.apps.googleusercontent.com",
+        registeredURLSchemes: ["com.googleusercontent.apps.123-publicnative"], allowLegacyIssuer: legacy)
+}
+private func googleContext() async throws -> TeamNativeSignInContext {
+    try await TeamNativeSignInFlow().begin(provider: .google, providerID: "public-google-ios",
+        challengeID: tokenA, nonce: tokenB, expiresAt: 1_120_000, now: 1_000_000)
+}
+private func googleClaims() -> [String: Any] {
+    ["iss": "https://accounts.google.com", "aud": "123-publicserver.apps.googleusercontent.com",
+     "azp": "123-publicnative.apps.googleusercontent.com", "nonce": tokenB, "sub": "public-subject",
+     "iat": 1000, "exp": 4600]
+}
+private func googleResponse(claims: [String: Any] = googleClaims(),
+                            header: [String: Any] = ["alg": "RS256", "kid": "public-key", "typ": "JWT"]) throws -> Data {
+    func encoded(_ value: [String: Any]) throws -> String { TeamDeviceEnrollmentWire.encode(try json(value)) }
+    // Deliberately UNVERIFIED synthetic token, not an accepted signature/provider proof.
+    let token = try encoded(header) + "." + encoded(claims) + ".cHVibGlj"
+    return try json(["id_token": token, "access_token": "public-unused-access", "refresh_token": "public-unused-refresh", "token_type": "Bearer", "expires_in": 3600])
+}
+
 private func json(_ value: [String: Any]) throws -> Data { try JSONSerialization.data(withJSONObject: value) }
 private func challengeJSON() throws -> Data { try json(["challengeId": tokenA, "nonce": tokenB, "expiresAt": 121_000]) }
 private func pairJSON(access: String = tokenA, refresh: String = tokenB,
@@ -85,6 +107,124 @@ private final class AuthStubProtocol: URLProtocol, @unchecked Sendable {
         if !plan.hangs { client?.urlProtocolDidFinishLoading(self) }
     }
     override func stopLoading() { Self.state.stopped(request.url!.host!) }
+}
+
+@Suite(.serialized)
+struct TeamGoogleTokenClientTests {
+    private let host = "oauth2.googleapis.com"
+    private func fixture(_ plans: [StubResponse]) throws -> TeamGoogleTokenClient {
+        AuthStubProtocol.state.configure(host, plans)
+        return TeamGoogleTokenClient(configuration: try googleConfiguration(), protocolClasses: [AuthStubProtocol.self], now: { 1_000_000 })
+    }
+    @Test func freshCodeUsesPrivateBoundedFormExchangeAndReturnsOnlyIDToken() async throws {
+        let response = try googleResponse()
+        let headers = ["Content-Type": "application/json", "Cache-Control": "no-cache, no-store, max-age=0"]
+        let client = try fixture([StubResponse(headers: headers, chunks: [response])])
+        defer { AuthStubProtocol.state.clear(host) }
+        let result = try await client.exchange(code: "4/public+code&x=1", verifier: tokenA, context: googleContext())
+        let expected = try #require(JSONSerialization.jsonObject(with: response) as? [String: Any])
+        #expect(String(decoding: result, as: UTF8.self) == expected["id_token"] as? String)
+        let requests = AuthStubProtocol.state.requests(host)
+        #expect(requests.count == 1)
+        let request = try #require(requests.first)
+        #expect(request.path == "/token" && request.method == "POST")
+        #expect(request.header("Authorization") == nil && request.header("Cookie") == nil)
+        #expect(request.header("Content-Type") == "application/x-www-form-urlencoded")
+        #expect(request.header("Accept-Encoding") == "identity")
+        let body = String(decoding: request.body, as: UTF8.self)
+        #expect(body.contains("code=4%2Fpublic%2Bcode%26x%3D1"))
+        #expect(body.contains("redirect_uri=com.googleusercontent.apps.123-publicnative%3A%2Foauth2callback"))
+        #expect(body.contains("audience=123-publicserver.apps.googleusercontent.com"))
+        #expect(!body.contains("client_secret") && !body.contains("refresh_token") && !body.contains("drive"))
+        #expect(request.header("Content-Length") == String(request.body.count))
+    }
+    @Test func exactClientRedirectConfigurationRequiredBeforeAnyRequest() throws {
+        let valid = try googleConfiguration()
+        #expect(valid.redirectScheme == "com.googleusercontent.apps.123-publicnative")
+        #expect(!valid.allowLegacyIssuer)
+        for native in ["", "native", "UPPER.apps.googleusercontent.com", "bad/host.apps.googleusercontent.com", "123-publicserver.apps.googleusercontent.com"] {
+            #expect(throws: TeamGoogleIdentityError.invalidConfiguration) {
+                try TeamGoogleNativeConfiguration(providerID: "public-google-ios", nativeClientID: native,
+                    serverClientID: valid.serverClientID, registeredURLSchemes: [valid.redirectScheme])
+            }
+        }
+        #expect(throws: TeamGoogleIdentityError.invalidConfiguration) {
+            try TeamGoogleNativeConfiguration(providerID: "public-google-ios", nativeClientID: valid.nativeClientID,
+                serverClientID: valid.serverClientID, registeredURLSchemes: [])
+        }
+    }
+    @Test func preCancelledOrMalformedCodeNeverContactsProvider() async throws {
+        let context = try await googleContext()
+        let client = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        for code in ["", "line\nbreak", String(repeating: "A", count: 4097)] {
+            await #expect(throws: TeamGoogleIdentityError.invalidContext) { try await client.exchange(code: code, verifier: tokenA, context: context) }
+        }
+        await #expect(throws: TeamGoogleIdentityError.invalidContext) { try await client.exchange(code: "public", verifier: "short", context: context) }
+        let operation = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            await #expect(throws: CancellationError.self) { try await client.exchange(code: "public", verifier: tokenA, context: context) }
+        }
+        await operation.value
+        #expect(AuthStubProtocol.state.requests(host).isEmpty)
+    }
+    @Test func failureOversizeAndUnsafeResponseNeverRetryOrExposeRawErrors() async throws {
+        let context = try await googleContext()
+        let plans = [StubResponse(status: 503, chunks: [try json(["error": "public-sensitive-detail"]) ]),
+            StubResponse(chunks: [Data(repeating: 32, count: 32_769)]),
+            StubResponse(headers: ["Content-Type": "application/json"], chunks: [try googleResponse()]),
+            StubResponse(headers: safeHeaders.merging(["Set-Cookie": "public-cookie"]) { _, new in new }, chunks: [try googleResponse()])]
+        for plan in plans {
+            let client = try fixture([plan])
+            do {
+                _ = try await client.exchange(code: "public", verifier: tokenA, context: context)
+                Issue.record("Unsafe Google response accepted")
+            } catch {
+                #expect(error as? TeamGoogleIdentityError == .failed)
+                #expect(!String(reflecting: error).contains("public-sensitive-detail"))
+            }
+            #expect(AuthStubProtocol.state.requests(host).count == 1)
+            AuthStubProtocol.state.clear(host)
+        }
+    }
+    @Test func unverifiedClaimsStillRequireExactNonceIssuerAudiencePresenterAndFreshness() async throws {
+        let config = try googleConfiguration(), context = try await googleContext()
+        var variants = [[String: Any]]()
+        for (key, value): (String, Any) in [("iss", "https://other.example"), ("iss", "accounts.google.com"),
+            ("aud", config.nativeClientID), ("aud", [config.serverClientID]), ("azp", config.serverClientID),
+            ("azp", NSNull()), ("nonce", tokenA), ("sub", "\nprivate"), ("iat", true),
+            ("iat", 1000.5), ("iat", 1001), ("iat", 998), ("exp", 1000), ("exp", "4600")] {
+            var claims = googleClaims(); claims[key] = value; variants.append(claims)
+        }
+        for claims in variants {
+            #expect(throws: TeamGoogleIdentityError.invalidCredential) {
+                try TeamGoogleTokenClient.identityToken(googleResponse(claims: claims), configuration: config, context: context, now: 1_000_000)
+            }
+        }
+        for header: [String: Any] in [["alg": "HS256", "kid": "public"], ["alg": "RS256", "kid": "public", "jku": "https://other.example"], ["alg": "RS256"]] {
+            #expect(throws: TeamGoogleIdentityError.invalidCredential) {
+                try TeamGoogleTokenClient.identityToken(googleResponse(header: header), configuration: config, context: context, now: 1_000_000)
+            }
+        }
+        var legacy = googleClaims(); legacy["iss"] = "accounts.google.com"
+        #expect(try !TeamGoogleTokenClient.identityToken(googleResponse(claims: legacy), configuration: googleConfiguration(legacy: true), context: context, now: 1_000_000).isEmpty)
+        for response in [try json(["id_token": "one..three"]), try json(["id_token": "one.two.###"]), Data(repeating: 32, count: 32_769)] {
+            #expect(throws: TeamGoogleIdentityError.invalidCredential) { try TeamGoogleTokenClient.identityToken(response, configuration: config, context: context, now: 1_000_000) }
+        }
+    }
+    @Test func cancellationWaitsForNativeTransportSettlement() async throws {
+        let context = try await googleContext()
+        let client = try fixture([StubResponse(hangs: true)])
+        defer { AuthStubProtocol.state.clear(host) }
+        let operation = Task { try await client.exchange(code: "public", verifier: tokenA, context: context) }
+        for _ in 0..<100 {
+            if !AuthStubProtocol.state.requests(host).isEmpty { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        operation.cancel()
+        await #expect(throws: CancellationError.self) { try await operation.value }
+        #expect(AuthStubProtocol.state.requests(host).count == 1)
+    }
 }
 
 @Suite(.serialized)

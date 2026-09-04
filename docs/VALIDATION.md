@@ -1,5 +1,48 @@
 # Validation plan
 
+## 2026-09-04 Google native browser and bounded code exchange (inactive)
+
+- Exact AppAuth3.0.0 resolved at a972daac82d449d58ab119e91c68153e29ddac33;
+  app and shared-core lockfiles retained. No GIDSignIn, OAuth client ID, URL scheme,
+  account connection or navigation activation installed. SDK browser/state/PKCE
+  only; Pinbook owns token HTTP. No AppAuth shared-session override/token helper.
+- Existing auth HTTP regression **8/8 PASS** after adding the narrowly separate
+  Google header profile: `/private/tmp/pinbook-ios-google-token-compile.log`.
+  Google code-exchange tests **6/6 PASS** in0.030s, fully intercepted with no network:
+  `/private/tmp/pinbook-ios-google-token-focused.log`.
+- First actual SDK test attempt hit `.build/build.db` disk I/O errors and ran zero
+  matching tests. It exited1 and is NOT a pass:
+  `/private/tmp/pinbook-ios-google-oauth-sdk-tests.log`. Disk check showed91GiB free;
+  no active swift-test/xcodebuild/xctest process remained. The database/journal had
+  link count2; underlying cause is not established. Preserved cache and logs.
+- Fresh isolated scratch directory `/private/tmp/pinbook-google-core.K7cTEo`
+  removed that cache dependency. Two compile attempts then exposed imported Swift
+  API details (throwing BOOL imports as Void; async cancellation of non-Sendable
+  SDK session is unsafe). Fixed to explicit main-thread cancellation completion
+  and a throwing resume wrapper. Failed compile logs retained:
+  `/private/tmp/pinbook-ios-google-oauth-sdk-isolated-tests.log` and
+  `/private/tmp/pinbook-ios-google-oauth-sdk-fixed-tests.log`.
+- Actual AppAuthCore request/session tests with a silent fake user agent
+  **4/4 PASS** in0.003s:
+  `/private/tmp/pinbook-ios-google-oauth-sdk-verified-tests.log`. Exact raw nonce,
+  independent state/S256, scope/audience, matching and duplicate callbacks, foreign
+  URL versus bad state, and cancellation-after-dismissal; no browser/provider used.
+- Full core **119/119 PASS** in12.214s, including existing localhost TLS, archive,
+  custody, sign-in and device-wire suites:
+  `/private/tmp/pinbook-ios-google-final-core.log`, using the isolated scratch path.
+- Final iPhone Simulator build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-google-final-test-build.log`. Five new fake Google-driver
+  tests compile, but their runtime execution remains pending shared-GUI clearance,
+  together with prior Apple and device-wire iPhone tests. No new app-host pass claim.
+  App/test binaries both load the same generated dynamic AppAuth product framework,
+  not separately embedded copies of its Objective-C classes (otool/nm inspection).
+- Final unsigned iPhone Release **PASS**, including exclusion of DEBUG-only fake
+  provider/presenter injection:
+  `/private/tmp/pinbook-ios-google-final-release.log`.
+- No real Google-issued token, Apple account sheet, physical acceptance, provider
+  grant, production authority, financial mutation, source push or TestFlight upload.
+  See TEAM_GOOGLE_IDENTITY_ADAPTER_IOS.md for source and remaining activation gates.
+
 ## 2026-09-04 native device-enrollment wire interoperability (inactive)
 
 - Six new core tests cover exact Node/CryptoKit bytes and signatures, public-key

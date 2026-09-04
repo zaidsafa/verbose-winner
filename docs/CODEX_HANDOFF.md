@@ -27,6 +27,29 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Google native adapter implemented using exact AppAuth3.0.0 for the system browser,
+  fresh state/S256/raw nonce and app-owned bounded token HTTP. No GIDSignIn singleton,
+  stored provider tokens, AppAuth shared URLSession override or Drive scope. Six
+  intercepted token tests + four real SDK/silent-user-agent tests pass; full core
+  **119/119 PASS**, final Simulator test compilation PASS. Five UIKit fake-driver
+  tests are compiled, not yet executed. Existing Apple/device UIKit runtime tests
+  also remain pending fresh Woo GUI clearance; no current GUI operation was assumed
+  from task activity alone. Real clients/redirects/origin/claim acceptance and normal
+  navigation remain absent. See TEAM_GOOGLE_IDENTITY_ADAPTER_IOS.md.
+  Final unsigned Release also PASS: `/private/tmp/pinbook-ios-google-final-release.log`.
+  No runtime UIKit pass is inferred from it. Next safe integration step is reading
+  Android's exact TEAM_ONBOARDING_HTTP_V1.md contract before implementing iOS
+  invitation-preview/claim, registration and membership transport; do not invent
+  routes or conflate invitation account consent with explicit device/team join.
+- Future local core runs should use `--scratch-path /private/tmp/pinbook-google-core.K7cTEo`
+  with `-j 2` for now. The old repository `.build/build.db` failed with disk I/O errors
+  and zero matching SDK tests; no success counted.91GiB disk free, no active build
+  process at diagnostic check; underlying cache cause unproven. Old cache/logs retained.
+- AppAuth ownership choice is now made; older undecided GIDSignIn/AppAuth notes
+  below are historical. Pinned public source/configuration and inactive adapter
+  do not establish Google-issued claims or account/provider setup. Do not repeat
+  the provider-choice question or silently invent clients/redirect registration.
+
 - Device enrollment canonical-byte/public-key interop implemented internally,
   without key custody, enrollment routes or navigation activation. Full core109/109
   passes after numeric/hex hostname parser hardening. Node-generated signature

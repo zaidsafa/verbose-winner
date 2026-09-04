@@ -23,7 +23,7 @@ The Android product remains the behavioral reference while this repository devel
 - Privacy-safe local reminders that request permission only during an explicit reminder save.
 - TestFlight release groundwork: a production App Store icon, Apple privacy manifest, export-compliance declaration, automatic-signing settings for the app and widget, and copy-ready App Store Connect metadata.
 
-Google Drive, iCloud, OAuth, live widget data sharing, and OCR are not implemented. The widgets intentionally need no App Group and expose no financial data. Both native Files sheets have been opened on a physical iPhone, but a completed external Files save/import round trip, notification delivery, and share-extension transfer remain acceptance boundaries. Their status is documented without presenting unverified behavior as working.
+Google Drive, iCloud, live widget data sharing, and OCR are not implemented. Team Apple/Google sign-in adapters are being implemented behind inactive APIs; OAuth is not available in normal navigation or validated with real provider accounts. Google browser request/state/PKCE uses exact AppAuth3.0.0, with app-owned token transport and no saved provider access/refresh tokens. The widgets intentionally need no App Group and expose no financial data. Both native Files sheets have been opened on a physical iPhone, but a completed external Files save/import round trip, notification delivery, and share-extension transfer remain acceptance boundaries. Their status is documented without presenting unverified behavior as working.
 
 ## Build and test
 

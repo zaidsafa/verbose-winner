@@ -11,8 +11,11 @@ let package = Package(
     products: [
         .library(name: "PinbookCore", targets: ["PinbookCore"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/openid/AppAuth-iOS.git", exact: "3.0.0"),
+    ],
     targets: [
-        .target(name: "PinbookCore"),
+        .target(name: "PinbookCore", dependencies: [.product(name: "AppAuthCore", package: "AppAuth-iOS")]),
         .testTarget(name: "PinbookCoreTests", dependencies: ["PinbookCore"], resources: [.copy("Fixtures")]),
     ]
 )

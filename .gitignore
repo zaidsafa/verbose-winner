@@ -11,6 +11,8 @@ xcuserdata/
 .build/
 .swiftpm/
 Package.resolved
+!/Package.resolved
+!/Pinbook.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # macOS
 .DS_Store
