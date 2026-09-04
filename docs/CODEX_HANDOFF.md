@@ -19,11 +19,13 @@ Updated: 2026-09-04 (Asia/Shanghai)
 - Personal records, backup-v8 serializers, version/build and signing settings are
   unchanged. No phone, shared Infrastructure, App Store Connect or release action
   was performed for this workstream. Code commit: `5a99217379dcb35e475261e65ce45ba60fdf8b0e`.
-- GitHub push was rejected by auto-review on 2026-09-04. Explicit owner approval
-  is required to export this source and its four prior local localization/TestFlight
-  ancestors to `https://github.com/zaidsafa/verbose-winner.git`, branch
-  `codex/team-delivery-foundation`. No branch upload/PR/merge occurred. Do not retry
-  via another tool, task or transport. Source stays local until approval is resolved.
+- GitHub export was initially rejected by auto-review. The owner then directly
+  approved the exact pending source/ancestor export in this task on 2026-09-04.
+  The same normal push succeeded to `https://github.com/zaidsafa/verbose-winner.git`,
+  branch `codex/team-delivery-foundation`. Code commit `5a99217` plus evidence docs
+  are published as source only; no PR merge or release occurred. The branch includes
+  four existing local localization/TestFlight baseline ancestors. The team-only
+  comparison starts at `4c8087b`, not the older remote foundation branch.
 - Local Swift tests: 24/24 passed (9 existing, 15 new). Simulator: 44 app tests
   passed, one hardware-only protection check explicitly skipped; 10/10 existing
   UI tests passed. Hardware protection is not claimed. See `docs/VALIDATION.md`

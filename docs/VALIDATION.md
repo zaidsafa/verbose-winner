@@ -45,8 +45,10 @@
   `/private/tmp/pinbook-ios-team-foundation-debug-final.log`.
   Both binaries reference `sqlite3_close_v2`, confirming the final invalidation
   safeguard was compiled. This does not substitute for its iOS runtime fault test.
-- Code commit `5a99217` is local-only. GitHub export was blocked by auto-review for
-  missing explicit destination/payload approval; no workaround or alternate push.
+- Code commit `5a99217` was pushed on `codex/team-delivery-foundation` after the
+  owner directly approved the precise source/ancestor export. An earlier auto-review
+  rejection was respected; the same normal push succeeded only after that approval.
+  This is source publication only, with no merge, runtime activation or release.
 - Transaction-trigger failure/reopen tests are not sudden power loss, actual disk
   exhaustion or cryptographic durability proof. Hardware protection/lock behavior,
   actual OS backup extraction, portable encrypted Android/iOS archive transfer,
