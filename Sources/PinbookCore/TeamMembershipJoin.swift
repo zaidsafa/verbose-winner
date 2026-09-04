@@ -9,6 +9,10 @@ struct TeamMembershipJoinPreview: TeamOnboardingDiagnostic {
     let accountID: String
     let teamID: String
     let role: TeamInvitationRole
+    // Fresh presentations cannot reproduce a live owner's opaque confirmation ID.
+    init(accountID: String, teamID: String, role: TeamInvitationRole) {
+        id = UUID(); self.accountID = accountID; self.teamID = teamID; self.role = role
+    }
 }
 protocol TeamMembershipTransport: Sendable {
     func lookupDevice(key: TeamDeviceEnrollmentWire.PublicKey, expected: TeamDeviceEnrollmentWire.Binding, ticket: TeamAccountAccessTicket) async throws -> TeamRegisteredDevice?
@@ -167,7 +171,7 @@ actor TeamMembershipJoin {
         guard saved == nil else { throw TeamMembershipJoinError.recoveryRequired }
         let expiry = min(intent.expiresAt, account.accessExpiresAt, account.sessionExpiresAt)
         guard finished.wallTime < expiry else { throw TeamMembershipJoinError.expired }
-        let display = TeamMembershipJoinPreview(id: UUID(), accountID: account.accountID, teamID: intent.teamID, role: intent.role)
+        let display = TeamMembershipJoinPreview(accountID: account.accountID, teamID: intent.teamID, role: intent.role)
         prepared = .init(display: display, intent: intent, resources: resources, received: finished,
             deadline: finished.instant.advanced(by: .milliseconds(min(300_000, expiry - finished.wallTime))))
         return display

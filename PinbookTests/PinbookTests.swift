@@ -90,7 +90,10 @@ import Darwin
 @Test func productionBootstrapCreatesOnlyInfrastructureRecords() throws {
     #expect(!PinbookLaunchConfiguration.production.showsTeamRecoveryPreviewFixture)
     #expect(!PinbookLaunchConfiguration.production.showsTeamKeySetupFixture)
+    #expect(!PinbookLaunchConfiguration.production.showsTeamMembershipFixture)
 #if DEBUG
+    #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamMembership"]).showsTeamMembershipFixture)
+    #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamMembership"]).showsTeamMembershipFixture)
     #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamKeySetup"]).showsTeamKeySetupFixture)
     #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamKeySetup"]).showsTeamKeySetupFixture)
     #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamRecoveryPreview"]).showsTeamRecoveryPreviewFixture)
@@ -170,8 +173,8 @@ import Darwin
         let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
         let data = try Data(contentsOf: url)
         let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
-        #expect(values.count == 286)
-        for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed."] {
+        #expect(values.count == 306)
+        for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed.", "I agree to join this team with the role shown.", "We couldn't confirm the result. Check membership before trying anything else.", "Check whether this account still belongs to the team."] {
             let value = try #require(values[key])
             #expect(!value.isEmpty && value != key)
         }

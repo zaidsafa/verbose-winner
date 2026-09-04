@@ -172,6 +172,33 @@ private struct MembershipFixture {
 }
 
 struct TeamMembershipJoinTests {
+    @MainActor @Test func screenBridgeComposesRealOwnerStoreAndReadOnlyRecovery() async throws {
+        let f = try MembershipFixture(), owner = try f.owner(), intent = try await f.intent()
+        let bridge = TeamMembershipScreenBridge(owner: owner, invitation: intent)
+        let model = try TeamMembershipScreenModel(service: bridge)
+        #expect(await f.transport.calls.isEmpty)
+        await model.review()
+        #expect(model.stage == .consent && !model.agreed && f.backend.writes == 0)
+        model.setAgreement(true)
+        await f.transport.configure(failure: "accept"); await model.join()
+        #expect(model.stage == .uncertain && !model.canJoin)
+        #expect(try f.saved()?.phase == .pending)
+        await f.transport.configure(); await model.checkMembership()
+        #expect(model.stage == .confirmed)
+        #expect(try f.saved()?.phase == .confirmed)
+        #expect(await f.transport.calls == ["lookup", "lookup", "accept", "lookup", "current"])
+        model.close(); await model.waitForCleanup()
+        #expect(model.stage == .closed)
+        await #expect(throws: TeamMembershipJoinError.invalidated) { try await bridge.review() }
+
+        let reopened = try TeamMembershipScreenModel(service: TeamMembershipScreenBridge(owner: f.owner(), invitation: intent))
+        await reopened.review()
+        #expect(reopened.stage == .uncertain && reopened.canCheck && !reopened.canReview && !reopened.canJoin)
+        await reopened.checkMembership()
+        #expect(reopened.stage == .confirmed)
+        #expect((await f.transport.calls).filter { $0 == "accept" }.count == 1)
+        reopened.close(); await reopened.waitForCleanup()
+    }
     @Test func preparationIsReadOnlyAndSeparateConsentDispatchesOnce() async throws {
         let f = try MembershipFixture(), owner = try f.owner(), intent = try await f.intent()
         let display = try await owner.prepare(intent)

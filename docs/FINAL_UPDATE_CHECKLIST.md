@@ -87,7 +87,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   storing the raw code. Separate current-account/device membership orchestration
   now performs fresh lookup, one-use consent, durable-before-accept and tokenless
   current-team recovery, tested synthetically and with local TLS/native drivers.
-  Screens/host wiring and explicit eligible-pending acceptance retry remain open;
+  A localized membership modal and retained UI model now compose that owner with
+  unchecked consent and tokenless recovery; synthetic core tests pass, native UI
+  tests compile but have not run. No normal navigation/activation yet. See
+  TEAM_MEMBERSHIP_UI_IOS.md. Invitation/account screens, host wiring and explicit
+  eligible-pending acceptance retry remain open;
   the backend's new source-only teams/acceptance route is not yet on iOS, and null
   must not become automatic retry or PENDING deletion. See TEAM_MEMBERSHIP_JOIN_IOS.md,
   TEAM_JOIN_RECOVERY_IOS.md and

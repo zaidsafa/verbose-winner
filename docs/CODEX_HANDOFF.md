@@ -27,6 +27,35 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Localized native membership screen now uses a retained model→bridge→real owner,
+  explicit read-only review, initially unchecked separate consent, single join and
+  tokenless Check recovery. Existing durable records route to Check rather than a
+  review loop. Close/background clears UI synchronously and rejects late results;
+  parent cleanup waits for real pending work. Nine synthetic screen cases plus
+  real bridge/owner/store composition; full **215/215 PASS**,14.981s:
+  `/private/tmp/pinbook-ios-membership-screen-final-core.log`. All306 catalog keys
+  in15 translations+English pass source and compiled Debug app/widget parity.
+  Simulator build-for-testing PASS after correcting a new-view/asset file-ID
+  collision: `/private/tmp/pinbook-ios-membership-screen-fixed-test-build.log`.
+  Three new UI tests are compiled, NOT run. See TEAM_MEMBERSHIP_UI_IOS.md.
+  Normal navigation remains unchanged; DEBUG host is double-gated to ephemeral
+  synthetic fixtures. Invitation/account UI, workspace lifecycle, explicit pending
+  acceptance retry, owner management and all final scope gates remain open.
+  Unsigned iPhone Release PASS:
+  `/private/tmp/pinbook-ios-membership-screen-release.log`.
+  A non-secret GUI coordination request to WooOrders iOS was rejected by security
+  review; the owner subsequently answered **No, keep the tasks separate**. Do NOT
+  retry, message indirectly or request the same permission again. Keep this work
+  Pinbook-local and do not use another task's status as permission for shared GUI
+  control. No new app-host/UI run has started. Do not send Android updates while
+  its prior outbound approval is unresolved; no cross-task status is necessary
+  for this local checkpoint. Continue unaffected isolated implementation/checks.
+  Owner now offers a connected physical iPhone. Read-only devicectl lookup reports
+  the known iPhone16Pro **unavailable**; requested unlock/reconnect/Trust only.
+  Do not overwrite its working TestFlight installation or financial records.
+  A separate development identity/install and safe custody namespaces must be
+  established before any physical test. No new signing/capability or install yet.
+
 - Retained membership owner now binds ONE exact access-only account generation,
   current REGISTERED device and fresh server lookup, read-only preview, separate
   single-use five-minute consent, durable PENDING before one accept, and tokenless

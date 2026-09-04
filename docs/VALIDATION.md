@@ -1,5 +1,42 @@
 # Validation plan
 
+## 2026-09-04 localized membership confirmation and recovery screen (inactive)
+
+- Initial full core **214/214 PASS**,14.809s:
+  `/private/tmp/pinbook-ios-membership-screen-core.log`. Added explicit routing and
+  tests for reopened existing metadata; final **215/215 PASS**,14.981s:
+  `/private/tmp/pinbook-ios-membership-screen-final-core.log`.
+- Nine synthetic screen tests and one real bridge/owner/store composition verify
+  unchecked consent, one join, tokenless recovery, existing-record reopening,
+  foreign-result rejection, cancellation and immediate closed-state clearing.
+- Initial Simulator test compilation **FAILED**:
+  `/private/tmp/pinbook-ios-membership-screen-test-build.log`. The new view's PBX
+  IDs collided with Assets.xcassets, so the view was absent from compilation.
+  Assigned unique IDs to only that new view. Final build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-membership-screen-fixed-test-build.log`.
+- Catalog source **306 keys ×15 translated locales + English** passes format
+  checks; compiled Debug app and widget translations exactly match source.
+  Twenty new keys cover both Chinese scripts and all other supported languages;
+  these are assistant-authored drafts, not human linguistic review.
+- Three new UI tests compile but have NOT run: Chinese consent/confirmation,
+  uncertain join with Check rather than another Join, and background clearing.
+  No new UIKit/app-host/physical/provider runtime is inferred from compilation.
+- Unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-membership-screen-release.log`.
+- Compiled Release app AND widget translations also exactly match all306 source
+  keys across15 translated locales+English. Xcode object IDs are unique after fix.
+- A fresh shared-GUI coordination message was blocked by security review. The
+  owner then declined permission: **No, keep the tasks separate**. No retry,
+  bypass/indirect message or Simulator launch. Continue Pinbook-local work; no
+  other task's idle status is treated as explicit shared-GUI permission.
+- Earlier intermittent localhostTLS failures remain unresolved final-validation
+  caveats. These green runs do not prove their cause or a fix.
+- No normal navigation, account/financial data, signing/version, source push,
+  infrastructure, physical device or TestFlight change. See TEAM_MEMBERSHIP_UI_IOS.md.
+- Owner offered a connected iPhone; read-only device enumeration reported it
+  unavailable. Unlock/reconnect/Trust requested. No installation or physical test
+  was attempted, and no hardware acceptance gate is closed by enumeration.
+
 ## 2026-09-04 explicit membership owner and tokenless recovery (inactive)
 
 - Existing invitation/store compatibility **23/23 PASS**,1.502s:

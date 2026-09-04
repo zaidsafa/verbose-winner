@@ -2,6 +2,71 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testMembershipRequiresUncheckedConsentAndUsesChineseCopy() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership", "-PinbookLanguage", "zh-Hans"]
+        app.launch()
+        let review = app.buttons["membership-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10))
+        XCTAssertEqual(review.label, "查看邀请")
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+        review.tap()
+        let join = app.buttons["membership-join"]
+        XCTAssertTrue(join.waitForExistence(timeout: 5))
+        XCTAssertFalse(join.isEnabled)
+        XCTAssertEqual(app.staticTexts["membership-role"].label, "成员")
+        let consent = app.switches.matching(identifier: "membership-consent").firstMatch
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        consent.switches.firstMatch.tap()
+        XCTAssertTrue(join.wait(for: \.isEnabled, toEqual: true, timeout: 5))
+        for _ in 0..<4 where !join.isHittable { app.swipeUp() }
+        join.tap()
+        XCTAssertTrue(app.buttons["membership-done"].waitForExistence(timeout: 5))
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Chinese membership confirmation"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+    }
+
+    @MainActor
+    func testUnknownMembershipOffersCheckNotAnotherJoin() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership", "-PinbookMembershipScenario", "uncertain", "-PinbookLanguage", "en"]
+        app.launch()
+        let review = app.buttons["membership-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10)); review.tap()
+        let consent = app.switches.matching(identifier: "membership-consent").firstMatch
+        XCTAssertTrue(consent.waitForExistence(timeout: 5))
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        consent.switches.firstMatch.tap()
+        let join = app.buttons["membership-join"]
+        for _ in 0..<4 where !join.isHittable { app.swipeUp() }
+        join.tap()
+        let check = app.buttons["membership-check"]
+        XCTAssertTrue(check.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+        XCTAssertFalse(app.buttons["membership-review"].exists)
+        for _ in 0..<4 where !check.isHittable { app.swipeUp() }
+        check.tap()
+        XCTAssertTrue(app.buttons["membership-done"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testMembershipBackgroundClearsDetailsAndConsent() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership", "-PinbookLanguage", "en"]
+        app.launch()
+        let review = app.buttons["membership-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10)); review.tap()
+        XCTAssertTrue(app.staticTexts["membership-account"].waitForExistence(timeout: 5))
+        XCUIDevice.shared.press(.home); app.activate()
+        XCTAssertTrue(app.staticTexts["Membership screen closed. Open it again to continue."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["membership-account"].exists)
+        XCTAssertFalse(app.switches["membership-consent"].exists)
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+    }
+
+    @MainActor
     func testRecoveryKeySetupRequiresConsentAndClearsOnBackground() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamKeySetup", "-PinbookLanguage", "en"]
