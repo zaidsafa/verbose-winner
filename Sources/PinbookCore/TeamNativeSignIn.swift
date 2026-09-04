@@ -26,7 +26,8 @@ public struct TeamNativeSignInContext: Sendable, CustomStringConvertible, Custom
 
 /// Unverified identity-token submission. Only the backend verifies signature,
 /// nonce, issuer/audience/presenter and admission before issuing a separate session.
-/// Deliberately not Codable: the HTTP route/encoding contract is not frozen yet.
+/// Deliberately not Codable: only the scoped HTTP adapter encodes its wire fields;
+/// this must not become an ordinary app/backup persistence model.
 public struct TeamNativeLoginSubmission: Sendable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public let challengeID: String
     public let providerID: String

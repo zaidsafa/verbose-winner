@@ -27,6 +27,22 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- New inactive native account transport implements all six agreed routes, bounded
+  response validation, scoped authorization, default TLS trust and one-use POST
+  streams. Both replacement-stream callbacks refuse replay. Actual private localhost
+  TLS tests show one request/body for503 Retry-After:0,408 and lost-response cases;
+  trust rejection, redirects, fixed/chunked overflow, cancellation/timeouts pass.
+  Core81/81 plus unsigned iPhone Release and Simulator test compilation PASSED.
+  See TEAM_AUTH_HTTP_IOS.md and VALIDATION.md for exact evidence and failed fixture
+  diagnosis. Nothing is connected to a real origin/provider or normal navigation.
+- Next is separate session custody and orchestration: durable marker before refresh,
+  generation-bound atomic replacement, never replay after ambiguity. Use a new
+  passcode-only/non-backup Keychain class for account sessions; do NOT migrate
+  archive recovery keys to that class. Removing a passcode can invalidate sessions
+  (sign-in again), but must not delete archives/recovery keys. Apple confirms
+  WhenUnlockedThisDeviceOnly alone can restore to the same device; it is not a
+  non-backup guarantee. Physical passcode/Keychain acceptance remains open.
+
 - Current source checkpoint `3b02975` adds background invalidation and token-scoped
   cancellation for received-note recovery, plus explicit recovery-key setup/copy.
   New key custody requires consent, an exported file read-back, the last eight
@@ -43,7 +59,7 @@ Updated: 2026-09-04 (Asia/Shanghai)
   zero failures. See VALIDATION.md for exact artifact paths and prior failures.
 - New inactive native Apple/Google request binding and Apple request construction
   are implemented in TeamNativeSignIn.swift; seven synthetic tests bring core to
-  69/69 passed. No Google SDK/controller, real provider/client ID, HTTP route or
+  69/69 passed. No Google SDK/controller, real provider/client ID, live HTTP route or
   session custody is enabled. Android session semantics require a durable refresh
   marker before dispatch and atomic replacement, with reauthentication on ambiguity.
   See TEAM_NATIVE_SIGN_IN_IOS.md and TEAM_AUTH_MLS_FEASIBILITY_20260904.md.

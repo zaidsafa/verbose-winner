@@ -37,6 +37,8 @@
 		B20000000000000000000008 /* TeamInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* TeamInbox.swift */; };
 		B20000000000000000000009 /* TeamPortableArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* TeamPortableArchive.swift */; };
 		B2000000000000000000000A /* TeamNativeSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* TeamNativeSignIn.swift */; };
+		B2000000000000000000000B /* TeamAuthHTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* TeamAuthHTTP.swift */; };
+		B30000000000000000000006 /* TeamAuthHTTPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000006 /* TeamAuthHTTPTests.swift */; };
 		B30000000000000000000005 /* TeamNativeSignInTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000005 /* TeamNativeSignInTests.swift */; };
 		B30000000000000000000004 /* TeamPortableArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000004 /* TeamPortableArchiveTests.swift */; };
 		B30000000000000000000002 /* TeamDeliveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* TeamDeliveryTests.swift */; };
@@ -117,6 +119,8 @@
 		A20000000000000000000008 /* TeamInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInbox.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* TeamPortableArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamPortableArchive.swift; sourceTree = "<group>"; };
 		A2000000000000000000000A /* TeamNativeSignIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamNativeSignIn.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* TeamAuthHTTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAuthHTTP.swift; sourceTree = "<group>"; };
+		A30000000000000000000006 /* TeamAuthHTTPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAuthHTTPTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000005 /* TeamNativeSignInTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamNativeSignInTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000004 /* TeamPortableArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamPortableArchiveTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000002 /* TeamDeliveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliveryTests.swift; sourceTree = "<group>"; };
@@ -215,6 +219,7 @@
 				A20000000000000000000008 /* TeamInbox.swift */,
 				A20000000000000000000009 /* TeamPortableArchive.swift */,
 				A2000000000000000000000A /* TeamNativeSignIn.swift */,
+				A2000000000000000000000B /* TeamAuthHTTP.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -226,6 +231,7 @@
 				A30000000000000000000002 /* TeamDeliveryTests.swift */,
 				A30000000000000000000004 /* TeamPortableArchiveTests.swift */,
 				A30000000000000000000005 /* TeamNativeSignInTests.swift */,
+				A30000000000000000000006 /* TeamAuthHTTPTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -453,6 +459,7 @@
 				B20000000000000000000008 /* TeamInbox.swift in Sources */,
 				B20000000000000000000009 /* TeamPortableArchive.swift in Sources */,
 				B2000000000000000000000A /* TeamNativeSignIn.swift in Sources */,
+				B2000000000000000000000B /* TeamAuthHTTP.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -464,6 +471,7 @@
 				B30000000000000000000002 /* TeamDeliveryTests.swift in Sources */,
 				B30000000000000000000004 /* TeamPortableArchiveTests.swift in Sources */,
 				B30000000000000000000005 /* TeamNativeSignInTests.swift in Sources */,
+				B30000000000000000000006 /* TeamAuthHTTPTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

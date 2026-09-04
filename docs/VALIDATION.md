@@ -1,5 +1,45 @@
 # Validation plan
 
+## 2026-09-04 inactive native account HTTP and one-use request body
+
+- Six-route scoped adapter, bounded strict response codec, default platform TLS,
+  no cookies/cache/ambient credentials/redirects, sanitized errors and one-use
+  request streams implemented. Both replacement stream callbacks return nil.
+  Refresh rejects account/family/absolute-expiry changes and reuse of either old
+  token in either returned field. No production origin or entry point is enabled.
+- Initial HTTP slice core77/77 passed at
+  `/private/tmp/pinbook-ios-auth-http-tests.log`. iPhone app-host **103 passes,
+  one explicit hardware skip, zero failures** at
+  `/private/tmp/Pinbook-Auth-HTTP-App.xcresult`, finish Unix1788520381.284;
+  `/private/tmp/pinbook-ios-auth-http-app.log`. This preceded the stream change.
+- Four additional real localhost TLS tests passed on macOS Foundation/CFNetwork:
+  default untrusted certificate rejected before HTTP; exact public refresh body;
+  one request/body on503 Retry-After:0,408 and lost response; redirects not followed;
+  fixed/chunked overflow rejected; cancellation and10s stalled-body timeout.
+  `/private/tmp/pinbook-ios-auth-tls-verified.log`:4/4 in11.990s.
+  Initial TLS fixture failures in `pinbook-ios-auth-tls-tests.log` were diagnosed
+  as missing serverAuth EKU in the generated test certificate. Fixed that fixture;
+  no relaxed trust evaluation or system trust-store installation. Certificate/key
+  exist only in per-test private temporary directories and are removed afterward.
+- Final full core **81/81 passed** in12.165s:
+  `/private/tmp/pinbook-ios-auth-tls-full-core.log`. A separate scratch cache was
+  used after `.build/build.db` reported a disk I/O error in a diagnostic run;
+  the failed diagnostic is not counted as acceptance.
+- Unsigned generic iPhone Release **PASSED**:
+  `/private/tmp/pinbook-ios-auth-tls-release.log`. Simulator build-for-testing
+  **PASSED**: `/private/tmp/pinbook-ios-auth-tls-test-build.log`.
+- Post-stream iPhone app-host rerun **103 passes, one hardware skip, zero failures**:
+  `/private/tmp/Pinbook-Auth-TLS-App.xcresult`, finish Unix1788521450.064;
+  `/private/tmp/pinbook-ios-auth-tls-app.log`. Compiled Release app/widget catalogs
+  match286 keys in all15 translated locales (30 catalogs); English source fallback
+  is distinct from its35 explicitly compiled overrides, not a missing translation.
+- No UI changed in this slice. Prior complete UI13/13 evidence remains at the
+  native/recovery checkpoint below; not newly rerun by the HTTP-only app-host run.
+- These local tests do not prove universal exactly-once delivery, physical-device
+  TLS/protected custody or live provider/service acceptance. Durable pre-dispatch
+  marker, atomic session replacement, native provider flow and staging remain gates.
+  See `TEAM_AUTH_HTTP_IOS.md`. No source push or TestFlight upload.
+
 ## 2026-09-04 recovery lifecycle and explicit key setup (inactive)
 
 - Final tested source saved locally at `3b02975`. Combined app/UI regression
