@@ -1,0 +1,22 @@
+{
+  "notice": "PUBLIC TEST VECTOR. Ephemeral CryptoKit private key discarded; no account authority.",
+  "challenge": {
+    "accountId": "public-account",
+    "audience": "https://pinbook.example",
+    "authorityEpoch": "public-epoch",
+    "challengeId": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    "deviceId": "public-device",
+    "expiresAt": 120000,
+    "keyThumbprint": "IV8XeGp7wlrw2K2P2vzOa8kl3tUDWBc82Q3UTKTb2A8",
+    "nonce": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
+    "sessionId": "public-session"
+  },
+  "message": "[\"pinbook-device-enrollment-v1\",\"https://pinbook.example\",\"public-epoch\",\"public-account\",\"public-session\",\"public-device\",\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI\",\"IV8XeGp7wlrw2K2P2vzOa8kl3tUDWBc82Q3UTKTb2A8\",120000]",
+  "publicKey": {
+    "crv": "P-256",
+    "kty": "EC",
+    "x": "l_Ac3X22Yx2eS9bxm98ULwsv5U5uh2IVJShqqrT5ACQ",
+    "y": "F9nLloxP-TIsjiOfRJhk8dGzvjIQQFtjOUqLC89laBU"
+  },
+  "signature": "eI2wuUcNu5DMkKqfSuuE5XZVX4v57_rR-tXS0rauK7262OrX6ZEmAtViKy3voKG0KsHJl0S1EIjNsbiTMKPGng"
+}

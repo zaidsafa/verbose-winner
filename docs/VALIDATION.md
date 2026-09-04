@@ -1,5 +1,37 @@
 # Validation plan
 
+## 2026-09-04 native device-enrollment wire interoperability (inactive)
+
+- Six new core tests cover exact Node/CryptoKit bytes and signatures, public-key
+  validation/thumbprint, local bindings, canonical origins, bounds/time, altered
+  challenge fields, raw64 versus DER and single versus double hashing.
+- First focused compile failed on two nested `#require` test macros; split their
+  intermediate values. Failed log retained:
+  `/private/tmp/pinbook-ios-device-wire-focused.log`. Corrected initial five tests
+  passed at `/private/tmp/pinbook-ios-device-wire-focused-fixed.log`; sixth added
+  fresh native signature generation and optional PUBLIC-ONLY reverse-vector output.
+- Full core **109/109 PASS** in15.451s:
+  `/private/tmp/pinbook-ios-device-wire-full-core.log`. That log contains only a
+  public synthetic interop vector, never its private key or any account credential.
+- Review caught Foundation/WHATWG hostname differences for hexadecimal/numeric
+  final labels. Reject those noncanonical origin spellings. Final full core
+  **109/109 PASS** in16.172s:
+  `/private/tmp/pinbook-ios-device-wire-final-core.log`.
+- Read-only `scripts/verify-device-enrollment.mjs` passed both retained public
+  vectors against the actual backend serializer (checkout0082c7cb, unchanged
+  enrollment source79c1b5e9…). Exact message/thumbprint/raw64 and all nine field
+  mutations, newline and double-hash negative cases pass. No database/listener.
+- Final unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-device-wire-final-release.log`.
+- Initial Simulator test compilation passed:
+  `/private/tmp/pinbook-ios-device-wire-test-build.log`; final post-origin-hardening
+  test compilation **PASS**:
+  `/private/tmp/pinbook-ios-device-wire-final-test-build.log`. Runtime app-host
+  launch still waits fresh shared-GUI clearance. No new app-host/UI/physical or real
+  provider/enrollment acceptance is claimed by the macOS or Node passes.
+- No private-key custody/signing API, route, navigation, client ID, account, signing
+  configuration, data migration, source push or TestFlight upload added.
+
 ## 2026-09-04 concrete Apple identity adapter — runtime check pending
 
 - AuthenticationServices controller/delegate/scene-anchor adapter implemented,

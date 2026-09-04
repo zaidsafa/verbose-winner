@@ -1,0 +1,22 @@
+{
+  "notice": "PUBLIC TEST VECTOR. Ephemeral Node private key discarded; no account authority.",
+  "publicKey": {
+    "kty": "EC",
+    "x": "6kSjaOJC6T517jBxL9qAt3Xz0yu24Pln2ZqIIs5bwNM",
+    "y": "jUzVAFZem3DPQPb5GRUe52fDB80A4VGZWSkJu-SZyTg",
+    "crv": "P-256"
+  },
+  "challenge": {
+    "audience": "https://pinbook.example",
+    "authorityEpoch": "public-epoch",
+    "accountId": "public-account",
+    "sessionId": "public-session",
+    "deviceId": "public-device",
+    "challengeId": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    "nonce": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
+    "keyThumbprint": "wz5iaW6ZqnbmQugVqRCgTD_-TFi5-qM4TL9ha7EtQnI",
+    "expiresAt": 120000
+  },
+  "message": "[\"pinbook-device-enrollment-v1\",\"https://pinbook.example\",\"public-epoch\",\"public-account\",\"public-session\",\"public-device\",\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI\",\"wz5iaW6ZqnbmQugVqRCgTD_-TFi5-qM4TL9ha7EtQnI\",120000]",
+  "signature": "03eRFLZz4uvIB4j1pSBd_9UesPOO8rgJRbJaOYlz-j1HaVJNM7v-LK-FKcvF4RMXwkzr_hIMG-RCKiJYoV4_FA"
+}

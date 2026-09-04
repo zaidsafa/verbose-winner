@@ -27,6 +27,28 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Device enrollment canonical-byte/public-key interop implemented internally,
+  without key custody, enrollment routes or navigation activation. Full core109/109
+  passes after numeric/hex hostname parser hardening. Node-generated signature
+  verifies in CryptoKit; CryptoKit-generated signature verifies using the actual
+  backend serializer, with exact RFC7638/raw64 bytes and all field-tamper negatives.
+  Two public-only fixtures and a read-only repeatable verification script are retained;
+  private fixture keys discarded. See TEAM_DEVICE_ENROLLMENT_WIRE_IOS.md.
+  Exact final unsigned iPhone Release and Simulator build-for-testing both pass;
+  logs: `/private/tmp/pinbook-ios-device-wire-final-release.log` and
+  `/private/tmp/pinbook-ios-device-wire-final-test-build.log`. Next runtime run must
+  include both six-test Apple adapter and six-test wire suites; neither has new
+  iPhone execution evidence yet. Await fresh Woo GUI release, then use the existing
+  dedicated Pinbook Simulator and app-host-only test-without-building batch.
+- Read Android0082c7cb invited-admission contract: claim/login is separate from
+  key registration and explicit team join; first owner still needs controlled
+  bootstrap. Admission persists independently of invite expiry/revoke. Native UI
+  must distinguish those consents. No pre-login preview/claim HTTP route is assigned;
+  do not invent one or activate the existing ordinary-login transport for this path.
+- Google10.0.0 isolation/dependency/cancellation findings are recorded in
+  TEAM_GOOGLE_IDENTITY_ISOLATION_IOS.md. No Google dependency or live configuration
+  has been adopted; SDK versus AppAuth custody/ownership decision remains open.
+
 - Apple adapter now implemented; see TEAM_APPLE_IDENTITY_ADAPTER_IOS.md. Six
   fake-driver tests compile in the exact Debug test build; final unsigned iPhone
   Release passes. Runtime execution still awaits fresh shared-GUI clearance from

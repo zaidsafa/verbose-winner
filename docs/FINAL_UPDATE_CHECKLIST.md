@@ -68,6 +68,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   Durable native sign-in orchestration (reservation→challenge→callback→exchange→
   generation-bound commit) is implemented/tested with synthetic identity and local
   TLS, not real provider issuance. No feature acceptance checkbox is closed by this.
+  The concrete Apple controller adapter now compiles for iPhone, with runtime
+  fake-driver tests awaiting a shared-GUI slot. Google SDK ownership/custody is still
+  under review. Internal P256 enrollment canonical bytes and public signature
+  interoperability pass in both Node/Swift directions; private-key custody,
+  operation generation/deadlines, routes and live enrollment remain unimplemented.
 
 - Personal Files import now coordinates/read-checks off-main, is cancellable and
   bounds actual file bytes to 128 MiB. Export uses the same limit. Legacy backups
