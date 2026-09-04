@@ -18,12 +18,21 @@ Updated: 2026-09-04 (Asia/Shanghai)
   are implemented. Media is rejected. No network or app/team UI entry point exists.
 - Personal records, backup-v8 serializers, version/build and signing settings are
   unchanged. No phone, shared Infrastructure, App Store Connect or release action
-  was performed for this workstream. Source commit/push is authorized for this
-  isolated implementation branch; the older push restriction below is historical.
+  was performed for this workstream. Code commit: `5a99217379dcb35e475261e65ce45ba60fdf8b0e`.
+- GitHub push was rejected by auto-review on 2026-09-04. Explicit owner approval
+  is required to export this source and its four prior local localization/TestFlight
+  ancestors to `https://github.com/zaidsafa/verbose-winner.git`, branch
+  `codex/team-delivery-foundation`. No branch upload/PR/merge occurred. Do not retry
+  via another tool, task or transport. Source stays local until approval is resolved.
 - Local Swift tests: 24/24 passed (9 existing, 15 new). Simulator: 44 app tests
   passed, one hardware-only protection check explicitly skipped; 10/10 existing
   UI tests passed. Hardware protection is not claimed. See `docs/VALIDATION.md`
   for exact final-source versus Simulator evidence boundaries.
+- Both final-source unsigned builds passed: generic iPhone Release and generic
+  Simulator Debug. Compiled binaries include the final rollback-failure guard.
+- Android requests the next local portable archive slice. Feasibility review was
+  returned directly; implementation is waiting for the frozen plaintext schema and
+  cross-platform fixture. See `docs/TEAM_DELIVERY_IOS.md`. Do not invent group crypto.
 - Infrastructure and Android were notified directly. Admission remains NEEDS_INFO.
   Auth/crypto/enrollment/recovery, portable encrypted Android/iOS archive transfer,
   complete durable media handling and deployment admission remain prerequisites.

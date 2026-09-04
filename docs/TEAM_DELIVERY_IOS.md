@@ -95,3 +95,24 @@ public activation, App Store metadata change, or phone connection is needed here
 
 See `CODEX_HANDOFF.md` and `VALIDATION.md` for the final commands, outcomes and
 source-publication status. No physical-device result is claimed for this slice.
+
+## Next archive slice: review only, awaiting frozen fixture
+
+Android proposes a narrow portable archive format using JWE Compact `dir` /
+`A256GCM`, a random 256-bit recovery key, fresh 96-bit nonce and 128-bit tag. This is
+feasible using native CryptoKit, but is not yet implemented or a group-key protocol.
+Freeze the exact protected-header bytes and authenticate their base64url ASCII form
+as AAD. Require an empty encrypted-key segment, strict canonical unpadded base64url,
+known header only, no compression, and explicit size/count limits before allocation.
+Fixed PUBLIC test keys/nonces belong only in conformance fixtures, never runtime
+encryption. Keys must not enter logs, relay custody or source-controlled secrets.
+
+References: [JWE Compact and authenticated data](https://www.rfc-editor.org/rfc/rfc7516.html),
+[JWA algorithms](https://www.rfc-editor.org/rfc/rfc7518), and
+[CryptoKit AES-GCM](https://developer.apple.com/documentation/cryptokit/aes/gcm).
+
+Before implementation, Android must freeze plaintext schema/fixture, duplicate-key
+and duplicate-delivery policy, account/team scope and bounded input limits. Restore
+must validate the entire archive before atomic import and reject immutable conflicts.
+It must NOT recreate ACK outbox entries, enrollment or revoked remote access.
+Portable recovery remains a real-user activation gate, not satisfied by this review.
