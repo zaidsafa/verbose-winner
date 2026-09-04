@@ -2,6 +2,45 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testReceivedNotePreviewRequiresConfirmationBeforeRestore() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamRecoveryPreview", "-PinbookLanguage", "en"]
+        app.launch()
+        let apply = app.buttons["team-restore-preview-apply"]
+        XCTAssertTrue(apply.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["team-fixture-restored"].exists)
+        apply.tap()
+        // UIKit supplies the dialog's Cancel action and drops its SwiftUI identifier.
+        // This fixture explicitly selects English; the presented hierarchy has one Cancel.
+        let cancel = app.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+        cancel.tap()
+        XCTAssertFalse(app.staticTexts["team-fixture-restored"].exists)
+        apply.tap()
+        let confirm = app.buttons.matching(identifier: "team-restore-confirm").firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+        XCTAssertTrue(app.staticTexts["team-fixture-restored"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["team-fixture-error"].exists)
+    }
+
+    @MainActor
+    func testReceivedNotePreviewUsesChineseCopy() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamRecoveryPreview", "-PinbookLanguage", "zh-Hans"]
+        app.launch()
+        let apply = app.buttons["team-restore-preview-apply"]
+        XCTAssertTrue(apply.waitForExistence(timeout: 10))
+        XCTAssertNotEqual(apply.label, "Apply restore")
+        XCTAssertTrue(app.staticTexts["团队"].exists)
+        XCTAssertTrue(app.staticTexts["绝不会覆盖原有笔记。任何冲突都会阻止整个恢复操作。不会恢复团队访问权限或送达回执。"].exists)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Pinbook Chinese received-note recovery preview"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
     func testTraditionalChineseUrduAndSystemSelectionAcrossIntroductionPages() throws {
         let app = XCUIApplication()
         app.launchArguments = [

@@ -45,9 +45,13 @@ enum BackupRecoveryError: LocalizedError, Equatable {
 final class BackupFileRead: @unchecked Sendable {
     static let maximumBytes = 128 * 1024 * 1024
     private let coordinator = NSFileCoordinator()
+    private let byteLimit: Int
 
-    static func load(_ url: URL) async throws -> Data {
-        let operation = BackupFileRead()
+    private init(maximumBytes: Int) { byteLimit = maximumBytes }
+
+    static func load(_ url: URL, maximumBytes: Int = maximumBytes) async throws -> Data {
+        guard (0...Self.maximumBytes).contains(maximumBytes) else { throw BackupRecoveryError.fileTooLarge }
+        let operation = BackupFileRead(maximumBytes: maximumBytes)
         let task = Task.detached(priority: .userInitiated) { try operation.read(url) }
         return try await withTaskCancellationHandler {
             let data = try await task.value
@@ -70,7 +74,7 @@ final class BackupFileRead: @unchecked Sendable {
         var result: Result<Data, Error> = .failure(BackupRecoveryError.fileAccessFailed)
         coordinator.coordinate(readingItemAt: url, options: .withoutChanges,
                                error: &coordinationError) { coordinatedURL in
-            result = Result { try Self.readRegularFile(coordinatedURL) }
+            result = Result { try Self.readRegularFile(coordinatedURL, maximumBytes: byteLimit) }
         }
         try Task.checkCancellation()
         guard coordinationError == nil else { throw BackupRecoveryError.fileAccessFailed }

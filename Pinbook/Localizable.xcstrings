@@ -1,6 +1,1416 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Only received text notes are included. This does not restore team access, sent drafts, revisions or attachments.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتضمن النسخة الملاحظات النصية المستلمة فقط. لا تستعيد الوصول إلى الفريق أو مسودات الإرسال أو المراجعات أو المرفقات."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅包含已接收的文字笔记。不会恢复团队访问权限、发送草稿、修订记录或附件。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅包含已接收的文字筆記。不會還原團隊存取權、傳送草稿、修訂記錄或附件。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seules les notes textuelles reçues sont incluses. L’accès aux équipes, les brouillons d’envoi, les révisions et les pièces jointes ne sont pas restaurés."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo se incluyen las notas de texto recibidas. No se restauran el acceso a equipos, los borradores de envío, las revisiones ni los adjuntos."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es sind nur empfangene Textnotizen enthalten. Teamzugriff, Sendeentwürfe, Überarbeitungen und Anhänge werden nicht wiederhergestellt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sono incluse solo le note di testo ricevute. Non vengono ripristinati l’accesso ai team, le bozze di invio, le revisioni o gli allegati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Somente notas de texto recebidas são incluídas. O acesso às equipes, rascunhos de envio, revisões e anexos não são restaurados."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yalnızca alınan metin notları dahildir. Ekip erişimi, gönderim taslakları, düzenlemeler veya ekler geri yüklenmez."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hanya catatan teks yang diterima yang disertakan. Akses tim, draf pengiriman, revisi, dan lampiran tidak dipulihkan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受信したテキストノートのみが含まれます。チームへのアクセス、送信用の下書き、改訂履歴、添付ファイルは復元されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "받은 텍스트 노트만 포함됩니다. 팀 접근 권한, 전송 초안, 수정 내역 또는 첨부 파일은 복원되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включены только полученные текстовые заметки. Доступ к командам, черновики отправки, редакции и вложения не восстанавливаются."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "केवल प्राप्त टेक्स्ट नोट शामिल हैं। टीम की पहुँच, भेजने के ड्राफ्ट, संशोधन या अटैचमेंट बहाल नहीं होते।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صرف موصول شدہ متنی نوٹس شامل ہیں۔ ٹیم تک رسائی، بھیجنے کے مسودے، نظرثانی یا منسلک فائلیں بحال نہیں ہوتیں۔"
+          }
+        }
+      }
+    },
+    "Recovery key": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مفتاح الاسترداد"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復原金鑰"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clé de récupération"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave de recuperación"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellungsschlüssel"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiave di recupero"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chave de recuperação"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma anahtarı"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci pemulihan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復元キー"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복구 키"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ восстановления"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुनर्प्राप्ति कुंजी"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بازیابی کی کلید"
+          }
+        }
+      }
+    },
+    "Use saved recovery key": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استخدام مفتاح الاسترداد المحفوظ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用已保存的恢复密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用已儲存的復原金鑰"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser la clé enregistrée"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar la clave guardada"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherten Schlüssel verwenden"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa la chiave salvata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar chave salva"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı anahtarı kullan"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gunakan kunci tersimpan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みキーを使用"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 복구 키 사용"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использовать сохранённый ключ"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहेजी गई कुंजी इस्तेमाल करें"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محفوظ کلید استعمال کریں"
+          }
+        }
+      }
+    },
+    "Enter 64 hexadecimal characters without separators. Imported keys are used only for this restore and are not saved.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أدخل 64 حرفًا بالنظام الست عشري دون فواصل. تُستخدم المفاتيح المستوردة لهذا الاسترداد فقط ولا تُحفظ."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入 64 个十六进制字符，不要使用分隔符。导入的密钥仅用于此次恢复，不会保存。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請輸入 64 個十六進位字元，不要使用分隔符號。匯入的金鑰僅用於此次復原，不會儲存。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez 64 caractères hexadécimaux sans séparateurs. Les clés importées servent uniquement à cette restauration et ne sont pas enregistrées."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce 64 caracteres hexadecimales sin separadores. Las claves importadas solo se usan para esta restauración y no se guardan."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib 64 Hexadezimalzeichen ohne Trennzeichen ein. Importierte Schlüssel werden nur für diese Wiederherstellung verwendet und nicht gespeichert."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci 64 caratteri esadecimali senza separatori. Le chiavi importate vengono usate solo per questo ripristino e non vengono salvate."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite 64 caracteres hexadecimais sem separadores. As chaves importadas são usadas apenas nesta restauração e não são salvas."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayırıcı kullanmadan 64 onaltılık karakter girin. İçe aktarılan anahtarlar yalnızca bu geri yükleme için kullanılır ve kaydedilmez."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masukkan 64 karakter heksadesimal tanpa pemisah. Kunci yang diimpor hanya digunakan untuk pemulihan ini dan tidak disimpan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区切り文字なしで64文字の16進数を入力してください。読み込んだキーは今回の復元にのみ使用され、保存されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구분 기호 없이 16진수 문자 64개를 입력하세요. 가져온 키는 이번 복원에만 사용되며 저장되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введите 64 шестнадцатеричных символа без разделителей. Импортированные ключи используются только для этого восстановления и не сохраняются."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बिना विभाजक के 64 हेक्साडेसिमल अक्षर दर्ज करें। आयात की गई कुंजी केवल इस बहाली के लिए इस्तेमाल होती है और सहेजी नहीं जाती।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بغیر کسی جداکار کے 64 ہیکساڈیسیمل حروف درج کریں۔ درآمد شدہ کلید صرف اس بحالی کے لیے استعمال ہوتی ہے اور محفوظ نہیں کی جاتی۔"
+          }
+        }
+      }
+    },
+    "Export encrypted archive": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تصدير أرشيف مشفّر"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出加密归档"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出加密封存檔"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter l’archive chiffrée"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar archivo cifrado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsseltes Archiv exportieren"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esporta archivio cifrato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar arquivo criptografado"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli arşivi dışa aktar"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekspor arsip terenkripsi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暗号化アーカイブを書き出す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "암호화된 보관 파일 내보내기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт зашифрованного архива"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एन्क्रिप्ट किया गया आर्काइव निर्यात करें"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خفیہ کردہ آرکائیو برآمد کریں"
+          }
+        }
+      }
+    },
+    "Export uses the recovery key already saved on this device. Keep a safe copy of that key separately from the encrypted archive.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم التصدير مفتاح الاسترداد المحفوظ على هذا الجهاز. احتفظ بنسخة آمنة من المفتاح منفصلة عن الأرشيف المشفّر."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出使用此设备上已保存的恢复密钥。请将密钥的安全副本与加密归档分开保管。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯出使用此裝置上已儲存的復原金鑰。請將金鑰的安全副本與加密封存檔分開保管。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’export utilise la clé de récupération enregistrée sur cet appareil. Conservez une copie sûre de cette clé séparément de l’archive chiffrée."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La exportación usa la clave de recuperación guardada en este dispositivo. Conserva una copia segura de esa clave separada del archivo cifrado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Export verwendet den auf diesem Gerät gespeicherten Wiederherstellungsschlüssel. Bewahre eine sichere Kopie des Schlüssels getrennt vom verschlüsselten Archiv auf."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’esportazione usa la chiave di recupero salvata su questo dispositivo. Conserva una copia sicura della chiave separatamente dall’archivio cifrato."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A exportação usa a chave de recuperação salva neste dispositivo. Mantenha uma cópia segura dessa chave separada do arquivo criptografado."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktarma, bu cihazda kayıtlı kurtarma anahtarını kullanır. Anahtarın güvenli bir kopyasını şifreli arşivden ayrı tutun."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekspor menggunakan kunci pemulihan yang tersimpan di perangkat ini. Simpan salinan kunci dengan aman, terpisah dari arsip terenkripsi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書き出しには、このデバイスに保存されている復元キーを使用します。キーの安全なコピーを暗号化アーカイブとは別に保管してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내보내기는 이 기기에 저장된 복구 키를 사용합니다. 키의 안전한 사본을 암호화된 보관 파일과 별도로 보관하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для экспорта используется ключ восстановления, сохранённый на этом устройстве. Храните надёжную копию ключа отдельно от зашифрованного архива."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निर्यात में इस डिवाइस पर सहेजी गई पुनर्प्राप्ति कुंजी इस्तेमाल होती है। कुंजी की सुरक्षित कॉपी एन्क्रिप्ट किए गए आर्काइव से अलग रखें।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "برآمد کے لیے اس آلے پر محفوظ بازیابی کی کلید استعمال ہوتی ہے۔ کلید کی محفوظ نقل خفیہ کردہ آرکائیو سے الگ رکھیں۔"
+          }
+        }
+      }
+    },
+    "Received-note recovery": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استرداد الملاحظات المستلمة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复已接收的笔记"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復原已接收的筆記"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupérer les notes reçues"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recuperar notas recibidas"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empfangene Notizen wiederherstellen"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recupero delle note ricevute"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recuperar notas recebidas"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alınan notları kurtarma"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pemulihan catatan diterima"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受信ノートの復元"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "받은 노트 복구"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановление полученных заметок"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्राप्त नोट की पुनर्प्राप्ति"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موصول شدہ نوٹس کی بازیابی"
+          }
+        }
+      }
+    },
+    "Received notes restored": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تمت استعادة الملاحظات المستلمة"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已恢复接收的笔记"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已復原接收的筆記"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes reçues restaurées"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notas recibidas restauradas"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empfangene Notizen wiederhergestellt"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note ricevute ripristinate"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notas recebidas restauradas"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alınan notlar geri yüklendi"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catatan diterima dipulihkan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受信ノートを復元しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "받은 노트가 복원됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полученные заметки восстановлены"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्राप्त नोट बहाल किए गए"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موصول شدہ نوٹس بحال ہو گئے"
+          }
+        }
+      }
+    },
+    "Existing notes were preserved. No team access or delivery receipts were restored.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم الاحتفاظ بالملاحظات الموجودة. لم تتم استعادة الوصول إلى الفريق أو إيصالات التسليم."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原有笔记已保留。未恢复团队访问权限或送达回执。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原有筆記已保留。未還原團隊存取權或送達回條。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les notes existantes ont été conservées. Aucun accès aux équipes ni accusé de livraison n’a été restauré."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se conservaron las notas existentes. No se restauraron el acceso a equipos ni los comprobantes de entrega."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorhandene Notizen wurden beibehalten. Teamzugriff und Zustellbestätigungen wurden nicht wiederhergestellt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le note esistenti sono state conservate. L’accesso ai team e le ricevute di consegna non sono stati ripristinati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As notas existentes foram preservadas. O acesso às equipes e os comprovantes de entrega não foram restaurados."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mevcut notlar korundu. Ekip erişimi veya teslim alındıları geri yüklenmedi."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catatan yang ada dipertahankan. Akses tim dan tanda terima pengiriman tidak dipulihkan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既存のノートは保持されました。チームへのアクセスや配信確認は復元されていません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기존 노트는 유지되었습니다. 팀 접근 권한이나 전달 확인은 복원되지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Существующие заметки сохранены. Доступ к командам и подтверждения доставки не восстановлены."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मौजूदा नोट सुरक्षित रखे गए। टीम की पहुँच या डिलीवरी की रसीदें बहाल नहीं की गईं।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موجودہ نوٹس محفوظ رکھے گئے۔ ٹیم تک رسائی یا ترسیل کی رسیدیں بحال نہیں کی گئیں۔"
+          }
+        }
+      }
+    },
+    "No recovery key is saved on this device. Enter your separately saved key to import.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يوجد مفتاح استرداد محفوظ على هذا الجهاز. أدخل المفتاح الذي حفظته بشكل منفصل للاستيراد."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备未保存恢复密钥。请输入你单独保管的密钥以导入。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此裝置未儲存復原金鑰。請輸入你另外保管的金鑰以匯入。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune clé de récupération n’est enregistrée sur cet appareil. Saisissez votre clé conservée séparément pour importer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay ninguna clave de recuperación guardada en este dispositivo. Introduce la clave que guardaste por separado para importar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Gerät ist kein Wiederherstellungsschlüssel gespeichert. Gib zum Importieren deinen separat aufbewahrten Schlüssel ein."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna chiave di recupero è salvata su questo dispositivo. Inserisci la chiave conservata separatamente per importare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não há chave de recuperação salva neste dispositivo. Digite a chave que você guardou separadamente para importar."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu cihazda kayıtlı kurtarma anahtarı yok. İçe aktarmak için ayrı sakladığınız anahtarı girin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidak ada kunci pemulihan yang tersimpan di perangkat ini. Masukkan kunci yang Anda simpan terpisah untuk mengimpor."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスに復元キーは保存されていません。読み込むには、別に保管しているキーを入力してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기기에 저장된 복구 키가 없습니다. 가져오려면 별도로 보관한 키를 입력하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На этом устройстве нет сохранённого ключа восстановления. Для импорта введите ключ, который вы храните отдельно."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस डिवाइस पर कोई पुनर्प्राप्ति कुंजी सहेजी नहीं गई है। आयात करने के लिए अलग से सहेजी गई अपनी कुंजी दर्ज करें।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس آلے پر بازیابی کی کوئی کلید محفوظ نہیں ہے۔ درآمد کرنے کے لیے اپنی الگ محفوظ کردہ کلید درج کریں۔"
+          }
+        }
+      }
+    },
+    "The saved recovery key is unavailable. It has not been replaced.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مفتاح الاسترداد المحفوظ غير متاح. لم يتم استبداله."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的恢复密钥不可用。该密钥未被替换。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已儲存的復原金鑰無法使用。該金鑰未被取代。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clé de récupération enregistrée est indisponible. Elle n’a pas été remplacée."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clave de recuperación guardada no está disponible. No se ha reemplazado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der gespeicherte Wiederherstellungsschlüssel ist nicht verfügbar. Er wurde nicht ersetzt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La chiave di recupero salvata non è disponibile. Non è stata sostituita."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A chave de recuperação salva está indisponível. Ela não foi substituída."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı kurtarma anahtarı kullanılamıyor. Anahtar değiştirilmedi."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci pemulihan tersimpan tidak tersedia. Kunci tersebut tidak diganti."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みの復元キーを使用できません。キーは置き換えられていません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 복구 키를 사용할 수 없습니다. 키는 교체되지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранённый ключ восстановления недоступен. Он не был заменён."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहेजी गई पुनर्प्राप्ति कुंजी उपलब्ध नहीं है। इसे बदला नहीं गया है।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محفوظ بازیابی کی کلید دستیاب نہیں ہے۔ اسے تبدیل نہیں کیا گیا۔"
+          }
+        }
+      }
+    },
+    "The archive or recovery key is invalid, unavailable or belongs to another account. Nothing was restored.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأرشيف أو مفتاح الاسترداد غير صالح أو غير متاح أو يخص حسابًا آخر. لم تتم استعادة أي شيء."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归档或恢复密钥无效、不可用或属于其他账户。未恢复任何内容。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封存檔或復原金鑰無效、無法使用或屬於其他帳號。未還原任何內容。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’archive ou la clé de récupération est invalide, indisponible ou appartient à un autre compte. Rien n’a été restauré."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El archivo o la clave de recuperación no es válido, no está disponible o pertenece a otra cuenta. No se restauró nada."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv oder Wiederherstellungsschlüssel ist ungültig, nicht verfügbar oder gehört zu einem anderen Konto. Es wurde nichts wiederhergestellt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’archivio o la chiave di recupero non è valido, non è disponibile o appartiene a un altro account. Non è stato ripristinato nulla."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O arquivo ou a chave de recuperação é inválido, está indisponível ou pertence a outra conta. Nada foi restaurado."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşiv veya kurtarma anahtarı geçersiz, kullanılamıyor ya da başka bir hesaba ait. Hiçbir şey geri yüklenmedi."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arsip atau kunci pemulihan tidak valid, tidak tersedia, atau milik akun lain. Tidak ada yang dipulihkan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アーカイブまたは復元キーが無効、使用不可、または別のアカウントのものです。何も復元されませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보관 파일 또는 복구 키가 유효하지 않거나, 사용할 수 없거나, 다른 계정에 속합니다. 아무것도 복원되지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Архив или ключ восстановления недействителен, недоступен или принадлежит другой учётной записи. Ничего не восстановлено."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आर्काइव या पुनर्प्राप्ति कुंजी अमान्य है, उपलब्ध नहीं है या किसी दूसरे खाते की है। कुछ भी बहाल नहीं हुआ।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آرکائیو یا بازیابی کی کلید غلط، غیر دستیاب یا کسی دوسرے اکاؤنٹ کی ہے۔ کچھ بھی بحال نہیں ہوا۔"
+          }
+        }
+      }
+    },
+    "The restore preview is no longer valid. Import and preview the archive again.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم تعد معاينة الاسترداد صالحة. استورد الأرشيف واعرض معاينته مجددًا."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复预览已失效。请重新导入并预览归档。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復原預覽已失效。請重新匯入並預覽封存檔。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’aperçu de restauration n’est plus valide. Importez l’archive et affichez à nouveau l’aperçu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vista previa de restauración ya no es válida. Importa el archivo y vuelve a previsualizarlo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellungsvorschau ist nicht mehr gültig. Importiere das Archiv erneut und öffne die Vorschau."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’anteprima del ripristino non è più valida. Importa l’archivio e visualizza di nuovo l’anteprima."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A prévia da restauração não é mais válida. Importe o arquivo e visualize a prévia novamente."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri yükleme önizlemesi artık geçerli değil. Arşivi yeniden içe aktarıp önizleyin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pratinjau pemulihan tidak lagi valid. Impor dan pratinjau arsip kembali."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復元プレビューは無効になりました。アーカイブをもう一度読み込み、プレビューしてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복원 미리보기가 더 이상 유효하지 않습니다. 보관 파일을 다시 가져와 미리보기를 확인하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предпросмотр восстановления больше не действителен. Импортируйте архив и откройте предпросмотр заново."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बहाली का प्रीव्यू अब मान्य नहीं है। आर्काइव को फिर से आयात करके प्रीव्यू देखें।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بحالی کا پیش منظر اب درست نہیں ہے۔ آرکائیو دوبارہ درآمد کریں اور پیش منظر دیکھیں۔"
+          }
+        }
+      }
+    },
+    "Teams": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الفرق"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团队"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "團隊"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Équipes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipos"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teams"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekipler"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tim"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チーム"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "팀"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Команды"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टीमें"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ٹیمیں"
+          }
+        }
+      }
+    },
+    "Existing notes are never overwritten. Any conflict blocks the entire restore. No team access or delivery receipts are restored.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا تتم الكتابة فوق الملاحظات الموجودة مطلقًا. أي تعارض يمنع الاسترداد بالكامل. لا تتم استعادة الوصول إلى الفريق أو إيصالات التسليم."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绝不会覆盖原有笔记。任何冲突都会阻止整个恢复操作。不会恢复团队访问权限或送达回执。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絕不會覆寫原有筆記。任何衝突都會阻止整個復原操作。不會還原團隊存取權或送達回條。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les notes existantes ne sont jamais écrasées. Tout conflit bloque la restauration entière. Aucun accès aux équipes ni accusé de livraison n’est restauré."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las notas existentes nunca se sobrescriben. Cualquier conflicto bloquea toda la restauración. No se restauran el acceso a equipos ni los comprobantes de entrega."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorhandene Notizen werden nie überschrieben. Jeder Konflikt blockiert die gesamte Wiederherstellung. Teamzugriff und Zustellbestätigungen werden nicht wiederhergestellt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le note esistenti non vengono mai sovrascritte. Qualsiasi conflitto blocca l’intero ripristino. L’accesso ai team e le ricevute di consegna non vengono ripristinati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As notas existentes nunca são sobrescritas. Qualquer conflito bloqueia toda a restauração. O acesso às equipes e os comprovantes de entrega não são restaurados."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mevcut notların üzerine asla yazılmaz. Herhangi bir çakışma tüm geri yüklemeyi engeller. Ekip erişimi veya teslim alındıları geri yüklenmez."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catatan yang ada tidak pernah ditimpa. Konflik apa pun memblokir seluruh pemulihan. Akses tim dan tanda terima pengiriman tidak dipulihkan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既存のノートは上書きされません。競合があると復元全体が中止されます。チームへのアクセスや配信確認は復元されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기존 노트는 덮어쓰지 않습니다. 충돌이 하나라도 있으면 전체 복원이 차단됩니다. 팀 접근 권한이나 전달 확인은 복원되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Существующие заметки никогда не перезаписываются. Любой конфликт блокирует всё восстановление. Доступ к командам и подтверждения доставки не восстанавливаются."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मौजूदा नोट कभी ओवरराइट नहीं होते। कोई भी टकराव पूरी बहाली को रोक देता है। टीम की पहुँच या डिलीवरी की रसीदें बहाल नहीं होतीं।"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موجودہ نوٹس کبھی اووررائٹ نہیں ہوتے۔ کوئی بھی تضاد پوری بحالی کو روک دیتا ہے۔ ٹیم تک رسائی یا ترسیل کی رسیدیں بحال نہیں ہوتیں۔"
+          }
+        }
+      }
+    },
     "This backup exceeds the 128 MiB limit. Your records have not been changed.": {
       "localizations": {
         "en": {

@@ -41,7 +41,16 @@ struct PinbookApp: App {
 
     var body: some Scene {
         WindowGroup {
+#if DEBUG
+            if launchConfiguration.showsTeamRecoveryPreviewFixture {
+                TeamRecoveryPreviewDebugHost()
+                    .modifier(PinbookLanguageEnvironment())
+            } else {
+                AppShellView(launchConfiguration: launchConfiguration)
+            }
+#else
             AppShellView(launchConfiguration: launchConfiguration)
+#endif
         }
         .modelContainer(modelContainer)
     }

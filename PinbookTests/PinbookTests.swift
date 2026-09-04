@@ -88,6 +88,11 @@ import Darwin
 
 @MainActor
 @Test func productionBootstrapCreatesOnlyInfrastructureRecords() throws {
+    #expect(!PinbookLaunchConfiguration.production.showsTeamRecoveryPreviewFixture)
+#if DEBUG
+    #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamRecoveryPreview"]).showsTeamRecoveryPreviewFixture)
+    #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamRecoveryPreview"]).showsTeamRecoveryPreviewFixture)
+#endif
     let container = try inMemoryContainer()
     let context = container.mainContext
 
@@ -162,7 +167,7 @@ import Darwin
         let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
         let data = try Data(contentsOf: url)
         let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
-        #expect(values.count == 257)
+        #expect(values.count == 272)
         for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed."] {
             let value = try #require(values[key])
             #expect(!value.isEmpty && value != key)

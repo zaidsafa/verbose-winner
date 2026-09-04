@@ -88,6 +88,123 @@ public enum TeamArchiveError: Error, Equatable {
     case fileUnavailable
 }
 
+/// Human-readable archive recovery keys only. The returned text is a plaintext
+/// secret, not an account credential or evidence that an archive can be recovered.
+public enum TeamRecoveryKeyText {
+    public static func encode(_ key: SymmetricKey) throws -> String {
+        guard key.bitCount == 256 else { throw TeamArchiveError.invalidKey }
+        let alphabet = Array("0123456789abcdef".utf8)
+        var output = [UInt8]()
+        output.reserveCapacity(64)
+        defer { _ = output.withUnsafeMutableBytes { $0.initializeMemory(as: UInt8.self, repeating: 0) } }
+        key.withUnsafeBytes { bytes in
+            for byte in bytes {
+                output.append(alphabet[Int(byte >> 4)])
+                output.append(alphabet[Int(byte & 15)])
+            }
+        }
+        return String(decoding: output, as: UTF8.self)
+    }
+
+    public static func decode(_ text: String) throws -> SymmetricKey {
+        // Trim only agreed ASCII edge whitespace without allocating an unbounded
+        // copy of pasted input. Unicode normalization would hide lookalike errors.
+        let utf8 = text.utf8
+        var start = utf8.startIndex
+        var end = utf8.endIndex
+        while start < end, isEdgeWhitespace(utf8[start]) { utf8.formIndex(after: &start) }
+        while start < end {
+            let previous = utf8.index(before: end)
+            guard isEdgeWhitespace(utf8[previous]) else { break }
+            end = previous
+        }
+        let payload = utf8[start..<end]
+        guard payload.count == 64 else { throw TeamArchiveError.invalidKey }
+        var bytes = Data()
+        bytes.reserveCapacity(32)
+        defer { bytes.resetBytes(in: bytes.startIndex..<bytes.endIndex) }
+        var high: UInt8?
+        for character in payload {
+            let nibble: UInt8
+            switch character {
+            case 48...57: nibble = character - 48
+            case 65...70: nibble = character - 65 + 10
+            case 97...102: nibble = character - 97 + 10
+            default: throw TeamArchiveError.invalidKey
+            }
+            if let previous = high {
+                bytes.append(previous << 4 | nibble)
+                high = nil
+            } else { high = nibble }
+        }
+        return SymmetricKey(data: bytes)
+    }
+
+    private static func isEdgeWhitespace(_ byte: UInt8) -> Bool {
+        byte == 32 || (9...13).contains(byte)
+    }
+}
+
+public enum TeamRecoverySessionError: Error, Equatable {
+    case previewExpired
+}
+
+/// Counts and an ephemeral UI correlation ID only; never an account/session credential.
+public struct TeamRecoveryPreview: Identifiable, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
+    public let id: UUID
+    public let exportedAt: Int64
+    public let recordCount: Int
+    public let teamCount: Int
+    public let changes: TeamArchiveRestorePreview
+    public var description: String { "TeamRecoveryPreview(<redacted>)" }
+    public var debugDescription: String { description }
+}
+
+/// Inactive UI orchestration. The caller must supply its already scoped local store;
+/// no login, enrollment, key generation, remote request or production activation.
+/// Actor isolation keeps parsing/storage work away from the UI's main actor.
+public actor TeamArchiveRecoverySession {
+    private let store: TeamInboxStore
+    private var pending: (id: UUID, candidate: TeamArchiveImport)?
+
+    public init(store: TeamInboxStore) { self.store = store }
+
+    public func prepare(_ compact: String, recoveryKey: SymmetricKey) throws -> TeamRecoveryPreview {
+        // A new attempt invalidates any previous confirmation, even if it fails.
+        pending = nil
+        try Task.checkCancellation()
+        let candidate = try TeamArchiveImport.prepare(compact, recoveryKey: recoveryKey,
+                                                       expectedAccountId: store.target.userId)
+        let changes = try store.previewArchiveRestore(candidate)
+        try Task.checkCancellation()
+        let id = UUID()
+        pending = (id, candidate)
+        return TeamRecoveryPreview(id: id, exportedAt: candidate.exportedAt,
+                                   recordCount: candidate.recordCount, teamCount: candidate.teamCount,
+                                   changes: changes)
+    }
+
+    public func cancelPreview() { pending = nil }
+
+    public func confirm(previewID: UUID) throws -> TeamArchiveRestoreResult {
+        guard let prepared = pending, prepared.id == previewID else {
+            throw TeamRecoverySessionError.previewExpired
+        }
+        pending = nil
+        try Task.checkCancellation()
+        // Revalidates current database conflicts atomically. Once commit succeeds,
+        // cancellation must not disguise that success or pretend it was rolled back.
+        return try store.restorePreparedArchive(prepared.candidate)
+    }
+
+    public func export(exportedAt: Int64, recoveryKey: SymmetricKey) throws -> String {
+        try Task.checkCancellation()
+        let compact = try store.exportEncryptedAccountArchive(exportedAt: exportedAt, recoveryKey: recoveryKey)
+        try Task.checkCancellation()
+        return compact
+    }
+}
+
 /// An authenticated, immutable import candidate. It grants no remote account authority.
 /// Keep only while the restore confirmation is open; do not log or persist this value.
 public struct TeamArchiveImport: Sendable, CustomStringConvertible, CustomDebugStringConvertible {

@@ -1,6 +1,7 @@
 import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
+import CryptoKit
 
 struct BackupRecoveryView: View {
     @Environment(\.modelContext) private var modelContext
@@ -426,3 +427,290 @@ private func backupSnapshotSummary(_ snapshot: BackupSnapshotItem) -> String {
 private func backupActivitySummary(_ activity: BackupActivityItem) -> String {
     String(localized: "v\(activity.formatVersion) · \(activity.recordCount) records · \(activity.changedCount) changes · \(activity.conflictCount) conflicts", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
 }
+
+/// Not linked from production navigation. A future authenticated team entry point
+/// must supply its scoped store after the full activation gates are satisfied.
+struct TeamReceivedArchiveRecoveryView: View {
+    @Environment(\.pinbookSkin) private var skin
+    private let accountId: String
+    private let keyStore: TeamRecoveryKeyStore
+    @State private var session: TeamArchiveRecoverySession
+    @State private var keyText = ""
+    @State private var isWorking = false
+    @State private var showingImporter = false
+    @State private var showingExporter = false
+    @State private var exportDocument: TeamEncryptedArchiveDocument?
+    @State private var preview: TeamRecoveryPreview?
+    @State private var operationError: LocalizedStringKey?
+    @State private var restored = false
+    @State private var operationTask: Task<Void, Never>?
+
+    init(store: TeamInboxStore, keyStore: TeamRecoveryKeyStore = TeamRecoveryKeyStore()) {
+        accountId = store.target.userId
+        self.keyStore = keyStore
+        _session = State(initialValue: TeamArchiveRecoverySession(store: store))
+    }
+
+    var body: some View {
+        List {
+            Section {
+                Text("Only received text notes are included. This does not restore team access, sent drafts, revisions or attachments.")
+                    .font(.footnote)
+                    .accessibilityIdentifier("team-recovery-scope")
+            }
+            Section("Recovery key") {
+                SecureField("Recovery key", text: $keyText)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .privacySensitive()
+                    .accessibilityIdentifier("team-recovery-key")
+                Button("Use saved recovery key", systemImage: "key") {
+                    operationTask = Task { await loadSavedKey() }
+                }
+                Text("Enter 64 hexadecimal characters without separators. Imported keys are used only for this restore and are not saved.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Section("Backup") {
+                Button("Import and preview", systemImage: "doc.badge.plus") { showingImporter = true }
+                    .disabled(keyText.isEmpty)
+                Button("Export encrypted archive", systemImage: "lock.doc") {
+                    operationTask = Task { await exportArchive() }
+                }
+                Text("Export uses the recovery key already saved on this device. Keep a safe copy of that key separately from the encrypted archive.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .disabled(isWorking)
+        .scrollContentBackground(.hidden)
+        .background(skin.backdrop.ignoresSafeArea())
+        .navigationTitle("Received-note recovery")
+        .navigationBarTitleDisplayMode(.inline)
+        .overlay { if isWorking { ProgressView().controlSize(.large) } }
+        .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.data]) { result in
+            switch result {
+            case .success(let url): operationTask = Task { await importArchive(url) }
+            case .failure(let error):
+                if (error as NSError).code != NSUserCancelledError { operationError = "The selected backup file could not be read." }
+            }
+        }
+        .fileExporter(isPresented: $showingExporter, document: exportDocument,
+                      contentType: .data, defaultFilename: "pinbook-received-notes.pinbookarchive") { result in
+            exportDocument = nil
+            if case .failure(let error) = result, (error as NSError).code != NSUserCancelledError {
+                operationError = "Backup operation failed"
+            }
+        }
+        .sheet(item: $preview, onDismiss: {
+            Task { await session.cancelPreview() }
+        }) { candidate in
+            TeamReceivedArchivePreviewView(preview: candidate) {
+                await confirm(candidate)
+            }
+        }
+        .alert("Backup operation failed", isPresented: Binding(
+            get: { operationError != nil }, set: { if !$0 { operationError = nil } }
+        )) { Button("OK") { operationError = nil } } message: {
+            if let operationError { Text(operationError) }
+        }
+        .alert("Received notes restored", isPresented: $restored) {
+            Button("OK") { restored = false }
+        } message: {
+            Text("Existing notes were preserved. No team access or delivery receipts were restored.")
+        }
+        .onDisappear {
+            operationTask?.cancel()
+            keyText = ""
+            preview = nil
+            exportDocument = nil
+            Task { await session.cancelPreview() }
+        }
+    }
+
+    private func savedKey() async throws -> SymmetricKey? {
+        let store = keyStore
+        let account = accountId
+        let task = Task.detached { try store.load(accountId: account) }
+        return try await withTaskCancellationHandler {
+            let key = try await task.value
+            try Task.checkCancellation()
+            return key
+        } onCancel: { task.cancel() }
+    }
+
+    @MainActor private func loadSavedKey() async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            let key = try await savedKey()
+            guard let key else { operationError = "No recovery key is saved on this device. Enter your separately saved key to import."; return }
+            keyText = try TeamRecoveryKeyText.encode(key)
+        } catch is CancellationError { }
+        catch { operationError = "The saved recovery key is unavailable. It has not been replaced." }
+    }
+
+    @MainActor private func exportArchive() async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            let key = try await savedKey()
+            guard let key else { operationError = "No recovery key is saved on this device. Enter your separately saved key to import."; return }
+            let compact = try await session.export(exportedAt: .nowMilliseconds, recoveryKey: key)
+            exportDocument = TeamEncryptedArchiveDocument(data: Data(compact.utf8))
+            showingExporter = true
+        } catch is CancellationError { }
+        catch { operationError = "Backup operation failed" }
+    }
+
+    @MainActor private func importArchive(_ url: URL) async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false; keyText = "" }
+        do {
+            let key = try TeamRecoveryKeyText.decode(keyText)
+            keyText = ""
+            let data = try await BackupFileRead.load(url, maximumBytes: TeamArchiveJWE.maximumCompactBytes)
+            guard data.allSatisfy({ $0 < 128 }) else { throw TeamArchiveError.invalidFormat }
+            try Task.checkCancellation()
+            let candidate = try await session.prepare(String(decoding: data, as: UTF8.self), recoveryKey: key)
+            try Task.checkCancellation()
+            preview = candidate
+        } catch is CancellationError {
+            await session.cancelPreview()
+        } catch {
+            await session.cancelPreview()
+            operationError = "The archive or recovery key is invalid, unavailable or belongs to another account. Nothing was restored."
+        }
+    }
+
+    @MainActor private func confirm(_ candidate: TeamRecoveryPreview) async -> Bool {
+        do {
+            _ = try await session.confirm(previewID: candidate.id)
+            preview = nil
+            restored = true
+            return true
+        } catch {
+            preview = nil
+            operationError = "The restore preview is no longer valid. Import and preview the archive again."
+            return false
+        }
+    }
+}
+
+private struct TeamEncryptedArchiveDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.data] }
+    let data: Data
+    init(data: Data) { self.data = data }
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents,
+              data.count <= TeamArchiveJWE.maximumCompactBytes else { throw TeamArchiveError.tooLarge }
+        self.data = data
+    }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
+
+private struct TeamReceivedArchivePreviewView: View {
+    @Environment(\.dismiss) private var dismiss
+    let preview: TeamRecoveryPreview
+    let apply: @MainActor () async -> Bool
+    @State private var confirming = false
+    @State private var applying = false
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Backup") {
+                    LabeledContent("Incoming records", value: "\(preview.recordCount)")
+                    LabeledContent("Teams", value: "\(preview.teamCount)")
+                    LabeledContent("Exported", value: formattedBackupTimestamp(preview.exportedAt))
+                }
+                Section {
+                    HStack {
+                        PreviewCount(title: "Add", value: preview.changes.newRecords)
+                        PreviewCount(title: "Unchanged", value: preview.changes.unchangedRecords)
+                        PreviewCount(title: "Conflict", value: preview.changes.conflictingRecords)
+                    }
+                    Text("Existing notes are never overwritten. Any conflict blocks the entire restore. No team access or delivery receipts are restored.")
+                        .font(.footnote)
+                    Button("Apply restore") { confirming = true }
+                        .accessibilityIdentifier("team-restore-preview-apply")
+                        .disabled(applying || !preview.changes.canRestore || preview.changes.newRecords == 0)
+                }
+            }
+            .navigationTitle("Restore preview")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", role: .cancel) { dismiss() }.disabled(applying)
+                }
+            }
+            .confirmationDialog("Apply this restore?", isPresented: $confirming, titleVisibility: .visible) {
+                Button("Apply restore") {
+                    Task {
+                        applying = true
+                        if await apply() { dismiss() }
+                        applying = false
+                    }
+                }
+                .accessibilityIdentifier("team-restore-confirm")
+                Button("Cancel", role: .cancel) { }
+                    .accessibilityIdentifier("team-restore-confirm-cancel")
+            }
+        }
+        .interactiveDismissDisabled(applying)
+    }
+}
+
+#if DEBUG
+/// Public synthetic data only, reachable solely with both the ephemeral-store and
+/// explicit preview-fixture launch flags. Never reads production custody/accounts.
+struct TeamRecoveryPreviewDebugHost: View {
+    @State private var preview: TeamRecoveryPreview?
+    @State private var session: TeamArchiveRecoverySession?
+    @State private var result = false
+    @State private var failed = false
+
+    var body: some View {
+        Group {
+            if result {
+                Text("Received notes restored").accessibilityIdentifier("team-fixture-restored")
+            } else if failed {
+                Text("Backup operation failed").accessibilityIdentifier("team-fixture-error")
+            } else if let preview, let session {
+                TeamReceivedArchivePreviewView(preview: preview) {
+                    do {
+                        let restored = try await session.confirm(previewID: preview.id)
+                        result = restored.inserted == 1 && restored.unchanged == 0
+                        failed = !result
+                        return result
+                    } catch { failed = true; return false }
+                }
+            } else { ProgressView() }
+        }
+        .task {
+            guard preview == nil && !result && !failed else { return }
+            do {
+                let root = FileManager.default.temporaryDirectory.appendingPathComponent("PinbookRecoveryUIPublic-\(UUID())")
+                let target = try DeliveryTarget(userId: "public-test-user", deviceId: "public-test-device", enrollmentId: "public-test-enrollment")
+                let store = try TeamInboxStore(applicationSupportDirectory: root, target: target, teamId: "public-test-team")
+                let body = "Public recovery UI fixture"
+                let envelope = TeamNoteEnvelope(protocolVersion: 1, teamId: "public-test-team", deliveryId: "public-delivery",
+                    noteId: "public-note", authorUserId: "public-author", recipient: target, body: body,
+                    bodySha256: TeamDeliveryRules.textSHA256(body), acceptedAt: 1000, expiresAt: 2_592_001_000,
+                    attachmentCount: 0)
+                let archive = try TeamPortableArchive(accountId: target.userId, exportedAt: 3000,
+                    notes: [ArchivedTeamNote(envelope: envelope, savedAt: 2000)])
+                let key = SymmetricKey(data: Data(0..<32))
+                let compact = try TeamArchiveJWE.encrypt(archive, recoveryKey: key)
+                let flow = TeamArchiveRecoverySession(store: store)
+                self.session = flow
+                self.preview = try await flow.prepare(compact, recoveryKey: key)
+            } catch { failed = true }
+        }
+    }
+}
+#endif

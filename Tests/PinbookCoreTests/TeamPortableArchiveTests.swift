@@ -10,6 +10,55 @@ import Testing
 #endif
 
 private final class ArchiveFixtureBundleMarker {}
+
+@Test func recoveryKeyTextMatchesSharedPublicFixtures() throws {
+    struct Vectors: Decodable {
+        struct Valid: Decodable { let name: String; let input: String; let canonical: String }
+        struct Invalid: Decodable { let name: String; let input: String }
+        let profile: String
+        let valid: [Valid]
+        let invalid: [Invalid]
+    }
+    #if SWIFT_PACKAGE
+    let bundle = Bundle.module
+    #else
+    let bundle = Bundle(for: ArchiveFixtureBundleMarker.self)
+    #endif
+    let url = try #require(bundle.url(forResource: "team-recovery-key-text-v1", withExtension: "json", subdirectory: "Fixtures"))
+    let data = try Data(contentsOf: url)
+    #expect(SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() ==
+            "68b29e62f3a9bcb0b38d08c26669f7c58a85756f405eb08d00bfe85591cbcad5")
+    let vectors = try JSONDecoder().decode(Vectors.self, from: data)
+    #expect(vectors.profile == "pinbook-recovery-key-text-v1")
+    #expect(vectors.valid.count == 5 && vectors.invalid.count == 14)
+    for vector in vectors.valid {
+        let key = try TeamRecoveryKeyText.decode(vector.input)
+        #expect(key.bitCount == 256)
+        #expect(try TeamRecoveryKeyText.encode(key) == vector.canonical, "\(vector.name)")
+    }
+    for vector in vectors.invalid {
+        #expect(throws: TeamArchiveError.invalidKey, "\(vector.name)") {
+            try TeamRecoveryKeyText.decode(vector.input)
+        }
+    }
+}
+
+@Test func recoveryKeyTextRoundTripsEveryByteAndRejectsOtherKeySizes() throws {
+    for offset in stride(from: 0, through: 224, by: 32) {
+        let bytes = Data((offset..<(offset + 32)).map(UInt8.init))
+        let key = SymmetricKey(data: bytes)
+        let text = try TeamRecoveryKeyText.encode(key)
+        #expect(text.utf8.count == 64)
+        let decoded = try TeamRecoveryKeyText.decode(text)
+        #expect(decoded.withUnsafeBytes { Data($0) } == bytes)
+    }
+    for length in [0, 16, 24, 31, 33, 64] {
+        #expect(throws: TeamArchiveError.invalidKey) {
+            try TeamRecoveryKeyText.encode(SymmetricKey(data: Data(repeating: 0, count: length)))
+        }
+    }
+}
+
 private struct PublicArchiveVector: Decodable {
     let profile: String
     let keyHex: String
@@ -17,6 +66,90 @@ private struct PublicArchiveVector: Decodable {
     let protectedHeader: String
     let plaintext: String
     let compact: String
+}
+
+@Test func recoverySessionConsumesConfirmationAndNeverRestoresACKs() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("pinbook-session-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let target = try DeliveryTarget(userId: "alice", deviceId: "phone", enrollmentId: "current")
+    let store = try TeamInboxStore(applicationSupportDirectory: root, target: target, teamId: "team")
+    let session = TeamArchiveRecoverySession(store: store)
+    let archive = try TeamPortableArchive(accountId: "alice", exportedAt: 2000, notes: [portableNote()])
+    let compact = try TeamArchiveJWE.encrypt(archive, recoveryKey: publicTestKey())
+    let preview = try await session.prepare(compact, recoveryKey: publicTestKey())
+    #expect(preview.recordCount == 1 && preview.teamCount == 1)
+    #expect(preview.changes.newRecords == 1 && preview.changes.canRestore)
+    #expect(String(describing: preview) == "TeamRecoveryPreview(<redacted>)")
+    #expect(try store.pendingReceipts().isEmpty)
+    let result = try await session.confirm(previewID: preview.id)
+    #expect(result.inserted == 1 && result.unchanged == 0)
+    #expect(try store.pendingReceipts().isEmpty)
+    do {
+        _ = try await session.confirm(previewID: preview.id)
+        Issue.record("A confirmation must be single-use")
+    } catch let error as TeamRecoverySessionError { #expect(error == .previewExpired) }
+    let exported = try await session.export(exportedAt: 3000, recoveryKey: publicTestKey())
+    #expect(try TeamArchiveJWE.decrypt(exported, recoveryKey: publicTestKey(), expectedAccountId: "alice").notes.count == 1)
+}
+
+@Test func recoverySessionInvalidatesCancelledReplacedAndFailedPreviews() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("pinbook-preview-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let target = try DeliveryTarget(userId: "alice", deviceId: "phone", enrollmentId: "current")
+    let store = try TeamInboxStore(applicationSupportDirectory: root, target: target, teamId: "team")
+    let session = TeamArchiveRecoverySession(store: store)
+    let archive = try TeamPortableArchive(accountId: "alice", exportedAt: 2000, notes: [portableNote()])
+    let compact = try TeamArchiveJWE.encrypt(archive, recoveryKey: publicTestKey())
+    for reason in ["cancel", "replace", "failure"] {
+        let preview = try await session.prepare(compact, recoveryKey: publicTestKey())
+        switch reason {
+        case "cancel": await session.cancelPreview()
+        case "replace": _ = try await session.prepare(compact, recoveryKey: publicTestKey())
+        default:
+            do {
+                _ = try await session.prepare("invalid", recoveryKey: publicTestKey())
+                Issue.record("Malformed archive must fail")
+            } catch is TeamArchiveError { }
+        }
+        do {
+            _ = try await session.confirm(previewID: preview.id)
+            Issue.record("Invalidated preview must not restore")
+        } catch let error as TeamRecoverySessionError { #expect(error == .previewExpired) }
+    }
+    #expect(try store.archived(deliveryId: "delivery") == nil)
+    #expect(try store.pendingReceipts().isEmpty)
+}
+
+@Test func recoverySessionWrongIDPreservesCurrentButCancelledConfirmationConsumesIt() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("pinbook-session-cancel-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let target = try DeliveryTarget(userId: "alice", deviceId: "phone", enrollmentId: "current")
+    let store = try TeamInboxStore(applicationSupportDirectory: root, target: target, teamId: "team")
+    let session = TeamArchiveRecoverySession(store: store)
+    let archive = try TeamPortableArchive(accountId: "alice", exportedAt: 2000, notes: [])
+    let compact = try TeamArchiveJWE.encrypt(archive, recoveryKey: publicTestKey())
+    let first = try await session.prepare(compact, recoveryKey: publicTestKey())
+    do {
+        _ = try await session.confirm(previewID: UUID())
+        Issue.record("Unknown correlation ID must fail")
+    } catch let error as TeamRecoverySessionError { #expect(error == .previewExpired) }
+    let accepted = try await session.confirm(previewID: first.id)
+    #expect(accepted.inserted == 0 && accepted.unchanged == 0)
+
+    let second = try await session.prepare(compact, recoveryKey: publicTestKey())
+    let cancelled = Task {
+        withUnsafeCurrentTask { $0?.cancel() }
+        return try await session.confirm(previewID: second.id)
+    }
+    do {
+        _ = try await cancelled.value
+        Issue.record("Cancelled confirmation must stop before the write")
+    } catch is CancellationError { }
+    do {
+        _ = try await session.confirm(previewID: second.id)
+        Issue.record("Cancelled matched confirmation must consume its preview")
+    } catch let error as TeamRecoverySessionError { #expect(error == .previewExpired) }
+    #expect(try store.pendingReceipts().isEmpty)
 }
 
 private func publicArchiveVector(name: String = "team-archive-v1-vector") throws -> PublicArchiveVector {
