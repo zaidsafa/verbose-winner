@@ -290,7 +290,7 @@ private struct QuickAddAccessory: View {
                     .frame(maxWidth: .infinity)
             }
         }
-        .buttonStyle(.glassProminent)
+        .buttonStyle(.pinbookProminent)
         .buttonBorderShape(.capsule)
         .accessibilityHint("Opens the new expense form")
         .padding(.horizontal, placement == .inline ? 0 : 12)

@@ -1,9 +1,38 @@
 import Foundation
+import CryptoKit
 import SwiftData
 import Testing
 import UIKit
 import Darwin
 @testable import Pinbook
+
+#if targetEnvironment(simulator)
+@Test(.disabled("Requires owner-approved separate QA app on physical iPhone."))
+#else
+@Test(.enabled(if: Bundle.main.bundleIdentifier == "com.zaidsafa.pinbook.ios.qa"))
+#endif
+func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
+    // The opaque handle lives only in this test's memory: no Keychain, file,
+    // provider enrollment or account metadata write, and no logging of material.
+    try #require(SecureEnclave.isAvailable)
+    let provider = SecureEnclaveTeamDeviceKeys()
+    let material = try provider.generate()
+    #expect((1...4096).contains(material.sealed.count))
+    let reopened = try SecureEnclaveTeamDeviceKeys().publicKey(sealed: material.sealed)
+    #expect(reopened.thumbprint == material.publicKey.thumbprint)
+    let message = Data("Pinbook QA isolated physical signing check".utf8)
+    let signature = try provider.sign(sealed: material.sealed, message: message)
+    #expect(signature.count == 64)
+    let decoded = try P256.Signing.ECDSASignature(rawRepresentation: signature)
+    #expect(reopened.key.isValidSignature(decoded, for: message))
+    #expect(!reopened.key.isValidSignature(decoded, for: Data("different QA message".utf8)))
+    #expect(throws: TeamDeviceCustodyError.keyUnavailable) {
+        try provider.publicKey(sealed: Data())
+    }
+    #expect(throws: TeamDeviceCustodyError.bindingMismatch) {
+        try provider.sign(sealed: material.sealed, message: Data(repeating: 0, count: 4097))
+    }
+}
 
 @Test func personalBackupReaderChecksActualBytesAndShortReads() throws {
     var chunks = [Data("ab".utf8), Data("cd".utf8), Data()]
@@ -235,6 +264,7 @@ import Darwin
                 #expect(contrastRatio(label, backdrop) >= 4.5)
             }
             #expect(contrastRatio(skin.resolvedAccent(for: style), surface) >= 3.0)
+            #expect(contrastRatio(skin.resolvedProminentLabel(for: style), skin.resolvedAccent(for: style)) >= 4.5)
         }
     }
 }

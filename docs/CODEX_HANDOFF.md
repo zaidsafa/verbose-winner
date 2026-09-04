@@ -51,9 +51,20 @@ Updated: 2026-09-05 (Asia/Shanghai)
   unchanged; ordinary unsigned Release PASS. Physical app-host **263/263 PASS**,
   membership UI **3/3 PASS**, including real file-protection attribute check and
   Chinese/consent/background behavior. See DEVICE_QA_IOS.md for exact evidence and
-  installation inventory caveat. Remaining13 baseline UI tests running. Visual
-  screenshot exposed faint white-on-jade button text; fix/revalidate next. These
-  tests do not enable real providers, shared notes, or lift final TestFlight hold.
+  installation inventory caveat. Remaining13 baseline UI tests PASS (all16 UI).
+  Visual review found/fixed faint white-on-bright-accent text with a shared native
+  prominent style; all263 app +17 UI tests PASS on that candidate, all10 palette
+  screenshots inspected. Removed misleading colon-currency fallback icon; latest
+  candidate264 app +2 affected UI tests PASS, including actual ephemeral Secure
+  Enclave generate/reopen/sign/verify (no Keychain or provider write). Ordinary
+  Release and compiled catalog parity PASS; QA launched normally after tests.
+  Full17 UI run is the preceding contrast candidate, not the later currency edit.
+  These tests do not enable real providers/shared notes or lift TestFlight hold.
+  Next: explicit retry bridge/UI and parent account/workspace routing; real sync
+  needs the approved isolated service, provider config, enrolled-device auth,
+  reviewed MLS/key distribution and concrete send/fetch/save-before-ACK UI.
+  Android reports separate QA installation on Samsung with unchanged working APK;
+  its own root contrast fix is in progress. Do not call either QA install sync.
 
 - Original-invitation explicit retry now composes durable store and retained
   membership owner: read-only original hash matching, exact enrollment/current

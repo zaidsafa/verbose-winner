@@ -320,7 +320,7 @@ private struct RestorePreviewView: View {
                     Button("Apply restore", systemImage: "arrow.trianglehead.2.clockwise.rotate.90", role: .destructive) {
                         confirmingApply = true
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.pinbookProminent)
                     .disabled(isApplying || prepared.preview.totalAppliedChanges == 0)
                 } footer: {
                     Text("Applying creates a recoverable local snapshot first. No records change until you confirm.")

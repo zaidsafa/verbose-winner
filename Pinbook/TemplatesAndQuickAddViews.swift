@@ -24,7 +24,7 @@ struct TemplatesView: View {
                     Text("Save repeated expense details once, then use them from Quick Add.")
                 } actions: {
                     Button("New template", systemImage: "plus") { showingNewTemplate = true }
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.pinbookProminent)
                 }
                 .listRowBackground(Color.clear)
             } else {
@@ -318,7 +318,7 @@ private struct TemplateEditorView: View {
                 if !currencies.isEmpty {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save", action: save)
-                            .buttonStyle(.glassProminent)
+                            .buttonStyle(.pinbookProminent)
                     }
                 }
             }

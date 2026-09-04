@@ -563,20 +563,15 @@ private struct CurrencySelectionView: View {
         List(currencies) { currency in
             Toggle(isOn: currencyBinding(currency.code)) {
                 HStack(spacing: 14) {
-                    Group {
-                        if currency.symbol == currency.code {
-                            Image(systemName: "coloncurrencysign")
-                                .font(.headline)
-                        } else {
-                            Text(currency.symbol)
-                                .font(.headline)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.7)
-                        }
-                    }
-                    .frame(width: 46, height: 38)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                    .accessibilityHidden(true)
+                    // ISO code is Foundation's unambiguous localized fallback.
+                    // Never substitute another currency's sign (such as ₡).
+                    Text(verbatim: currency.symbol)
+                        .font(currency.symbol == currency.code ? .subheadline.monospaced().weight(.semibold) : .headline)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(width: 46, height: 38)
+                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                        .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(currency.code)
@@ -590,6 +585,7 @@ private struct CurrencySelectionView: View {
             }
             .tint(.accentColor)
             .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text(verbatim: "\(currency.code), \(currency.localizedName), \(currency.symbol)"))
             .accessibilityIdentifier("currency-\(currency.code)")
         }
         .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
@@ -663,7 +659,7 @@ private struct BookNameEditorView: View {
                         }
                         if save(name) { dismiss() }
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.pinbookProminent)
                 }
             }
         }

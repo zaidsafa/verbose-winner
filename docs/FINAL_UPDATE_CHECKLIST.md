@@ -68,10 +68,10 @@ checkboxes deliberately remain open until checked against the exact next candida
   Durable native sign-in orchestration (reservation→challenge→callback→exchange→
   generation-bound commit) is implemented/tested with synthetic identity and local
   TLS, not real provider issuance. No feature acceptance checkbox is closed by this.
-  The concrete Apple controller adapter now compiles for iPhone, with runtime
-  fake-driver tests awaiting a shared-GUI slot. Google now uses AppAuth3.0.0 browser
-  ownership with app-owned bounded code exchange and no provider-token persistence;
-  actual SDK/core tests pass, UIKit execution and live setup remain gates.
+  The concrete Apple controller adapter and Google runtime fake-driver tests now
+  pass in the separate physical QA app. Google uses AppAuth3.0.0 browser ownership
+  with app-owned bounded code exchange and no provider-token persistence; actual
+  provider login and live setup remain gates. See DEVICE_QA_IOS.md.
   Internal P256 enrollment canonical bytes and public signature
   interoperability pass in both Node/Swift directions. Thirteen typed onboarding
   routes now compile and pass intercepted/localhost TLS tests, sharing the auth
@@ -88,8 +88,8 @@ checkboxes deliberately remain open until checked against the exact next candida
   now performs fresh lookup, one-use consent, durable-before-accept and tokenless
   current-team recovery, tested synthetically and with local TLS/native drivers.
   A localized membership modal and retained UI model now compose that owner with
-  unchecked consent and tokenless recovery; synthetic core tests pass, native UI
-  tests compile but have not run. No normal navigation/activation yet. See
+  unchecked consent and tokenless recovery; synthetic core tests and three native
+  membership UI tests pass on the physical QA phone. No normal activation yet. See
   TEAM_MEMBERSHIP_UI_IOS.md. Invitation/account screens, host wiring and explicit
   eligible-pending retry UI remain open;
   the backend's source-only teams/acceptance route now has bounded iOS transport,

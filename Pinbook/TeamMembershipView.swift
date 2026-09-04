@@ -93,14 +93,14 @@ struct TeamMembershipView: View {
             Button { Task { await model.review() } } label: {
                 Text("Review invitation").frame(maxWidth: .infinity, minHeight: 44)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.pinbookProminent)
             .accessibilityIdentifier("membership-review")
         }
         if model.stage == .consent {
             Button { Task { await model.join() } } label: {
                 Text("Join team").frame(maxWidth: .infinity, minHeight: 44)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.pinbookProminent)
             .disabled(!model.canJoin)
             .accessibilityIdentifier("membership-join")
         }
@@ -111,11 +111,11 @@ struct TeamMembershipView: View {
             Button { Task { await model.checkMembership() } } label: {
                 Text("Check membership").frame(maxWidth: .infinity, minHeight: 44)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.pinbookProminent)
             .accessibilityIdentifier("membership-check")
         }
         if model.stage == .confirmed {
-            Button("Done") { close() }.buttonStyle(.glassProminent)
+            Button("Done") { close() }.buttonStyle(.pinbookProminent)
                 .frame(minHeight: 44).accessibilityIdentifier("membership-done")
         }
     }

@@ -102,7 +102,7 @@ struct PinbookOnboardingView: View {
                             )
                             .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.pinbookProminent)
                         .buttonBorderShape(.capsule)
                         .accessibilityIdentifier("onboarding-primary-action")
                     }

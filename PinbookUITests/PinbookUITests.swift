@@ -2,6 +2,29 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testProminentButtonPaletteRemainsVisibleAcrossSkins() throws {
+        let app = XCUIApplication()
+        for skin in ["paperGlass", "cleanLedger", "softPastel", "editorial", "nightInk"] {
+            for appearance in ["light", "dark"] {
+                app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership",
+                    "-PinbookSkin", skin, "-PinbookTheme", appearance, "-PinbookLanguage", "en"]
+                app.launch()
+                let review = app.buttons["membership-review"]
+                XCTAssertTrue(review.waitForExistence(timeout: 10))
+                XCTAssertTrue(review.isEnabled)
+                XCTAssertTrue(review.isHittable)
+                let evidence = XCTAttachment(screenshot: app.screenshot())
+                evidence.name = "Prominent button palette \(skin) \(appearance)"
+                evidence.lifetime = .keepAlways
+                add(evidence)
+                app.terminate()
+            }
+        }
+        // Attachments require visual inspection; hit-testing alone is not a
+        // contrast assertion. Numeric accent/label tests cover all ten palettes.
+    }
+
+    @MainActor
     func testMembershipRequiresUncheckedConsentAndUsesChineseCopy() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership", "-PinbookLanguage", "zh-Hans"]

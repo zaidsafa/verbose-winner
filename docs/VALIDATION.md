@@ -7,8 +7,16 @@ App-host **263/263 PASS**,0 skips/failures; membership UI **3/3 PASS**,33.103s.
 Exact logs/results, identity isolation, ordinary Release verification and important
 limitations are in DEVICE_QA_IOS.md. This supersedes historical compiled-only and
 phone-offline statements below. Chinese screenshot inspection found faint
-white-on-jade action text despite passing behavior tests: correction/revalidation
-remains required. Remaining baseline UI tests underway; no acceptance claimed yet.
+white-on-jade action text despite passing behavior tests; corrected via shared
+native prominent styling. Remaining baseline UI **13/13 PASS**,182.692s.
+Contrast candidate **263 app +17 UI PASS** (280 total, zero failures/skips), with
+all10 palette screenshots inspected. Later currency-label and temporary hardware
+test candidate **264 app +2 affected UI PASS** (266 total, zero failures/skips).
+Actual Secure Enclave generate/reopen/sign/verify PASS; no private-material export,
+Keychain/file/provider write, or lock/passcode/recovery acceptance inferred.
+Latest currency/Chinese screenshots inspected; ordinary Release/signature/catalog
+checks PASS. Full17 UI was the immediately preceding contrast candidate, not the
+later currency-only UI change. Detailed exact paths are in DEVICE_QA_IOS.md.
 No source push, TestFlight update, production provider or shared service change.
 
 ## 2026-09-05 explicit same-identity retry store and membership owner (inactive)

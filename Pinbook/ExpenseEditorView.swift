@@ -78,7 +78,7 @@ struct ExpenseEditorView: View {
                         Button("Save") {
                             Task { await save() }
                         }
-                            .buttonStyle(.glassProminent)
+                            .buttonStyle(.pinbookProminent)
                             .disabled(isSaving)
                     }
                 }

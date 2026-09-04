@@ -55,7 +55,7 @@ struct ExpensesView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 if !expenses.isEmpty {
                     Button("Add", systemImage: "plus") { showingAddExpense = true }
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.pinbookProminent)
                         .accessibilityHint("Opens the new expense form")
                 }
             }
@@ -106,11 +106,11 @@ private struct EmptyExpensesView: View {
             GlassEffectContainer(spacing: 18) {
                 if hasCurrencies {
                     Button("Add expense", systemImage: "plus", action: addExpense)
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.pinbookProminent)
                         .glassEffectID("add-expense", in: glassNamespace)
                 } else {
                     Button("Choose currencies", systemImage: "coloncurrencysign.circle", action: openOptions)
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.pinbookProminent)
                         .glassEffectID("currencies", in: glassNamespace)
                 }
             }
@@ -256,7 +256,7 @@ private struct ExpenseCard: View {
             .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
         if !dynamicTypeSize.isAccessibilitySize { Spacer() }
         Button("Mark noted", systemImage: "checkmark", action: markNoted)
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.pinbookProminent)
             .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
     }
 
@@ -316,7 +316,7 @@ private struct SettlementEditorView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { save() }
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.pinbookProminent)
                 }
             }
         }

@@ -1,6 +1,6 @@
 # iOS membership screen — inactive integration surface
 
-Updated 2026-09-04. This adds a native, localized membership confirmation and
+Updated 2026-09-05. This adds a native, localized membership confirmation and
 tokenless recovery screen. It does not enable team navigation or a live service.
 
 ## Presentation and lifecycle
@@ -51,8 +51,13 @@ the fixture host and remains on normal `AppShellView` navigation.
 - Catalog **306 keys ×15 translated locales + English source** passes token and
   compiled Debug app/widget exact-parity checks. Both Chinese scripts and RTL
   languages are included. New translations are assistant drafts, not human review.
-- Three UI cases are compiled for Chinese consent/confirmation, uncertain recovery
-  without another join, and clearing on background. They are **not executed**.
+- Three UI cases now **PASS on the separately installed physical Pinbook QA app**:
+  Chinese consent/confirmation, uncertain recovery without another join, and
+  clearing on background. See DEVICE_QA_IOS.md for exact results. The original
+  compiled-only checkpoint below is historical. Visual review found bright-accent
+  button text needing correction; a shared native prominent style now fixes this.
+  All10 skin/appearance screenshots and the final Chinese confirmation were
+  visually inspected after correction, in addition to passing behavior tests.
 - Initial Simulator compilation failed because this slice reused an existing asset
   file ID. Corrected only the new view's IDs; final build-for-testing **PASS**:
   `/private/tmp/pinbook-ios-membership-screen-fixed-test-build.log`.
@@ -60,7 +65,7 @@ the fixture host and remains on normal `AppShellView` navigation.
   `/private/tmp/pinbook-ios-membership-screen-release.log`.
 
 See VALIDATION.md for Release results and preserved intermittent localhost TLS
-failure caveats. No new app-host/UI/physical/provider acceptance is claimed.
+failure caveats. Physical QA results do not imply real provider or team activation.
 
 ## Remaining integration
 
@@ -73,4 +78,5 @@ PENDING or trigger automatic replay; retain exact original identity/hash and req
 fresh consent plus a durable generation for one same-identity retry.
 
 All FINAL_UPDATE_CHECKLIST gates remain open. Existing financial data, archive
-schema/keys, signing, source-push hold and TestFlight `0.1.0 (3)` are unchanged.
+schema/keys, production signing, source-push hold and TestFlight `0.1.0 (3)` are
+unchanged. Only the separate owner-approved development QA identity is installed.

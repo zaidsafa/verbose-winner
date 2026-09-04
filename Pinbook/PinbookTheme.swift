@@ -48,6 +48,16 @@ enum PinbookSkin: String, CaseIterable, Identifiable {
         return adaptiveColor(light: colors.light, dark: colors.dark)
     }
 
+    // Dark skins use bright accent fills; their button labels must be dark.
+    // The ordinary semantic primary color has the opposite polarity here.
+    var prominentLabel: Color {
+        adaptiveColor(light: .white, dark: .black)
+    }
+
+    func resolvedProminentLabel(for style: UIUserInterfaceStyle) -> UIColor {
+        style == .dark ? .black : .white
+    }
+
     var backdrop: LinearGradient {
         let stops = backdropColors
         let colors = [
@@ -139,6 +149,29 @@ enum PinbookSkin: String, CaseIterable, Identifiable {
             )
         }
     }
+}
+
+/// Retains native Liquid Glass interaction, disabled state and accessibility.
+/// Apply the contrasting color inside the label so native white prominent text
+/// cannot override it. Destructive roles keep the system's red treatment.
+struct PinbookProminentButtonStyle: PrimitiveButtonStyle {
+    @Environment(\.pinbookSkin) private var skin
+
+    func makeBody(configuration: Configuration) -> some View {
+        if configuration.role == .destructive {
+            Button(configuration).buttonStyle(.glassProminent)
+        } else {
+            Button(role: configuration.role, action: configuration.trigger) {
+                configuration.label.foregroundStyle(skin.prominentLabel)
+            }
+            .tint(skin.accent)
+            .buttonStyle(.glassProminent)
+        }
+    }
+}
+
+extension PrimitiveButtonStyle where Self == PinbookProminentButtonStyle {
+    static var pinbookProminent: PinbookProminentButtonStyle { .init() }
 }
 
 private func adaptiveColor(light: UIColor, dark: UIColor) -> Color {
