@@ -3,7 +3,7 @@ import Foundation
 enum TeamOnboardingRoute: String {
     case preview = "invitations/preview", invitedChallenge = "auth/invited-challenge", invitedExchange = "auth/invited-exchange"
     case deviceChallenge = "devices/challenge", deviceComplete = "devices/complete", deviceLookup = "devices/lookup", deviceRevoke = "devices/revoke"
-    case createTeam = "teams/create", currentTeam = "teams/current", acceptInvitation = "teams/accept"
+    case createTeam = "teams/create", currentTeam = "teams/current", acceptInvitation = "teams/accept", acceptance = "teams/acceptance"
     case issueInvitation = "teams/invites", listInvitations = "teams/invites/list", revokeInvitation = "teams/invites/revoke"
     var requiresSession: Bool { ![.preview, .invitedChallenge, .invitedExchange].contains(self) }
 }
@@ -86,7 +86,10 @@ private enum TeamOnboardingWire {
         return result
     }
     static func membership(_ data: Data, teamID: String, enrollmentID: String, accountID: String, role: TeamMembershipRole? = nil) throws -> TeamMembership {
-        let object = try TeamAuthWire.object(data, keys: ["teamId", "accountId", "enrollmentId", "role", "membershipRevision"])
+        try membership(TeamStrictJSON.object(data), teamID: teamID, enrollmentID: enrollmentID, accountID: accountID, role: role)
+    }
+    static func membership(_ object: [String: Any], teamID: String, enrollmentID: String, accountID: String, role: TeamMembershipRole? = nil) throws -> TeamMembership {
+        try exact(object, ["teamId", "accountId", "enrollmentId", "role", "membershipRevision"])
         guard let actualRole = (object["role"] as? String).flatMap(TeamMembershipRole.init(rawValue:)) else { throw TeamAuthHTTPError.invalidResponse }
         let result = try TeamMembership(teamID: TeamAuthWire.string(object, "teamId"), accountID: TeamAuthWire.string(object, "accountId"),
             enrollmentID: TeamAuthWire.string(object, "enrollmentId"), role: actualRole, revision: TeamAuthWire.time(object, "membershipRevision"))
@@ -198,6 +201,24 @@ extension TeamAuthHTTPClient {
         let reply = try await onboarding(.acceptInvitation, fields: ["token": token, "teamId": teamID, "enrollmentId": enrollmentID, "role": role.rawValue], ticket: ticket)
         return try TeamOnboardingWire.membership(reply.data, teamID: teamID, enrollmentID: enrollmentID, accountID: ticket.accountID,
             role: role == .member ? .member : .reviewer)
+    }
+    /// Read-only snapshot for the ORIGINAL invitation and exact saved identity.
+    /// Nil is eligible-pending NOW, not proof an older queued accept cannot commit.
+    /// Never clear PENDING or auto-retry. A higher owner must enforce the saved
+    /// hash/generation, current account/device and fresh consent before one retry.
+    func lookupInvitationAcceptance(token: String, teamID: String, enrollmentID: String, role: TeamInvitationRole,
+                                    session: TeamAccountSessionSnapshot) async throws -> TeamMembership? {
+        try await lookupInvitationAcceptance(token: token, teamID: teamID, enrollmentID: enrollmentID, role: role, ticket: .init(snapshot: session))
+    }
+    func lookupInvitationAcceptance(token: String, teamID: String, enrollmentID: String, role: TeamInvitationRole,
+                                    ticket: TeamAccountAccessTicket) async throws -> TeamMembership? {
+        try TeamOnboardingWire.ids(teamID, enrollmentID); try TeamOnboardingWire.token(token)
+        let reply = try await onboarding(.acceptance, fields: ["token": token, "teamId": teamID, "enrollmentId": enrollmentID, "role": role.rawValue], ticket: ticket)
+        let object = try TeamAuthWire.object(reply.data, keys: ["membership"])
+        if object["membership"] is NSNull { return nil }
+        guard let value = object["membership"] as? [String: Any] else { throw TeamAuthHTTPError.invalidResponse }
+        return try TeamOnboardingWire.membership(value, teamID: teamID, enrollmentID: enrollmentID,
+            accountID: ticket.accountID, role: role == .member ? .member : .reviewer)
     }
     func issueInvitation(teamID: String, enrollmentID: String, role: TeamInvitationRole, session: TeamAccountSessionSnapshot) async throws -> TeamIssuedInvitation {
         try TeamOnboardingWire.ids(teamID, enrollmentID)

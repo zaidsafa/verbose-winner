@@ -171,6 +171,121 @@ struct TeamOnboardingHTTPTests {
         try await client.revokeInvitation(teamID: "public-team", enrollmentID: "public-enrollment", inviteID: "public-invite", session: session)
         try check(host, paths: ["invitations/preview", "auth/invited-challenge", "auth/invited-exchange", "teams/create", "teams/current", "teams/accept", "teams/invites", "teams/invites/list", "teams/invites/revoke"], fields: [["token"], ["providerId", "token", "teamId", "role"], ["providerId", "token", "teamId", "role", "challengeId", "idToken"], ["teamId", "enrollmentId"], ["teamId", "enrollmentId"], ["token", "teamId", "enrollmentId", "role"], ["teamId", "enrollmentId", "role"], ["teamId", "enrollmentId"], ["teamId", "enrollmentId", "inviteId"]], publicCount: 3)
     }
+    @Test func acceptanceLookupUsesExactOriginalIdentityAndOnlyExplicitNullIsPending() async throws {
+        let (client, host, session) = try fixture([
+            StubResponse(chunks: [try json(["membership": NSNull()])]),
+            StubResponse(chunks: [try json(["membership": membership(role: "REVIEWER")])])])
+        defer { AuthStubProtocol.state.clear(host) }
+        #expect(try await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .reviewer, session: session) == nil)
+        let result = try #require(await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .reviewer, ticket: .init(snapshot: session)))
+        #expect(result.role == .reviewer && result.accountID == session.accountID && result.revision == 1)
+        #expect(!String(reflecting: result).contains(session.accountID))
+        try check(host, paths: ["teams/acceptance", "teams/acceptance"],
+            fields: Array(repeating: ["token", "teamId", "enrollmentId", "role"], count: 2))
+        for request in AuthStubProtocol.state.requests(host) {
+            #expect(try TeamStrictJSON.object(request.body) as? [String: String] == [
+                "token": tokenC, "teamId": "public-team", "enrollmentId": "public-enrollment", "role": "REVIEWER"])
+        }
+        #expect(try session.usablePair(now: 1_000).accessToken == tokenA)
+    }
+    @Test func acceptanceLookupRejectsMalformedEnvelopeAndForeignMembership() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        var bad: [[String: Any]] = [[:], ["membership": false], ["membership": 0], ["membership": "null"],
+            ["membership": []], ["membership": [:]], ["membership": NSNull(), "extra": 1]]
+        for field in ["teamId", "accountId", "enrollmentId", "role", "membershipRevision", "extra"] {
+            var value = membership(); value[field] = "wrong"
+            bad.append(["membership": value])
+        }
+        bad.append(["membership": membership(role: "OWNER")])
+        for object in bad {
+            AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(object)])])
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) {
+                try await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session)
+            }
+            #expect(AuthStubProtocol.state.requests(host).count == 1)
+        }
+    }
+    @Test func acceptanceLookupRejectsNestedDuplicateKeysUnsafeNumbersAndOversize() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        let valid = #"{"teamId":"public-team","accountId":"public-account","enrollmentId":"public-enrollment","role":"MEMBER","membershipRevision":1}"#
+        var invalid = [#"{"membership":null,"\u006dembership":null}"#,
+            "{\"membership\":" + valid.replacingOccurrences(of: "\"role\":\"MEMBER\"", with: "\"role\":\"MEMBER\",\"\\u0072ole\":\"MEMBER\"") + "}"]
+        for number in ["-1", "1.0", "1e0", "9007199254740992", "true", "null"] {
+            invalid.append("{\"membership\":" + valid.replacingOccurrences(of: "\"membershipRevision\":1", with: "\"membershipRevision\":\(number)") + "}")
+        }
+        for raw in invalid {
+            AuthStubProtocol.state.configure(host, [StubResponse(chunks: [Data(raw.utf8)])])
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) {
+                try await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session)
+            }
+        }
+        let base = Data(#"{"membership":null}"#.utf8)
+        for count in [4096, 4097] {
+            AuthStubProtocol.state.configure(host, [StubResponse(chunks: [base, Data(repeating: 32, count: count - base.count)])])
+            if count == 4096 {
+                #expect(try await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session) == nil)
+            } else {
+                await #expect(throws: TeamAuthHTTPError.responseTooLarge) {
+                    try await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session)
+                }
+            }
+        }
+    }
+    @Test func acceptanceHTTPFailuresNeverBecomeNullRetryOrSessionDeletion() async throws {
+        for status in [401, 403, 404, 408, 409, 410, 429, 500, 503] {
+            // Even a null-shaped body on an HTTP failure must not be interpreted.
+            let (client, host, session) = try fixture([StubResponse(status: status, chunks: [try json(["membership": NSNull()])])])
+            defer { AuthStubProtocol.state.clear(host) }
+            do {
+                _ = try await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session)
+                Issue.record("HTTP failure became a successful lookup")
+            } catch { #expect(error is TeamAuthHTTPError) }
+            #expect(AuthStubProtocol.state.requests(host).count == 1)
+            #expect(try session.usablePair(now: 1_000).accessToken == tokenA)
+        }
+    }
+    @Test func acceptanceValidatesInputOriginAndAccessBeforeDispatchAndAfterReply() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        for fields in [("bad-token", "public-team", "public-enrollment"), (tokenC, "", "public-enrollment"), (tokenC, "public-team", "../unsafe")] {
+            await #expect(throws: TeamAuthHTTPError.invalidRequest) {
+                try await client.lookupInvitationAcceptance(token: fields.0, teamID: fields.1, enrollmentID: fields.2, role: .member, session: session)
+            }
+        }
+        let foreign = try TeamAuthHTTPClient(origin: URL(string: "https://other.invalid")!, protocolClasses: [AuthStubProtocol.self], clock: { 1_000 })
+        await #expect(throws: TeamAuthHTTPError.invalidRequest) {
+            try await foreign.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session)
+        }
+        let expired = try TeamAuthHTTPClient(origin: session.scope.origin, protocolClasses: [AuthStubProtocol.self], clock: { 10_000 })
+        await #expect(throws: TeamAccountSessionError.reauthenticationRequired) {
+            try await expired.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session)
+        }
+        #expect(AuthStubProtocol.state.requests(host).isEmpty)
+        for end: Int64 in [999, 10_000, TeamAuthWire.maximumSafeTime + 1] {
+            let clock = OnboardingClock()
+            let (timed, target, account) = try fixture([StubResponse(chunks: [try json(["membership": NSNull()])], beforeDelivery: { clock.set(end) })], clock: { clock.now() })
+            defer { AuthStubProtocol.state.clear(target) }
+            do {
+                _ = try await timed.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: account)
+                Issue.record("Stale lookup became eligible pending")
+            } catch { #expect(error is TeamAuthHTTPError || error is TeamAccountSessionError) }
+            #expect(AuthStubProtocol.state.requests(target).count == 1)
+        }
+    }
+    @Test func acceptanceSharesUnresolvedAuthSlotAndCancellationNeverReportsPending() async throws {
+        let (client, host, session) = try fixture([StubResponse(chunks: [try json(["membership": NSNull()])], hangs: true), StubResponse(chunks: [try challengeJSON()])])
+        defer { AuthStubProtocol.state.clear(host) }
+        let work = Task { try await client.lookupInvitationAcceptance(token: tokenC, teamID: "public-team", enrollmentID: "public-enrollment", role: .member, session: session) }
+        for _ in 0..<100 where AuthStubProtocol.state.requests(host).isEmpty { try await Task.sleep(for: .milliseconds(10)) }
+        #expect(AuthStubProtocol.state.requests(host).count == 1)
+        await #expect(throws: TeamAuthHTTPError.busy) { try await client.challenge(providerID: "public-ios") }
+        work.cancel()
+        await #expect(throws: CancellationError.self) { try await work.value }
+        #expect(try await client.challenge(providerID: "public-ios").nonce == tokenB)
+        #expect(AuthStubProtocol.state.requests(host).map(\.path) == ["/api/v1/teams/acceptance", "/api/v1/auth/challenge"])
+    }
     @Test func deviceRoutesBindExactKeyAndOnlyExplicitNullMeansAbsence() async throws {
         let (client, host, session) = try fixture([])
         defer { AuthStubProtocol.state.clear(host) }

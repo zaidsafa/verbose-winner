@@ -4,6 +4,13 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Owner release gate — no incremental TestFlight updates
 
+- Latest owner coordination answer: **No, keep the tasks separate**. Do not send
+  further cross-task coordination/status messages or route them indirectly. Earlier
+  notes requesting Woo GUI clearance are historical, not instructions to repeat
+  the rejected request. Continue Pinbook-local work and isolated tests; do not
+  infer permission to disrupt another task's UI/resources. Owner also now offers
+  a physical iPhone, but both devicectl and xctrace report unavailable/offline.
+  Unlock/reconnect/Trust requested; no install or physical test yet.
 - Latest owner response was "proceed towards the goal" directly after being asked
   to approve Apple and Google sign-in. Treat that response as approval of the
   proposed Apple+Google pilot sign-in direction, rather than holding indefinitely
@@ -26,6 +33,22 @@ Updated: 2026-09-04 (Asia/Shanghai)
   gates are not complete merely because build 3 was accepted by the owner.
 
 ## Active local implementation after release hold
+
+- Fourteenth onboarding route `teams/acceptance` now has bounded, exact typed iOS
+  lookup with original token/team/enrollment/role and current access-only ticket.
+  Successful explicit null means eligible pending NOW only; all errors remain
+  uncertainty. No PENDING deletion, raw-token persistence, polling or automatic
+  accept. Six new intercepted cases+actual privateTLS four-scenario test pass;
+  focused onboarding14/14, full **222/222 PASS**,18.796s:
+  `/private/tmp/pinbook-ios-acceptance-route-core.log`. See
+  TEAM_ONBOARDING_HTTP_IOS.md. Next: durable same-identity explicit retry and its
+  owner/UI consent integration; this transport alone does not enable retries.
+  Simulator build-for-testing and unsigned iPhone Release PASS:
+  `/private/tmp/pinbook-ios-acceptance-route-test-build.log` and
+  `/private/tmp/pinbook-ios-acceptance-route-release.log`. Compilation only;
+  no new app-host/UI/device execution. Both connection tools still show phone offline.
+  Membership screen at8abcc5d remains inactive; all final feature/activation gates
+  and source-push/TestFlight hold remain unchanged. No cross-task messages.
 
 - Localized native membership screen now uses a retained model→bridge→real owner,
   explicit read-only review, initially unchecked separate consent, single join and

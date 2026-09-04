@@ -159,6 +159,38 @@ struct TeamAuthTLSTests {
         #expect(try TeamStrictJSON.object(Data(raw.utf8))["token"] as? String == invitation)
     }
 
+    @Test func acceptanceLookupUsesRealTLSAndNeverTurnsUncertaintyIntoPending() async throws {
+        for mode in ["success", "acceptance-pending", "503", "drop"] {
+            let fixture = try await Fixture(mode: mode), client = try fixture.client()
+            let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
+            let backend = SessionMemoryKeychain(), store = TeamAccountSessionStore(testService: "acceptance-tls", keychain: backend)
+            let snapshot = try store.saveInitial(pair, scope: scope, now: 1_000, consent: true)
+            let savedBytes = backend.bytes, savedWrites = backend.writes
+            let invitation = String(repeating: "E", count: 42) + "A"
+            if mode == "success" || mode == "acceptance-pending" {
+                let result = try await client.lookupInvitationAcceptance(token: invitation, teamID: "public-team",
+                    enrollmentID: "public-enrollment", role: .member, ticket: .init(snapshot: snapshot))
+                if mode == "success" { #expect(result?.accountID == pair.accountID && result?.role == .member && result?.revision == 1) }
+                else { #expect(result == nil) }
+            } else {
+                do {
+                    _ = try await client.lookupInvitationAcceptance(token: invitation, teamID: "public-team",
+                        enrollmentID: "public-enrollment", role: .member, ticket: .init(snapshot: snapshot))
+                    Issue.record("Uncertain TLS response became a successful acceptance lookup")
+                } catch { #expect(error is TeamAuthHTTPError) }
+            }
+            let attempts = try fixture.records("attempts"), bodies = try fixture.records("bodies")
+            #expect(attempts.count == 1 && bodies.count == 1)
+            #expect(attempts.first?["path"] as? String == "/api/v1/teams/acceptance")
+            #expect(attempts.first?["authorization"] as? String == "Bearer \(pair.accessToken)")
+            let raw = try #require(bodies.first?["body"] as? String)
+            #expect(try TeamStrictJSON.object(Data(raw.utf8)) as? [String: String] == [
+                "token": invitation, "teamId": "public-team", "enrollmentId": "public-enrollment", "role": "MEMBER"])
+            #expect(backend.bytes == savedBytes && backend.writes == savedWrites)
+            #expect(!String(decoding: try #require(backend.bytes), as: UTF8.self).contains(invitation))
+        }
+    }
+
     @Test func invitationConsentUsesActualTLSWithoutImplicitMembershipOrSavedCode() async throws {
         let fixture = try await Fixture(mode: "success"), client = try fixture.client()
         let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")

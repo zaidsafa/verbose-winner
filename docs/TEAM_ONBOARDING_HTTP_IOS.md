@@ -1,6 +1,6 @@
 # iOS onboarding transport — inactive
 
-Updated 2026-09-04. Implements the thirteen literal routes in Android/backend
+Updated 2026-09-04. Implements the fourteen literal routes in Android/backend
 `TEAM_ONBOARDING_HTTP_V1.md` alongside the six existing account routes. No deployed
 origin, provider configuration, normal-navigation entry point or durable account,
 device or membership authority is created by this layer.
@@ -37,6 +37,19 @@ the account-session wire codecs; financial/portable backup decoding is unchanged
 
 ## Binding, consent and uncertainty
 
+- `lookupInvitationAcceptance` adds protected `POST teams/acceptance` with exactly
+  token/teamId/enrollmentId/role. The response is exactly `{membership:...}`.
+  Only explicit JSON null on successful200 is eligible-pending at that check;
+  missing/malformed fields, HTTP failures, expired access and foreign membership
+  never become null. A non-null membership must match the account/team/enrollment/
+  requested MEMBER or REVIEWER role and a nonnegative safe revision. Nested parsing
+  retains strict duplicate-key/numeric checks, the shared unresolved client slot,
+  ordinary4KiB cap and pre/post-response current-ticket expiry checks.
+  This read-only lookup takes server locks; no polling or automatic retry. Null
+  is NOT a reservation or proof a queued older accept cannot commit. Higher-level
+  retry still needs original token supplied again, exact saved hash/account/team/
+  enrollment/role, a durable attempt generation and NEW explicit consent. No raw
+  token persistence, PENDING clearing or retry orchestration is added here.
 - Invitation roles are MEMBER or REVIEWER; create-team must return OWNER. Join,
   issued invitations and membership responses must match the exact requested
   team/role/enrollment and current account. No email identity inference.
@@ -57,6 +70,20 @@ the account-session wire codecs; financial/portable backup decoding is unchanged
 
 ## Evidence
 
+- Fourteenth-route increment: six new intercepted tests plus one actual private
+  localhostTLS case over success/pending/503/dropped-connection scenarios. Checks
+  exact body/bearer, unchanged account custody, no persistence or automatic resend,
+  malformed/foreign/nested-duplicate/unsafe-number responses,4096/4097-byte boundary,
+  HTTP-error-vs-null, invalid input/origin/expiry/rollback and shared-slot cancellation.
+  Focused onboarding **14/14 PASS**,0.255s:
+  `/private/tmp/pinbook-ios-acceptance-route-focused.log`.
+  Full core **222/222 PASS**,18.796s:
+  `/private/tmp/pinbook-ios-acceptance-route-core.log`.
+  Simulator build-for-testing and unsigned iPhone Release PASS:
+  `/private/tmp/pinbook-ios-acceptance-route-test-build.log` and
+  `/private/tmp/pinbook-ios-acceptance-route-release.log`. No new runtime acceptance.
+  This TLS fixture tests transport shape, NOT deployed eligibility/DB-lock semantics.
+  Earlier intermittentTLS failures remain open final-validation caveats.
 - Four strict-JSON tests and eight intercepted onboarding tests pass, including
   all thirteen routes, exact fields/auth, role/account/device confusion, explicit
   null, strict false, duplicate list IDs, response caps, shared-slot cancellation,
@@ -85,7 +112,8 @@ Dedicated non-exportable device-key custody with bounded durable reservation and
 generation-safe pending/recovery states, then a current-session/monotonic owner,
 invited sign-in and explicit join UI. Android's corresponding custody and session-
 bound registration contracts are read and recorded as cross-platform guidance,
-not proof of iOS Keychain or hardware behavior. Fresh GUI coordination is required
-for the dedicated Simulator runtime batch; physical protection/provider checks,
+not proof of iOS Keychain or hardware behavior. Owner now requires keeping tasks
+separate; do not send cross-task GUI/status messages. Runtime verification must use
+isolated Pinbook resources without disrupting another task. Physical protection/provider checks,
 trusted epoch/origin/client setup, retirement/deletion/retention, MLS and real
 staging remain separate gates. Build 0.1.0 (3) stays unchanged; no interim upload.

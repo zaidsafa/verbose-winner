@@ -1,5 +1,31 @@
 # Validation plan
 
+## 2026-09-04 read-only original-invitation acceptance lookup (inactive)
+
+- Six new intercepted HTTP tests cover exact protected request and nullable schema,
+  malformed envelopes, foreign membership, nested duplicate keys, unsafe revisions,
+  actual4096/4097-byte bounds, HTTP failures never null, invalid origin/input/access,
+  post-response expiry/clock rollback, shared auth slot and cancellation.
+- Focused onboarding **14/14 PASS**,0.255s:
+  `/private/tmp/pinbook-ios-acceptance-route-focused.log`.
+- Actual local TLS test covers current membership, eligible-pending null,503 and
+  dropped connection. Verifies ONE original-token request with exact fields/bearer,
+  unchanged account bytes/writes and no saved invitation. The fixture is not a
+  deployed membership service or proof of eligibility/locking semantics.
+- Full **222/222 PASS**,18.796s:
+  `/private/tmp/pinbook-ios-acceptance-route-core.log`.
+- Simulator build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-acceptance-route-test-build.log`.
+  Unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-acceptance-route-release.log`.
+  No fresh app-host/UI/device runtime. Both read-only device discovery tools
+  report the physical iPhone unavailable/offline; no installation was attempted.
+- No retry coordinator/consent activation is implied by transport. Existing PENDING
+  must survive null/errors; a future explicit retry retains original exact identity
+  and requires fresh consent/durable generation. Tokenless current remains separate.
+- Previous intermittent localhostTLS failures are still unclosed. No trust/deadline
+  relaxation, polling, provider/phone/shared resource, signing/version, push or upload.
+
 ## 2026-09-04 localized membership confirmation and recovery screen (inactive)
 
 - Initial full core **214/214 PASS**,14.809s:

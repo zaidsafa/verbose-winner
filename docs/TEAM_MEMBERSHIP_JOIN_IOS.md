@@ -116,7 +116,8 @@ FINAL_UPDATE_CHECKLIST.md. No source push, normal navigation, shared resource,
 signing/version or TestFlight change is authorized by this inactive foundation.
 
 The Android/backend task's new source-only `teams/acceptance` contract was inspected
-locally (ec8bae6e93a273df9c919099041e2c8ef49f9357). It is not implemented in iOS yet.
+locally (ec8bae6e93a273df9c919099041e2c8ef49f9357). Bounded iOS transport and tests
+now exist (TEAM_ONBOARDING_HTTP_IOS.md), but this owner does not expose retries yet.
 It can return exact current membership or an eligible-pending null; null is NOT a
 reservation or proof that an older queued accept cannot commit later. A future
 retry must keep the same original invitation hash/account/enrollment/team/role,

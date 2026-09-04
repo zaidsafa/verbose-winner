@@ -67,7 +67,8 @@ failure caveats. No new app-host/UI/physical/provider acceptance is claimed.
 Invitation/account consent UI, root workspace lifecycle and reauthentication,
 explicit original-invitation pending-acceptance retry, owner/invitation management,
 real provider/origin configuration and final UX/security acceptance remain open.
-`teams/acceptance` is not implemented here. A future null response must never clear
+`teams/acceptance` now has separately tested iOS transport, but is not exposed by
+this screen or its current owner. A future null response must never clear
 PENDING or trigger automatic replay; retain exact original identity/hash and require
 fresh consent plus a durable generation for one same-identity retry.
 

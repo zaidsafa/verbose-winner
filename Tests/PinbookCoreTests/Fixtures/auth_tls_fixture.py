@@ -66,6 +66,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
             fields = {"teamId": "public-team", "accountId": "public-account",
                       "enrollmentId": "public-enrollment", "role": "MEMBER",
                       "membershipRevision": 1}
+        if self.path == "/api/v1/teams/acceptance":
+            # Response-shape fixture, not backend eligibility/locking logic.
+            fields = {"membership": None if mode == "acceptance-pending" else {
+                "teamId": "public-team", "accountId": "public-account",
+                "enrollmentId": "public-enrollment", "role": "MEMBER",
+                "membershipRevision": 1}}
         if self.path == "/api/v1/teams/invites/list":
             fields = {"invitations": [{"inviteId": f"public-invite-{i}", "role": "MEMBER",
                                        "state": "PENDING", "expiresAt": 20000} for i in range(100)]}
