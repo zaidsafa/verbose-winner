@@ -55,8 +55,11 @@ checkboxes deliberately remain open until checked against the exact next candida
       now persists the exact operation identity and content authority before the
       provider call, reuses it after an ambiguous result, rejects changed bytes or
       concurrent dispatch, and clears only after an exact receipt. Signed
-      Simulator and separate physical-iPhone Keychain tests pass; no provider is
-      enabled yet.
+      Simulator and separate physical-iPhone Keychain tests pass. The inactive
+      Drive v3 adapter now reserves appDataFolder file IDs, pages strict private
+      metadata, bounds media, creates immutable multipart objects and verifies
+      exact metadata+bytes after a 409 retry. Synthetic wire tests pass; personal
+      OAuth/token custody, real Drive acceptance and UI activation remain open.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
@@ -83,8 +86,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   The protected non-synchronizing Keychain stores only redacted operation
   authority before dispatch; exact retry, conflicting-content, concurrent-owner,
   corrupted-state and receipt-settlement cases pass. Complete core, signed
-  app-host, physical iPhone focused QA and ordinary Release pass. No Drive/iCloud
-  adapter, OAuth, scheduler, remote bytes, merge or UI activation exists.
+  app-host, physical iPhone focused QA and ordinary Release pass. The Drive v3
+  adapter is implemented behind an ephemeral token provider with strict bounded
+  appDataFolder requests and exact conflict replay checks; it remains disconnected.
+  No personal OAuth/token custody, iCloud adapter, scheduler, real remote bytes,
+  merge or UI activation exists.
   See `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the

@@ -55,12 +55,17 @@ Updated: 2026-09-05 (Asia/Shanghai)
   overwrite with immutable snapshots, complete bounded pagination and persisted
   idempotent upload identity, then routes verified bytes through existing backup-v8
   preview/snapshot/transaction gates. The provider-neutral Swift port now exposes
-  only list/download/immutable append; its guard rejects cursor loops, duplicate
-  identities, bounds/hash failures and mismatched append receipts. Focused **5/5**,
-  core **337/337**, signed Simulator **362 PASS + 4 expected physical-only SKIPS**
-  and unsigned production Release pass. Android was notified of its committed
-  first-page/unbounded-read/blind-update risks. No OAuth client, token, entitlement,
-  schedule, remote object or production UI was enabled. See
+  only provider-ID reservation/list/download/immutable append; its guard rejects
+  cursor loops, duplicate identities, bounds/hash failures and mismatched append
+  receipts. The protected upload owner persists exact authority before dispatch.
+  The inactive Drive v3 adapter now uses pre-generated appDataFolder IDs, strict
+  private metadata, bounded reads, multipart create and exact 409 metadata+media
+  reconciliation. Core **346/346**, signed Simulator **372 PASS + 4 expected
+  physical-only SKIPS**, physical focused QA **15/15**, and unsigned production
+  Release pass. Android was notified and reported no shared team-contract mismatch.
+  No personal OAuth/token custody, entitlement, schedule, real remote object or
+  production UI was enabled. Local checkpoint `9e1e7b4` plus this adapter
+  follow-up remain local-only and are not pushed. See
   `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - Android/server accepted-event contract checkpoint `2725a49` now has inactive

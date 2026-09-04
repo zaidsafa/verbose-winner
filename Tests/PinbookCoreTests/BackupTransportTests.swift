@@ -22,6 +22,8 @@ private actor BackupTransportStub: BackupTransport {
         self.appendResult = appendResult
     }
 
+    func reserveOperationID() -> String { "reserved_stub" }
+
     func list(after cursor: String?) throws -> RemoteBackupPage {
         guard let cursor else { return first }
         return try #require(following[cursor])
@@ -72,11 +74,17 @@ private enum BackupUploadFixtureError: Error { case unavailable }
 private actor BackupUploadTransport: BackupTransport {
     enum Mode { case success, failure, blocked }
     let mode: Mode
+    let reservedOperationID: String
     private(set) var appendCalls = 0
     private(set) var appendedOperationID: String?
     private var continuation: CheckedContinuation<Void, Never>?
 
-    init(_ mode: Mode) { self.mode = mode }
+    init(_ mode: Mode, reservedOperationID: String) {
+        self.mode = mode
+        self.reservedOperationID = reservedOperationID
+    }
+
+    func reserveOperationID() -> String { reservedOperationID }
 
     func list(after cursor: String?) throws -> RemoteBackupPage {
         try RemoteBackupPage(snapshots: [], nextCursor: nil)
@@ -187,19 +195,16 @@ struct BackupTransportTests {
 
     @Test func uploadReservationPersistsBeforeAppendAndClearsOnlyAfterExactReceipt() async throws {
         let state = BackupUploadStateStub()
-        let owner = PersonalCloudUploadOwner(
-            state: state,
-            makeOperationID: { "google_file_1" }
-        )
+        let owner = PersonalCloudUploadOwner(state: state)
+        let transport = BackupUploadTransport(.success, reservedOperationID: "google_file_1")
         let backup = Data("backup-v8".utf8)
-        let ticket = try owner.reserve(backup, createdAt: 10)
+        let ticket = try await owner.reserve(backup, createdAt: 10, using: transport)
 
         #expect(state.replacements == 1)
         #expect(try owner.pendingUpload() == ticket)
         #expect(String(describing: ticket) == "PendingBackupUpload(<redacted>)")
         #expect(Mirror(reflecting: ticket).children.isEmpty)
 
-        let transport = BackupUploadTransport(.success)
         let receipt = try await owner.append(backup, ticket: ticket, using: transport)
         #expect(receipt.operationID == ticket.operationID)
         #expect(await transport.appendedOperationID == "google_file_1")
@@ -209,29 +214,23 @@ struct BackupTransportTests {
 
     @Test func ambiguousFailureRetainsAndReusesOnlyTheExactUploadIdentity() async throws {
         let state = BackupUploadStateStub()
-        let owner = PersonalCloudUploadOwner(
-            state: state,
-            makeOperationID: { "google_file_2" }
-        )
+        let owner = PersonalCloudUploadOwner(state: state)
         let backup = Data("same-backup-v8".utf8)
-        let ticket = try owner.reserve(backup, createdAt: 20)
-        let failed = BackupUploadTransport(.failure)
+        let failed = BackupUploadTransport(.failure, reservedOperationID: "google_file_2")
+        let ticket = try await owner.reserve(backup, createdAt: 20, using: failed)
 
         await #expect(throws: BackupUploadFixtureError.unavailable) {
             try await owner.append(backup, ticket: ticket, using: failed)
         }
         #expect(try owner.pendingUpload() == ticket)
-        #expect(try owner.reserve(backup, createdAt: 20) == ticket)
-        #expect(throws: PersonalCloudUploadError.unresolvedUpload) {
-            try owner.reserve(Data("newer-backup".utf8), createdAt: 21)
+        #expect(try await owner.reserve(backup, createdAt: 20, using: failed) == ticket)
+        await #expect(throws: PersonalCloudUploadError.unresolvedUpload) {
+            try await owner.reserve(Data("newer-backup".utf8), createdAt: 21, using: failed)
         }
 
-        let reopened = PersonalCloudUploadOwner(
-            state: state,
-            makeOperationID: { "must_not_be_used" }
-        )
-        #expect(try reopened.reserve(backup, createdAt: 20) == ticket)
-        let success = BackupUploadTransport(.success)
+        let reopened = PersonalCloudUploadOwner(state: state)
+        let success = BackupUploadTransport(.success, reservedOperationID: "must_not_be_used")
+        #expect(try await reopened.reserve(backup, createdAt: 20, using: success) == ticket)
         _ = try await reopened.append(backup, ticket: ticket, using: success)
         #expect(await success.appendedOperationID == "google_file_2")
         #expect(try reopened.pendingUpload() == nil)
@@ -239,19 +238,17 @@ struct BackupTransportTests {
 
     @Test func uploadOwnerRejectsChangedBytesAndConcurrentDispatch() async throws {
         let state = BackupUploadStateStub()
-        let owner = PersonalCloudUploadOwner(
-            state: state,
-            makeOperationID: { "google_file_3" }
-        )
+        let owner = PersonalCloudUploadOwner(state: state)
         let backup = Data("backup-v8".utf8)
-        let ticket = try owner.reserve(backup, createdAt: 30)
+        let blocked = BackupUploadTransport(.blocked, reservedOperationID: "google_file_3")
+        let ticket = try await owner.reserve(backup, createdAt: 30, using: blocked)
 
         await #expect(throws: PersonalCloudUploadError.staleOperation) {
             try await owner.append(Data("changed".utf8), ticket: ticket,
-                                   using: BackupUploadTransport(.success))
+                                   using: BackupUploadTransport(.success,
+                                                                reservedOperationID: "unused"))
         }
 
-        let blocked = BackupUploadTransport(.blocked)
         let first = Task { try await owner.append(backup, ticket: ticket, using: blocked) }
         for _ in 0..<1_000 {
             if await blocked.isBlocked() { break }
@@ -267,14 +264,17 @@ struct BackupTransportTests {
         #expect(try owner.pendingUpload() == nil)
     }
 
-    @Test func malformedPersistedUploadAuthorityFailsClosed() {
+    @Test func malformedPersistedUploadAuthorityFailsClosed() async {
         let state = BackupUploadStateStub(Data("not-json".utf8))
         let owner = PersonalCloudUploadOwner(state: state)
         #expect(throws: PersonalCloudUploadError.invalidRecord) {
             try owner.pendingUpload()
         }
-        #expect(throws: PersonalCloudUploadError.invalidRecord) {
-            try owner.reserve(Data("backup".utf8), createdAt: 1)
+        await #expect(throws: PersonalCloudUploadError.invalidRecord) {
+            try await owner.reserve(
+                Data("backup".utf8), createdAt: 1,
+                using: BackupUploadTransport(.success, reservedOperationID: "unused")
+            )
         }
     }
 
@@ -282,17 +282,16 @@ struct BackupTransportTests {
     @Test func protectedKeychainReservationSurvivesReopenAndClearsAfterReceipt() async throws {
         let service = "pinbook.cloud-upload-test." + UUID().uuidString
         let backup = Data("keychain-backup-v8".utf8)
-        let owner = try PersonalCloudUploadOwner(
-            testService: service,
-            makeOperationID: { "google_file_keychain" }
-        )
-        let ticket = try owner.reserve(backup, createdAt: 40)
+        let transport = BackupUploadTransport(.success,
+                                              reservedOperationID: "google_file_keychain")
+        let owner = try PersonalCloudUploadOwner(testService: service)
+        let ticket = try await owner.reserve(backup, createdAt: 40, using: transport)
         let reopened = try PersonalCloudUploadOwner(testService: service)
         #expect(try reopened.pendingUpload() == ticket)
         _ = try await reopened.append(
             backup,
             ticket: ticket,
-            using: BackupUploadTransport(.success)
+            using: transport
         )
         #expect(try reopened.pendingUpload() == nil)
     }

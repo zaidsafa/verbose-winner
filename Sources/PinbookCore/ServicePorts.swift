@@ -85,6 +85,9 @@ public struct RemoteBackupPage: Equatable, Sendable, CustomStringConvertible,
 /// Provider adapters expose immutable append only. There is deliberately no blind
 /// update/delete surface. Authentication, scheduling and user consent stay outside.
 public protocol BackupTransport: Sendable {
+    /// Reserves an identity that the provider can reuse for an idempotent create.
+    /// For Google Drive this is a pre-generated appDataFolder file ID.
+    func reserveOperationID() async throws -> String
     func list(after cursor: String?) async throws -> RemoteBackupPage
     func download(_ snapshot: RemoteBackupSnapshot, maximumBytes: Int) async throws -> Data
     func append(_ backup: Data, operationID: String, createdAt: Int64,
@@ -98,6 +101,15 @@ public enum BackupTransportGuard {
     public static let maximumInventoryPages = 100
     public static let maximumCursorBytes = 2_048
     public static let maximumSafeTime: Int64 = 9_007_199_254_740_991
+
+    public static func reserveOperationID(using transport: any BackupTransport) async throws
+        -> String {
+        let result = try await transport.reserveOperationID()
+        guard RemoteBackupSnapshot.opaqueID(result) else {
+            throw BackupTransportError.invalidMetadata
+        }
+        return result
+    }
 
     public static func inventory(using transport: any BackupTransport,
                                  maximumPages: Int = maximumInventoryPages,

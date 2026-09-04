@@ -148,23 +148,18 @@ private struct EncodedPendingBackupUpload: Codable {
 public final class PersonalCloudUploadOwner: @unchecked Sendable {
     private let lock = NSLock()
     private let state: any BackupUploadStateStoring
-    private let makeOperationID: @Sendable () -> String
     private var activeFlight: UUID?
 
     public convenience init() {
         self.init(state: KeychainBackupUploadStateStore())
     }
 
-    init(state: any BackupUploadStateStoring,
-         makeOperationID: @escaping @Sendable () -> String = { UUID().uuidString }) {
+    init(state: any BackupUploadStateStoring) {
         self.state = state
-        self.makeOperationID = makeOperationID
     }
 
-    init(testService: String,
-         makeOperationID: @escaping @Sendable () -> String = { UUID().uuidString }) throws {
+    init(testService: String) throws {
         self.state = try KeychainBackupUploadStateStore(testService: testService)
-        self.makeOperationID = makeOperationID
     }
 
     public func pendingUpload() throws -> PendingBackupUpload? {
@@ -176,8 +171,25 @@ public final class PersonalCloudUploadOwner: @unchecked Sendable {
 
     /// Returns the existing ticket only when the exact bytes/time match. A
     /// different backup cannot replace an unresolved provider operation.
-    public func reserve(_ backup: Data, createdAt: Int64) throws -> PendingBackupUpload {
+    public func reserve(_ backup: Data, createdAt: Int64,
+                        using transport: any BackupTransport) async throws
+        -> PendingBackupUpload {
         let candidate = try Self.fields(backup, operationID: nil, createdAt: createdAt)
+        if let existing = try lock.withLock({ () throws -> PendingBackupUpload? in
+            if let raw = try state.load() {
+                let existing = try Self.decode(raw)
+                guard Self.sameContent(existing, candidate) else {
+                    throw PersonalCloudUploadError.unresolvedUpload
+                }
+                return existing
+            }
+            return nil
+        }) {
+            return existing
+        }
+
+        let reservedID = try await BackupTransportGuard.reserveOperationID(using: transport)
+        let ticket = try Self.fields(backup, operationID: reservedID, createdAt: createdAt)
         return try lock.withLock {
             if let raw = try state.load() {
                 let existing = try Self.decode(raw)
@@ -186,12 +198,18 @@ public final class PersonalCloudUploadOwner: @unchecked Sendable {
                 }
                 return existing
             }
-            let ticket = try Self.fields(
-                backup,
-                operationID: makeOperationID(),
-                createdAt: createdAt
-            )
-            try state.replace(expected: nil, next: try Self.encode(ticket))
+            let encoded = try Self.encode(ticket)
+            do {
+                try state.replace(expected: nil, next: encoded)
+            } catch {
+                // A keychain/CAS error can be ambiguous. Accept only an exact
+                // committed value; never allocate another logical upload here.
+                if let raw = try? state.load(), let stored = try? Self.decode(raw),
+                   stored == ticket || Self.sameContent(stored, candidate) {
+                    return stored
+                }
+                throw error
+            }
             return ticket
         }
     }

@@ -138,7 +138,7 @@ enum TeamAuthTestFailure: Sendable, Equatable {
 /// Mutable state is protected by lock, including task cancellation and delegate
 /// callbacks. Each request owns a fresh ephemeral session and exactly one resume.
 final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Sendable {
-    enum ResponseProfile { case pinbook, googleToken }
+    enum ResponseProfile { case pinbook, googleToken, googleDriveJSON, googleDriveMedia }
     private let lock = NSLock()
     private var continuation: CheckedContinuation<TeamAuthResponse, Error>?
     private var session: URLSession?
@@ -273,15 +273,18 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
                     completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+        let drive = responseProfile == .googleDriveJSON || responseProfile == .googleDriveMedia
+        let expectedMIME = responseProfile == .googleDriveMedia
+            ? "application/octet-stream" : "application/json"
         guard let http = response as? HTTPURLResponse, http.url == request.url,
               http.allHeaderFields.count <= 32,
               http.allHeaderFields.reduce(0, { $0 + String(describing: $1.key).utf8.count + String(describing: $1.value).utf8.count }) <= 8192,
               http.value(forHTTPHeaderField: "Set-Cookie") == nil,
               http.value(forHTTPHeaderField: "Content-Encoding") == nil,
-              http.value(forHTTPHeaderField: "Cache-Control")?.lowercased().split(separator: ",")
-                .contains(where: { $0.trimmingCharacters(in: .whitespaces) == "no-store" }) == true,
-              (responseProfile == .googleToken || http.value(forHTTPHeaderField: "X-Content-Type-Options")?.lowercased() == "nosniff"),
-              http.mimeType?.lowercased() == "application/json" else {
+              (drive || http.value(forHTTPHeaderField: "Cache-Control")?.lowercased().split(separator: ",")
+                .contains(where: { $0.trimmingCharacters(in: .whitespaces) == "no-store" }) == true),
+              (responseProfile != .pinbook || http.value(forHTTPHeaderField: "X-Content-Type-Options")?.lowercased() == "nosniff"),
+              http.mimeType?.lowercased() == expectedMIME else {
             completionHandler(.cancel)
             finish(.failure(TeamAuthHTTPError.invalidResponse))
             return

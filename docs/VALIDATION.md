@@ -1,5 +1,34 @@
 # Validation plan
 
+## 2026-09-05 inactive Google Drive v3 backup transport
+
+- Corrected the upload reservation boundary so `BackupTransport` supplies the
+  idempotent operation identity. Google Drive therefore pre-generates an
+  `appDataFolder` file ID before the protected owner persists it; a local UUID can
+  no longer silently stand in for a provider-reserved create identity.
+- Added a disconnected `GoogleDriveBackupTransport` using only the documented
+  `drive.appdata` scope. It strictly constructs `generateIds`, page-token list,
+  bounded `alt=media` download and multipart create requests. Private
+  `appProperties` bind schema, ID, creation time, bytes and SHA-256. A retrying
+  create's 409 is successful only after exact metadata and downloaded bytes both
+  verify. Bearer diagnostics are redacted and the bounded ephemeral HTTP exchange
+  refuses redirects, cookies and compressed responses.
+- Focused synthetic Drive wire suite **5/5 PASS**. Clean complete Swift core
+  **346/346 PASS**, 31 suites, 14.212s. No request reached Google.
+- Signed iOS 26.5 Simulator app-host **372 PASS + 4 expected physical-only
+  SKIPS**, 376 total, 0 failures:
+  `/private/tmp/Pinbook-Drive-Adapter-Exact-AppHost-20260905.xcresult`.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** ran the owner,
+  transport and Drive synthetic suites: **15/15 PASS**, 2 suites, 0 skips or
+  failures, including real Keychain reopen/clear:
+  `/private/tmp/Pinbook-QA-Physical-Drive-Adapter-Exact-20260905.xcresult`. QA returned
+  to normal launch afterward; Android was not touched.
+- Ordinary unsigned production Release **BUILD SUCCEEDED**, bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- No personal OAuth/token custody, provider account, live Drive bytes, iCloud,
+  scheduler, automatic merge, production UI, archive/upload, source push or
+  TestFlight action occurred. The existing published build remains unchanged.
+
 ## 2026-09-05 durable personal-cloud upload ownership (inactive)
 
 - Added `PersonalCloudUploadOwner` above the immutable transport guard. It

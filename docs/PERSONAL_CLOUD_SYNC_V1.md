@@ -78,23 +78,33 @@ duplicate object/operation identities, caps inventory, verifies exact byte count
 and SHA-256 after download, and rejects an append receipt that does not match the
 persisted operation identity, creation time, bytes and digest.
 
-`PersonalCloudUploadOwner` now owns the crash-safe write boundary. Before calling
-any provider it stores only the random operation identity, creation time, exact
-byte count and SHA-256 in the app's protected, non-synchronizing Data Protection
-Keychain. An ambiguous failure or app restart can reuse that identity only for the
-same bytes and timestamp. Different content and a second concurrent dispatch fail
-closed; the reservation clears only after an exact verified provider receipt.
-Backup bytes, account identity, filenames and credentials never enter this state.
+`PersonalCloudUploadOwner` now owns the crash-safe write boundary. It first asks
+the selected provider for an idempotent create identity, then stores that identity,
+creation time, exact byte count and SHA-256 in the app's protected,
+non-synchronizing Data Protection Keychain before upload. An ambiguous failure or
+app restart can reuse that identity only for the same bytes and timestamp.
+Different content and a second concurrent dispatch fail closed; the reservation
+clears only after an exact verified provider receipt. Backup bytes, account
+identity, filenames and credentials never enter this state.
 
-- Focused transport and upload-owner tests: **10/10 PASS** on signed Simulator and
-  the separate physical iPhone QA app, including a real Keychain reopen/clear.
-- Complete Swift core: **341/341 PASS**, 30 suites.
-- Signed iOS 26.5 Simulator app-host: **367 PASS + 4 expected physical-only
-  SKIPS**, 371 total, 0 failures.
+`GoogleDriveBackupTransport` implements the inactive Drive v3 wire boundary with
+only the `drive.appdata` scope: pre-generated `appDataFolder` file IDs, complete
+page-token inventory, strict private `appProperties`, exact bounded media reads,
+and multipart immutable create. A 409 retry is accepted only after both metadata
+and remote bytes match the reserved operation. Its ephemeral bearer is redacted;
+bounded fresh sessions reject redirects, cookies and compressed responses.
+
+- Focused transport/owner/Drive tests: **15/15 PASS** on the separate physical
+  iPhone QA app, including a real Keychain reopen/clear; Drive wire tests use an
+  isolated synthetic executor and make no real provider call.
+- Complete Swift core: **346/346 PASS**, 31 suites.
+- Signed iOS 26.5 Simulator app-host: **372 PASS + 4 expected physical-only
+  SKIPS**, 376 total, 0 failures.
 - Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
 
 Exact paths and the initial sandbox-blocked attempt are recorded in
-`VALIDATION.md`. This source still has no Drive/iCloud adapter, token, scheduler,
-remote bytes, automatic merge or production UI entry. The existing TestFlight
-build was not replaced.
+`VALIDATION.md`. The Drive adapter is not connected: this source still has no
+personal-Drive OAuth flow/token custody, iCloud adapter, scheduler, real remote
+bytes, automatic merge or production UI entry. The existing TestFlight build was
+not replaced.
