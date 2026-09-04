@@ -27,6 +27,15 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Coordination-only approval pending: sending the cee0f3c status to the separate
+  Pinbook Android (studious-potato) task was rejected by security review. Read_thread
+  verified it is Zaid's local Pinbook/studious-potato task, but a narrowed retry was
+  also rejected for destination/disclosure authorization. Do NOT retry or route the
+  message indirectly. An asynchronous owner question requests permission to share
+  non-secret implementation/test updates there. Until an explicit answer/approved
+  tool action, pause outbound cross-task status; local iOS implementation and local
+  read-only contract inspection can continue. No credentials/financial data sent.
+
 - Account-bound registration owner now composes current access-only session
   tickets, protected device custody and the SAME retained onboarding client.
   Fresh lookup even for REGISTERED, current-generation checks after slow device
