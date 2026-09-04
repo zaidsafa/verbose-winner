@@ -2,6 +2,57 @@
 
 Updated: 2026-09-04 (Asia/Shanghai)
 
+## Owner release gate — no incremental TestFlight updates
+
+- Owner reports checking the published build 3 and finding it good. This is
+  owner feedback, not a claim of complete physical-device regression coverage.
+- Keep build `0.1.0 (3)` available. Do not upload or distribute further interim
+  TestFlight builds. The next update must contain the complete agreed feature set
+  and pass final integration/regression checks before publication.
+- Continue local implementation and validation. Reconcile the agreed scope with
+  a feature acceptance checklist before declaring the final candidate ready;
+  inactive foundations do not count as completed user-facing features.
+- Outstanding provider choices, access requirements and security activation gates
+  still apply. Do not bypass them to call a build final or silently reduce scope.
+- Track the complete final candidate in `FINAL_UPDATE_CHECKLIST.md`; unchecked
+  gates are not complete merely because build 3 was accepted by the owner.
+
+## Active local implementation after release hold
+
+- Tested source saved locally as `fac1834f4f1bf07942f8d2759fb5b4ec445ea503`.
+  No remote push or release; the previous published source remains unchanged.
+- Added bounded regular-file archive ingestion, immutable authenticated candidates,
+  redacted descriptions, snapshot restore preview and atomic current-state recheck.
+  Source is in `TeamPortableArchive.swift` and `TeamInbox.swift`; v1 wire unchanged.
+- Added bounded own-account/team inbox pagination with stable date/ID ordering,
+  scope-bound cursors and no ACK/deletion side effects. No production entry point.
+- Added device-only recovery-key custody through Security: account/purpose scope,
+  non-synchronizing WhenUnlockedThisDeviceOnly items, no overwrite or automatic
+  regeneration, strict stored-item validation and no key deletion API.
+- Core regression: 50/50 passes. Final signed Simulator system-Keychain round trip
+  passed, including refused overwrite and synthetic test-item cleanup. Exact
+  result: 71 passes, one explicit hardware-protection skip, zero failures. Unsigned
+  iPhone Release build passed. Paths and failed-attempt boundaries: `VALIDATION.md`.
+- The first unsigned Keychain run failed with errSecMissingEntitlement (-34018),
+  not a source-policy failure. Rerunning with local ad-hoc Simulator signing and
+  the existing team/application identity passed. Do not skip the real Keychain
+  test or use unsigned app-host tests for this slice. No Apple account settings,
+  capability registration, provisioning download or project signing edits.
+- Full audit research is at `OPENMLS_AUDIT_ADOPTION_20260904.md`: exact reviewed
+  commit, excluded providers, public fix ancestry and unclosed storage-failure
+  issue. No library/provider installed or crypto/session/team service activated.
+- Android mirrored immutable candidate/preview semantics and reports 84/84 JVM
+  tests at `ca68a77`. Read-only iOS review found no demonstrated semantic mismatch;
+  Android tests were not independently rerun here. No raw URI/path behavior parity
+  is claimed: Android owns InputStream closure; iOS owns its opened file descriptor.
+- No source push, TestFlight upload, project signing/version change, physical-phone access
+  or shared infrastructure action in this continuation. Pending provider question
+  remains coordinated by Android, not repeated to the owner here.
+- Next integration gates: answer the existing Apple+Google versus passkeys question,
+  approve a reviewed library/provider and crash-safe storage design, freeze sender/
+  revision/media archive coverage jointly, then implement authenticated team/Files
+  UX and complete staging acceptance. Do not wire incomplete recovery into production.
+
 ## Current TestFlight build 3 publication — complete
 
 - Owner explicitly approved the additional archive source export and continuing

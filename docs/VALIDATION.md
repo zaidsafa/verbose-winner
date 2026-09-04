@@ -1,5 +1,53 @@
 # Validation plan
 
+## 2026-09-04 post-release local recovery and inbox work
+
+- Exact tested source commit: `fac1834f4f1bf07942f8d2759fb5b4ec445ea503` (local only).
+- No TestFlight upload, app/widget version increment, project signing changes,
+  personal data reset, physical phone or shared Infrastructure action. Build 3
+  remains the published baseline. No app entry point invokes these new APIs.
+- Bounded regular-file ingestion/authenticated candidates, read-only restore
+  counts, atomic conflict recheck, inbox keyset pagination and device-only
+  recovery-key storage are implemented. Portable archive v1/schema unchanged.
+- Core **50/50 passed**, log `/private/tmp/pinbook-ios-recovery-key-core.log`.
+  Command: `swift test --disable-sandbox --scratch-path
+  /private/tmp/pinbook-ios-team-foundation-swift`. Keychain policy tests use a fake
+  backend; no real macOS/user Keychain items are accessed by this suite.
+- Signed iOS Simulator **71 passed, one hardware-only protection check skipped,
+  zero failures**. Result `/private/tmp/Pinbook-Recovery-Key-Signed-Simulator.xcresult`,
+  log `/private/tmp/pinbook-ios-recovery-key-signed-simulator.log`. The actual
+  Security round trip uses known PUBLIC test bytes in a unique test-only service;
+  it verifies load/reopen, account isolation and duplicate-save refusal.
+- Final rerun with an explicit test-item cleanup assertion **TEST SUCCEEDED**:
+  `/private/tmp/Pinbook-Recovery-Key-Verified.xcresult`, log
+  `/private/tmp/pinbook-ios-recovery-key-verified-simulator.log`; **71 passed,
+  one hardware check skipped, zero failures**. This is the final test-source result.
+- Simulator command uses explicit `-sdk iphonesimulator`, dedicated device
+  `4A87A62E-C254-4FBE-8673-7D089E4165C1`, Debug, jobs 2, parallel testing NO,
+  only-testing PinbookTests, `CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-`.
+  Derived data: `/private/tmp/pinbook-ios-recovery-key-signed-derived`.
+  No new capabilities, certificates or provisioning were registered/downloaded.
+- The unsigned app-host attempt correctly failed actual Keychain access with
+  -34018 (missing entitlement); it is not a pass or a reason to skip the test.
+  Earlier command without explicit Simulator SDK also failed test-host discovery.
+  Both failed attempts are retained in `/private/tmp/pinbook-ios-recovery-key-simulator.log`
+  and `/private/tmp/pinbook-ios-import-preview-simulator.log` respectively.
+- Final application source unsigned generic iPhone Release **BUILD SUCCEEDED**,
+  `/private/tmp/pinbook-ios-recovery-key-release.log`. This was build only, not
+  an archive, signed distribution artifact or upload.
+- Coverage adds malformed/oversized files, short reads/growth/partial error,
+  file replacement after preview, cross-connection conflict rollback, own-account
+  scope, empty/idempotent restore, savedAt preservation, bounded stable pages and
+  scope-bound cursors, redacted candidate descriptions, no-overwrite Keychain
+  policy, wrong key/protection/scope and locked/error versus missing behavior.
+- Historical import-only checkpoint: 43 core/63 Simulator passes +1 skip and
+  Release passed. Paging checkpoint: 46 core/66 Simulator passes +1 skip and
+  Release passed. Do not substitute those for the later Keychain-source results.
+- XCUITests were not rerun for these inactive APIs; the published build's 10/10
+  UI suite is historical evidence. Device lock/backup migration, Files provider
+  coordination/cancellation, consent/key export/rotation, full sender/revision/media
+  recovery, real group encryption/auth and staging remain unverified gates.
+
 ## 2026-09-04 TestFlight build 3 release candidate
 
 - Candidate source: `444b18d595133a6f7b291bfd45ab807fa7af3aa2`, version `0.1.0`,

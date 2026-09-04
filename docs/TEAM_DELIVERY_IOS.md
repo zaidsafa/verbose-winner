@@ -2,6 +2,53 @@
 
 Date: 2026-09-04. Branch: `codex/team-delivery-foundation`.
 
+## Local inbox and restore preparation continuation
+
+`TeamArchiveImport.prepare(fileURL:recoveryKey:expectedAccountId:)` now reads an
+opened regular file in bounded chunks before authenticating the archive. It rejects
+non-file URLs, NUL paths, final-component symlinks, directories/FIFOs, oversized
+input and non-ASCII bytes. The descriptor closes on success/failure. Actual bytes
+remain capped if the file grows or reported size is inaccurate. File-provider
+coordination, security-scoped permissions, cancellation and background UI scheduling
+remain the future Files caller's responsibility; no picker is wired to this API.
+
+The prepared value retains authenticated immutable data, not a path or recovery key.
+Standard string/debug descriptions are redacted. UI must discard it on cancellation
+or completion; managed value/String copies do not guarantee physical zeroization.
+Store preview takes one read snapshot and returns new/identical/conflicting counts
+without changing archives or receipts. Confirming uses the same prepared content
+and rechecks all current rows inside the write transaction. Stale preview conflicts
+abort the whole import. Identical deliveries keep the original savedAt.
+
+`archivePage` provides 1...100 own-account/team notes with a savedAt-descending,
+deliveryId-descending keyset cursor. Cursor scope is checked. Reads preserve old
+enrollment metadata and do not create ACKs, remove expired archives or grant access.
+Each page has its own SELECT snapshot; it is not a snapshot across requests. Newer
+notes appear on refresh rather than shifting an offset and repeating previous rows.
+No schema, wire, personal-data, signing, version or production entry-point change.
+
+Final release scope and hold: `FINAL_UPDATE_CHECKLIST.md`. Crypto research and its
+remaining provider/state-storage gates: `OPENMLS_AUDIT_ADOPTION_20260904.md`.
+
+### Inactive recovery-key custody
+
+`TeamRecoveryKeyStore` adds account/purpose-scoped generic-password items through
+Apple Security, with `WhenUnlockedThisDeviceOnly`, synchronizable false, the data
+protection Keychain and no shared access group. `storeNew` accepts only 32-byte
+keys and uses atomic SecItemAdd: an existing key is an error, never overwritten.
+`load` distinguishes not-found from access/lock/decode failures and validates the
+returned account, service, accessibility, sync policy and key length. It never
+generates a key, and there is no production key deletion/replacement API.
+
+This is convenience storage on the existing device, not off-device recovery.
+Intentional recovery-key export/confirmation, consent, rotation/account removal,
+loss explanations and device-lock testing remain gates. No key is stored by the
+production app yet. Test keys are public fixture bytes in a unique test namespace;
+real user Keychain items are never enumerated or modified. Swift/Foundation copies
+cannot be promised fully zeroized even though mutable scratch buffers are cleared.
+[Apple device-only accessibility](https://developer.apple.com/documentation/security/ksecattraccessiblewhenunlockedthisdeviceonly),
+[Apple item lookup](https://developer.apple.com/documentation/security/searching-for-keychain-items).
+
 ## Scope and shared contract
 
 This is source-only implementation, not a new release or enabled feature. No app

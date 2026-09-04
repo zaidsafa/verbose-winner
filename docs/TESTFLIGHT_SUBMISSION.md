@@ -2,6 +2,14 @@
 
 Updated: September 4, 2026
 
+## Next-release gate
+
+The owner checked build 3 and reports it is good. Keep it available and do not
+upload or distribute incremental TestFlight updates. The next upload must be the
+complete agreed feature set, integrated and validated as a final candidate.
+Continue development locally; unresolved access, provider and security gates
+must be resolved before claiming completion.
+
 ## Build 3 published to TestFlight
 
 Owner authorized TestFlight publication and source export. Build 2 was freshly

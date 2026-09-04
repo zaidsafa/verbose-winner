@@ -1,5 +1,14 @@
 # Portable team archive v1
 
+## iOS local import preparation (September 4 continuation)
+
+Wire format below is unchanged. iOS has a bounded regular-file reader, immutable
+authenticated candidate and read-only restore counts. Confirmation uses retained
+content and rechecks database conflicts atomically; no ACK is restored. Candidate
+account binding is checked again by the receiving store. File replacement after
+preview cannot substitute different content at confirmation. This does not enable
+Files/key-custody UI or complete sender/media recovery. See `TEAM_DELIVERY_IOS.md`.
+
 Status: disabled local foundation; no user export/import UI, cloud integration, media, or group
 encryption. Implemented jointly with Pinbook iOS. Never transfer the native Room/SQLite DB.
 
