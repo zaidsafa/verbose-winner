@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "teamId": "team_fixture",
+  "deliveryId": "delivery_fixture",
+  "noteId": "note_fixture",
+  "authorUserId": "author_fixture",
+  "body": "Pinbook team hello — مرحبا 中文 اردو\nLine 2: \"shared\".",
+  "bodySha256": "6bc39fe59ab12e00272ba12f4136b4ca008a3043c7386aa9eaca6c70f51e54ab",
+  "attachmentCount": 0,
+  "canonicalPayloadUtf8": "[\"pinbook-team-note-v1\",\"team_fixture\",\"delivery_fixture\",\"note_fixture\",\"author_fixture\",\"UGluYm9vayB0ZWFtIGhlbGxvIOKAlCDZhdix2K3YqNinIOS4reaWhyDYp9ix2K_ZiApMaW5lIDI6ICJzaGFyZWQiLg\",\"6bc39fe59ab12e00272ba12f4136b4ca008a3043c7386aa9eaca6c70f51e54ab\",0]",
+  "canonicalPayloadBase64url": "WyJwaW5ib29rLXRlYW0tbm90ZS12MSIsInRlYW1fZml4dHVyZSIsImRlbGl2ZXJ5X2ZpeHR1cmUiLCJub3RlX2ZpeHR1cmUiLCJhdXRob3JfZml4dHVyZSIsIlVHbHVZbTl2YXlCMFpXRnRJR2hsYkd4dklPS0FsQ0RaaGRpeDJLM1lxTmluSU9TNHJlYVdoeURZcDlpeDJLX1ppQXBNYVc1bElESTZJQ0p6YUdGeVpXUWlMZyIsIjZiYzM5ZmU1OWFiMTJlMDAyNzJiYTEyZjQxMzZiNGNhMDA4YTMwNDNjNzM4NmFhOWVhY2E2YzcwZjUxZTU0YWIiLDBd"
+}

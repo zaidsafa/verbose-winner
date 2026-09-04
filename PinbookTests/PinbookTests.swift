@@ -94,6 +94,39 @@ func qaSecureEnclaveAgreementIdentityReopensAndMatchesSoftwarePeer() throws {
     #expect(retainedConfirmation == peerConfirmation)
 }
 
+#if targetEnvironment(simulator)
+@Test(.disabled("Requires owner-approved separate QA app on physical iPhone."))
+#else
+@Test(.enabled(if: Bundle.main.bundleIdentifier == "com.zaidsafa.pinbook.ios.qa"))
+#endif
+func qaSecureEnclaveAgreementDecryptsCanonicalTeamPayloadJWE() throws {
+    try #require(SecureEnclave.isAvailable)
+    let custody = try TeamAgreementKeyCustody(origin: "https://pinbook.invalid",
+        accountID: "public-qa-jwe-account", authorityEpoch: "public-qa-epoch",
+        enrollmentID: "public-qa-jwe-enrollment", requireAccess: {})
+    let retained = try custody.prepare()
+    let peerKey = P256.KeyAgreement.PrivateKey()
+    let peerWire = try TeamDeviceEnrollmentWire.publicKey(
+        P256.Signing.PublicKey(x963Representation: peerKey.publicKey.x963Representation))
+    let peer = TeamAgreementPublic(keyThumbprint: peerWire.thumbprint, publicKey: peerWire)
+    let body = "Physical Secure Enclave JWE — مرحبا 中文"
+    let payload = TeamDeliveryPayload(teamId: "team_physical_qa",
+        deliveryId: "delivery_physical_qa", noteId: "note_physical_qa",
+        authorUserId: "author_physical_qa", body: body,
+        bodySha256: TeamDeliveryRules.textSHA256(body))
+    var plaintext = try TeamDeliveryPayloadCodec.encode(payload)
+    defer { plaintext.resetBytes(in: plaintext.startIndex..<plaintext.endIndex) }
+    let recipients = [retained, peer]
+    let jwe = try TeamDeliveryJWE().encrypt(plaintext, recipients: recipients)
+    var decrypted = try TeamDeliveryJWE().decrypt(jwe, custody: custody,
+                                                  expectedRecipients: recipients)
+    defer { decrypted.resetBytes(in: decrypted.startIndex..<decrypted.endIndex) }
+    let decoded = try TeamDeliveryPayloadCodec.decode(decrypted,
+        expectedTeamId: payload.teamId, expectedDeliveryId: payload.deliveryId,
+        expectedAuthorUserId: payload.authorUserId)
+    #expect(decoded == payload)
+}
+
 @Test func personalBackupReaderChecksActualBytesAndShortReads() throws {
     var chunks = [Data("ab".utf8), Data("cd".utf8), Data()]
     let data = try BackupFileRead.readBounded(maximumBytes: 4) { requested in

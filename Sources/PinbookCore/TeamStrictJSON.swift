@@ -3,21 +3,40 @@ import Foundation
 /// Bounded protocol JSON, not the personal backup decoder. Decoded duplicate keys
 /// and noncanonical/unsafe numbers reject before Foundation can normalize them.
 enum TeamStrictJSON {
-    static func object(_ data: Data, maximumBytes: Int = 32 * 1024) throws -> [String: Any] {
-        guard data.count <= maximumBytes else { throw TeamAuthHTTPError.responseTooLarge }
-        guard !data.starts(with: [0xef, 0xbb, 0xbf]), String(data: data, encoding: .utf8) != nil else {
-            throw TeamAuthHTTPError.invalidResponse
-        }
-        var parser = Parser(bytes: Array(data))
-        let value = try parser.value(depth: 0)
-        parser.space()
-        guard parser.index == parser.bytes.count, let object = value as? [String: Any] else {
+    static func object(_ data: Data, maximumBytes: Int = 32 * 1024,
+                       maximumDepth: Int = 4) throws -> [String: Any] {
+        guard let object = try root(data, maximumBytes: maximumBytes,
+                                    maximumDepth: maximumDepth) as? [String: Any] else {
             throw TeamAuthHTTPError.invalidResponse
         }
         return object
     }
+
+    static func array(_ data: Data, maximumBytes: Int = 32 * 1024,
+                      maximumDepth: Int = 4) throws -> [Any] {
+        guard let array = try root(data, maximumBytes: maximumBytes,
+                                   maximumDepth: maximumDepth) as? [Any] else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        return array
+    }
+
+    private static func root(_ data: Data, maximumBytes: Int,
+                             maximumDepth: Int) throws -> Any {
+        guard data.count <= maximumBytes else { throw TeamAuthHTTPError.responseTooLarge }
+        guard (1...8).contains(maximumDepth) else { throw TeamAuthHTTPError.invalidResponse }
+        guard !data.starts(with: [0xef, 0xbb, 0xbf]), String(data: data, encoding: .utf8) != nil else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        var parser = Parser(bytes: Array(data), maximumDepth: maximumDepth)
+        let value = try parser.value(depth: 0)
+        parser.space()
+        guard parser.index == parser.bytes.count else { throw TeamAuthHTTPError.invalidResponse }
+        return value
+    }
     private struct Parser {
         let bytes: [UInt8]
+        let maximumDepth: Int
         var index = 0
         var nodes = 0
         mutating func space() {
@@ -37,7 +56,7 @@ enum TeamStrictJSON {
             }
         }
         mutating func object(depth: Int) throws -> [String: Any] {
-            guard depth <= 4 else { throw TeamAuthHTTPError.invalidResponse }
+            guard depth <= maximumDepth else { throw TeamAuthHTTPError.invalidResponse }
             index += 1; space()
             var result = [String: Any]()
             if take(125) { return result }
@@ -51,7 +70,7 @@ enum TeamStrictJSON {
             }
         }
         mutating func array(depth: Int) throws -> [Any] {
-            guard depth <= 4 else { throw TeamAuthHTTPError.invalidResponse }
+            guard depth <= maximumDepth else { throw TeamAuthHTTPError.invalidResponse }
             index += 1; space()
             var result = [Any]()
             if take(93) { return result }

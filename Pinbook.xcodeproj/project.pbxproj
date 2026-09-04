@@ -27,6 +27,10 @@
 		C7000000000000000000001A /* TeamOutgoingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000019 /* TeamOutgoingStoreTests.swift */; };
 		C7000000000000000000001C /* TeamAgreementPossession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7000000000000000000001B /* TeamAgreementPossession.swift */; };
 		C7000000000000000000001E /* TeamAgreementPossessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7000000000000000000001D /* TeamAgreementPossessionTests.swift */; };
+		C80000000000000000000002 /* TeamDeliveryJWE.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000001 /* TeamDeliveryJWE.swift */; };
+		C80000000000000000000004 /* TeamDeliveryJWETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000003 /* TeamDeliveryJWETests.swift */; };
+		C80000000000000000000006 /* TeamDeliveryPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000005 /* TeamDeliveryPayload.swift */; };
+		C80000000000000000000008 /* TeamDeliveryPayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000007 /* TeamDeliveryPayloadTests.swift */; };
 		B10000000000000000000015 /* TeamMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* TeamMembershipView.swift */; };
 		B10000000000000000000016 /* TeamInvitationAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* TeamInvitationAccountView.swift */; };
 		B2000000000000000000001B /* TeamMembershipScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TeamMembershipScreen.swift */; };
@@ -166,6 +170,10 @@
 		C70000000000000000000019 /* TeamOutgoingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamOutgoingStoreTests.swift; sourceTree = "<group>"; };
 		C7000000000000000000001B /* TeamAgreementPossession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAgreementPossession.swift; sourceTree = "<group>"; };
 		C7000000000000000000001D /* TeamAgreementPossessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAgreementPossessionTests.swift; sourceTree = "<group>"; };
+		C80000000000000000000001 /* TeamDeliveryJWE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeliveryJWE.swift; sourceTree = "<group>"; };
+		C80000000000000000000003 /* TeamDeliveryJWETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliveryJWETests.swift; sourceTree = "<group>"; };
+		C80000000000000000000005 /* TeamDeliveryPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeliveryPayload.swift; sourceTree = "<group>"; };
+		C80000000000000000000007 /* TeamDeliveryPayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliveryPayloadTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* TeamMembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipView.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* TeamInvitationAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationAccountView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TeamMembershipScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipScreen.swift; sourceTree = "<group>"; };
@@ -366,6 +374,8 @@
 				C70000000000000000000013 /* TeamAgreementEnrollment.swift */,
 				C70000000000000000000017 /* TeamOutgoingStore.swift */,
 				C7000000000000000000001B /* TeamAgreementPossession.swift */,
+				C80000000000000000000001 /* TeamDeliveryJWE.swift */,
+				C80000000000000000000005 /* TeamDeliveryPayload.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -401,6 +411,8 @@
 				C70000000000000000000019 /* TeamOutgoingStoreTests.swift */,
 				C7000000000000000000001D /* TeamAgreementPossessionTests.swift */,
 				C70000000000000000000015 /* TeamAgreementEnrollmentTests.swift */,
+				C80000000000000000000003 /* TeamDeliveryJWETests.swift */,
+				C80000000000000000000007 /* TeamDeliveryPayloadTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -664,6 +676,8 @@
 				C70000000000000000000014 /* TeamAgreementEnrollment.swift in Sources */,
 				C70000000000000000000018 /* TeamOutgoingStore.swift in Sources */,
 				C7000000000000000000001C /* TeamAgreementPossession.swift in Sources */,
+				C80000000000000000000002 /* TeamDeliveryJWE.swift in Sources */,
+				C80000000000000000000006 /* TeamDeliveryPayload.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -699,6 +713,8 @@
 				C70000000000000000000016 /* TeamAgreementEnrollmentTests.swift in Sources */,
 				C7000000000000000000001A /* TeamOutgoingStoreTests.swift in Sources */,
 				C7000000000000000000001E /* TeamAgreementPossessionTests.swift in Sources */,
+				C80000000000000000000004 /* TeamDeliveryJWETests.swift in Sources */,
+				C80000000000000000000008 /* TeamDeliveryPayloadTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

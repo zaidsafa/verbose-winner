@@ -5,6 +5,20 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest canonical payload and multi-recipient JWE checkpoint
+
+The separate QA app now encrypts one canonical team-note payload for two recipients
+and decrypts/decodes it through the physical iPhone's retained Secure Enclave
+agreement identity. The exact complete app-host suite is **354/354 PASS**,28
+suites,3.970s; signed QA build and ordinary unsigned Release pass, and QA returned
+to a normal launch. Byte-identical Android/server payload and JWE vectors also
+decrypt for both published software recipients. See `TEAM_DELIVERY_JWE_IOS.md`
+and `VALIDATION.md`.
+
+This is cryptographic/source parity, not live synchronization. The connected
+Android phone was deliberately untouched because no authenticated submit/fetch/
+archive-before-ACK service is active. No TestFlight build was changed.
+
 ## Latest agreement-possession and outgoing-store checkpoint
 
 The frozen Android/server possession contract now runs through the separate QA

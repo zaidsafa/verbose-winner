@@ -1,5 +1,40 @@
 # Validation plan
 
+## 2026-09-05 canonical team payload and multi-recipient JWE parity (inactive)
+
+- Implemented exact independent iOS parity with frozen Android/server checkpoint
+  `b2a33120a1b96c117ebb6cac12a45e72db88c56f`: compact canonical note payload,
+  expected team/delivery/authenticated-author binding, fixed zero attachments,
+  A256GCM General JWE, per-recipient P-256 ECDH-ES+A256KW, complete-audience
+  digest, canonical parsing and input snapshot/failure cleanup. JWE validity is
+  explicitly not treated as sender authentication. No runtime route was activated.
+- Payload and JWE fixtures are byte-identical to the shared checkpoint, SHA-256
+  `6b77c4c44048741fd4fd82ef0c8a244a6b949c3c00a82555c5f760d22bc353c7`
+  and `95d83009ccc53f6573edde6269d66ff6184fe3dbf518954edbcbcb0d5dc9e8a9`.
+  Both recipients independently decrypt and decode the exact payload. Focused
+  composed delivery **26/26 PASS**,3 suites,1.750s:
+  `/private/tmp/pinbook-ios-delivery-composed-focused-final-20260905.log`.
+- Complete Swift core **325/325 PASS**,27 suites,16.951s:
+  `/private/tmp/pinbook-ios-jwe-payload-full-core-20260905.log`. Signed Simulator
+  app-host **354/354 PASS**,28 suites,9.327s:
+  `/private/tmp/Pinbook-JWE-Payload-Signed-Final.xcresult` and
+  `/private/tmp/pinbook-ios-jwe-payload-signed-app-host-final-20260905.log`.
+- Separate physical-iPhone QA build-for-testing **SUCCEEDED** and complete app-host
+  **354/354 PASS**,28 suites,3.970s. The named physical test encrypts the canonical
+  payload for two recipients and decrypts/decodes through the retained Secure
+  Enclave agreement key:
+  `/private/tmp/pinbook-ios-device-qa-jwe-build-20260905.log`,
+  `/private/tmp/Pinbook-QA-Physical-JWE-Payload-20260905.xcresult` and
+  `/private/tmp/pinbook-qa-physical-jwe-payload-20260905.log`. QA returned to a
+  successful normal launch:
+  `/private/tmp/pinbook-qa-jwe-payload-normal-launch-20260905.json`.
+- Ordinary unsigned Release **BUILD SUCCEEDED** with production bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`:
+  `/private/tmp/pinbook-ios-jwe-payload-release-20260905.log`. Shared test fixture
+  filenames/private scalars are absent from the Release app artifact. No Android
+  device, live endpoint, upload/fetch/ACK, archive-before-ACK, release archive,
+  TestFlight upload or real cross-device sync was used.
+
 ## 2026-09-05 finalized-draft identity safeguard (inactive)
 
 - A finalized draft ID can no longer be recreated while its immutable pending

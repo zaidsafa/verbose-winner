@@ -58,6 +58,14 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- The frozen canonical payload and multi-recipient JWE now have exact inactive
+  iOS parity. The plaintext binds the team, delivery, author and body hash; the
+  A256GCM protected header binds the complete frozen agreement-key audience, and
+  each recipient has a distinct P-256 ECDH-ES+A256KW ephemeral. Both shared vectors,
+  both recipients and a physical Secure Enclave decrypt pass. This does not prove
+  sender authentication, server metadata, archive-before-ACK or live sync. See
+  `TEAM_DELIVERY_JWE_IOS.md`.
+
 - The frozen Android/server agreement-possession contract now has inactive exact
   iOS parity. The separate agreement key is registered-device signed and also
   proves its private-key possession through fresh-server-ephemeral P-256 ECDH,

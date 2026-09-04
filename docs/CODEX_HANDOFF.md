@@ -45,6 +45,18 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Frozen Android/server payload/JWE checkpoint
+  `b2a33120a1b96c117ebb6cac12a45e72db88c56f` now has exact inactive iOS parity.
+  The canonical multilingual note tuple binds team/delivery/author/body hash;
+  A256GCM General JWE uses distinct per-recipient P-256 ECDH-ES+A256KW keys and a
+  protected digest of the complete frozen audience. Both byte-identical vectors
+  pass for both recipients; focused delivery **26/26**, core **325/325**, signed
+  Simulator **354/354**, physical QA iPhone **354/354**, named Secure Enclave JWE,
+  normal QA relaunch and ordinary Release all pass. JWE is not sender auth. No
+  runtime/endpoint/archive-before-ACK/Android sync/TestFlight action. See
+  `TEAM_DELIVERY_JWE_IOS.md` and `VALIDATION.md`. NEXT: implement only the newly
+  frozen submit-intent metadata contract, still without activating transport.
+
 - Finalized outgoing draft identities cannot be recreated while their immutable
   pending events remain, preventing retry identity aliasing; generic reflection
   of outgoing values is empty. Exact final source passes focused outgoing

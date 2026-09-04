@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "note": "RFC7518 Appendix C recipient keys plus deterministic P-256 scalars 1 and 2 used only as public test material; never production credentials.",
+  "plaintextUtf8": "[\"pinbook-team-note-v1\",\"team_fixture\",\"delivery_fixture\",\"note_fixture\",\"author_fixture\",\"UGluYm9vayB0ZWFtIGhlbGxvIOKAlCDZhdix2K3YqNinIOS4reaWhyDYp9ix2K_ZiApMaW5lIDI6ICJzaGFyZWQiLg\",\"6bc39fe59ab12e00272ba12f4136b4ca008a3043c7386aa9eaca6c70f51e54ab\",0]",
+  "plaintextBase64url": "WyJwaW5ib29rLXRlYW0tbm90ZS12MSIsInRlYW1fZml4dHVyZSIsImRlbGl2ZXJ5X2ZpeHR1cmUiLCJub3RlX2ZpeHR1cmUiLCJhdXRob3JfZml4dHVyZSIsIlVHbHVZbTl2YXlCMFpXRnRJR2hsYkd4dklPS0FsQ0RaaGRpeDJLM1lxTmluSU9TNHJlYVdoeURZcDlpeDJLX1ppQXBNYVc1bElESTZJQ0p6YUdGeVpXUWlMZyIsIjZiYzM5ZmU1OWFiMTJlMDAyNzJiYTEyZjQxMzZiNGNhMDA4YTMwNDNjNzM4NmFhOWVhY2E2YzcwZjUxZTU0YWIiLDBd",
+  "contentEncryptionKey": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+  "initializationVector": "oKGio6Slpqeoqaqr",
+  "audienceInputUtf8": "[\"Vy57XrArUrW0NbpI12tEzDHABxMwrTh6HHXRenSpnCo\",\"_GK0r6GCoJt9zcssg9lay4obIxgCq05ntiRymRHADSU\"]",
+  "audienceDigest": "d52OUOz78xW4z5kJwhETksjiIBlombyaa6P9sp_bFFE",
+  "protectedHeaderUtf8": "{\"alg\":\"ECDH-ES+A256KW\",\"crit\":[\"pba\",\"pbv\"],\"enc\":\"A256GCM\",\"pba\":\"d52OUOz78xW4z5kJwhETksjiIBlombyaa6P9sp_bFFE\",\"pbv\":1,\"typ\":\"pinbook-team-delivery+jwe\"}",
+  "protected": "eyJhbGciOiJFQ0RILUVTK0EyNTZLVyIsImNyaXQiOlsicGJhIiwicGJ2Il0sImVuYyI6IkEyNTZHQ00iLCJwYmEiOiJkNTJPVU96Nzh4VzR6NWtKd2hFVGtzamlJQmxvbWJ5YWE2UDlzcF9iRkZFIiwicGJ2IjoxLCJ0eXAiOiJwaW5ib29rLXRlYW0tZGVsaXZlcnkrandlIn0",
+  "recipients": [
+    {
+      "kid": "Vy57XrArUrW0NbpI12tEzDHABxMwrTh6HHXRenSpnCo",
+      "recipientJwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "weNJy2HscCSM6AEDTDg04biOvhFhyyWvOHQfeF_PxMQ",
+        "y": "e8lnCO-AlStT-NJVX-crhB7QRYhiix03illJOVAOyck",
+        "d": "VEmDZpDXXK8p8N0Cndsxs924q6nS1RXFASRl6BfUqdw"
+      },
+      "ephemeralJwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY",
+        "y": "T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU",
+        "d": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE"
+      },
+      "sharedSecret": "weNJy2HscCSM6AEDTDg04biOvhFhyyWvOHQfeF_PxMQ",
+      "keyEncryptionKey": "y_wh2YSlKA4oMLAvaazXHsb-JZJOuUTVvoQnHjL9Sm8",
+      "encryptedKey": "yioCVNvdARx_WnPu4w0AKw9jxrI9YYZaRu1QCQr27tm8j-4__lqQCw",
+      "apu": "cGluYm9vay10ZWFtLWRlbGl2ZXJ5LXYx",
+      "apv": "Vnk1N1hyQXJVclcwTmJwSTEydEV6REhBQnhNd3JUaDZISFhSZW5TcG5Dbw"
+    },
+    {
+      "kid": "_GK0r6GCoJt9zcssg9lay4obIxgCq05ntiRymRHADSU",
+      "recipientJwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "gI0GAILBdu7T53akrFmMyGcsF3n5dO7MmwNBHKW5SV0",
+        "y": "SLW_xSffzlPWrHEVI30DHM_4egVwt3NQqeUD7nMFpps",
+        "d": "0_NxaRPUMQoAJt50Gz8YiTr8gRTwyEaCumd-MToTmIo"
+      },
+      "ephemeralJwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "fPJ7GI0DT36KUjgDBLUaw8CJaeJ38hs1pgtI_EdmmXg",
+        "y": "B3dVENuO0EApPZrGn3Qw27p9reY86YIpngS3nSJ4c9E",
+        "d": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI"
+      },
+      "sharedSecret": "voDNMa-qiZnGBpz5v_pYIGHMjGf6vJcCRzasbRePQQw",
+      "keyEncryptionKey": "CRGFEuBsJ3ArQBJoSbgwRb6rgWGrmwz9jnuzYNBPT1Y",
+      "encryptedKey": "m7GKWuLkZwnaq98mIA1zMBeJf0v0a8ahHXO7McDoAYlJGjC2u2lnIw",
+      "apu": "cGluYm9vay10ZWFtLWRlbGl2ZXJ5LXYx",
+      "apv": "X0dLMHI2R0NvSnQ5emNzc2c5bGF5NG9iSXhnQ3EwNW50aVJ5bVJIQURTVQ"
+    }
+  ],
+  "canonicalJwe": "{\"ciphertext\":\"vToMRCupbdAJSPO2ZhftsB_YPD3khmBAvnpD5xL0E2iqAjKNygB_Hzv5aKF_H_GAGH0vMBalaBtjcikwywTg79LV_RtF14HC2MCebfumo8iSbcLcsbTrH8xZHM_29jjN4r1dynrsv8HJnXIZwuCBSmMoF-eRftpQbIuEzNA8in-OIukOnSvuXngKyvl3K8a-8Z30G4e5gr62kuec7rd5SpEtc_jyI3ZfwUBRQyiUz7sgd5TUZUSCHLTgFQpl5HpiDVcu-FK0i93BanKtKBUA02bY195dV7vZ3fFghG727lQLZgEZjwy4BqXdIT50aHdPbYjzWrxmEeVJgZ03\",\"iv\":\"oKGio6Slpqeoqaqr\",\"protected\":\"eyJhbGciOiJFQ0RILUVTK0EyNTZLVyIsImNyaXQiOlsicGJhIiwicGJ2Il0sImVuYyI6IkEyNTZHQ00iLCJwYmEiOiJkNTJPVU96Nzh4VzR6NWtKd2hFVGtzamlJQmxvbWJ5YWE2UDlzcF9iRkZFIiwicGJ2IjoxLCJ0eXAiOiJwaW5ib29rLXRlYW0tZGVsaXZlcnkrandlIn0\",\"recipients\":[{\"encrypted_key\":\"yioCVNvdARx_WnPu4w0AKw9jxrI9YYZaRu1QCQr27tm8j-4__lqQCw\",\"header\":{\"apu\":\"cGluYm9vay10ZWFtLWRlbGl2ZXJ5LXYx\",\"apv\":\"Vnk1N1hyQXJVclcwTmJwSTEydEV6REhBQnhNd3JUaDZISFhSZW5TcG5Dbw\",\"epk\":{\"crv\":\"P-256\",\"kty\":\"EC\",\"x\":\"axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY\",\"y\":\"T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU\"},\"kid\":\"Vy57XrArUrW0NbpI12tEzDHABxMwrTh6HHXRenSpnCo\"}},{\"encrypted_key\":\"m7GKWuLkZwnaq98mIA1zMBeJf0v0a8ahHXO7McDoAYlJGjC2u2lnIw\",\"header\":{\"apu\":\"cGluYm9vay10ZWFtLWRlbGl2ZXJ5LXYx\",\"apv\":\"X0dLMHI2R0NvSnQ5emNzc2c5bGF5NG9iSXhnQ3EwNW50aVJ5bVJIQURTVQ\",\"epk\":{\"crv\":\"P-256\",\"kty\":\"EC\",\"x\":\"fPJ7GI0DT36KUjgDBLUaw8CJaeJ38hs1pgtI_EdmmXg\",\"y\":\"B3dVENuO0EApPZrGn3Qw27p9reY86YIpngS3nSJ4c9E\"},\"kid\":\"_GK0r6GCoJt9zcssg9lay4obIxgCq05ntiRymRHADSU\"}}],\"tag\":\"FMpidXfIkEBvt02z2o-CSQ\"}"
+}
