@@ -119,6 +119,20 @@ in separate QA identities when those dependencies are ready.
 
 ## Rebuild
 
+September5 follow-up: the explicit original-invitation retry screen and readable
+disabled native glass labels now pass **272 app +20 UI tests**,292 total with no
+failures/skips, on the physical QA phone. All312 catalog entries match compiled
+QA and Release app/widget output. Exact result:
+`/private/tmp/Pinbook-QA-Physical-Retry-Final-20260905.xcresult`.
+See TEAM_MEMBERSHIP_RETRY_IOS.md and VALIDATION.md for the initial stale-catalog
+assertion failure, correction and screenshot evidence. The complete UI result
+precedes a subsequent test-only addition of Android's public Keystore vector;
+do not conflate it with live cross-device notes delivery.
+The public Android vector subsequently verified on the physical iPhone; the
+test-only rebuild passed all273 app tests with no skips/failures. Result:
+`/private/tmp/Pinbook-QA-Physical-Android-Vector-20260905.xcresult`.
+See TEAM_DEVICE_ENROLLMENT_WIRE_IOS.md. QA was returned to normal launch afterward.
+
 From this checkout, with owner-approved connected phone and development signing:
 
 ```sh

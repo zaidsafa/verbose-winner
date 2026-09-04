@@ -90,21 +90,26 @@ checkboxes deliberately remain open until checked against the exact next candida
   A localized membership modal and retained UI model now compose that owner with
   unchecked consent and tokenless recovery; synthetic core tests and three native
   membership UI tests pass on the physical QA phone. No normal activation yet. See
-  TEAM_MEMBERSHIP_UI_IOS.md. Invitation/account screens, host wiring and explicit
-  eligible-pending retry UI remain open;
+  TEAM_MEMBERSHIP_UI_IOS.md. Invitation/account screens and parent host wiring
+  remain open;
   the backend's source-only teams/acceptance route now has bounded iOS transport,
-  durable same-identity explicit retry owner and localTLS tests; retry screen/host
-  entry is not integrated. See TEAM_MEMBERSHIP_RETRY_IOS.md. Null must not become
+  durable same-identity explicit retry owner and localTLS tests; the native retry
+  screen/bridge now composes that owner with new consent and original-link-only
+  entry. Parent routing is not integrated. See TEAM_MEMBERSHIP_RETRY_IOS.md. Null must not become
   automatic retry or PENDING deletion. See TEAM_MEMBERSHIP_JOIN_IOS.md,
   TEAM_JOIN_RECOVERY_IOS.md and
   TEAM_INVITATION_CONSENT_IOS.md.
-  Consent/join UI, real
-  hardware/protection/provider acceptance and live enrollment remain open.
+  Full account-to-membership navigation, complete hardware/protection/provider
+  acceptance and live enrollment remain open. Separate physical QA verifies
+  ephemeral Secure Enclave signing and file-protection attributes, not lifecycle
+  recovery or real enrollment.
   See TEAM_DEVICE_REGISTRATION_IOS.md and VALIDATION.md: intermittent localhostTLS
   failures have occurred in sign-in, cancellation and invitation preview across
-  separate runs. Exact causes are unproven. Added bounded numeric transport/trust
-  diagnostics and stronger assertions; subsequent green runs do not close this
-  final-regression caveat or establish one common cause.
+  separate runs. A concrete fixture port-file publication race is now eliminated
+  with atomic readiness plus strict port parsing; three full245-test runs pass.
+  This explains a possible default-port connection failure, but old runs did not
+  record their port, so attribution of every historical failure remains unproven.
+  Keep bounded diagnostics and watch for recurrence during final regression.
   See TEAM_DEVICE_CUSTODY_IOS.md; no normal navigation has been activated.
   See TEAM_ONBOARDING_HTTP_IOS.md; no acceptance checkbox is closed by this layer.
 

@@ -1,0 +1,22 @@
+{
+  "notice": "PUBLIC TEST VECTOR. Physical AndroidKeyStore QA key deleted after test; synthetic bindings and time; no account authority.",
+  "publicKey": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "JK7q3DSexjcYvGMMmihd9qepY0eLH8YgRnrB08173EU",
+    "y": "ph9muQawV3WCxyDP8eZCKNVT2OBRe9cC2BeBFzB_xw8"
+  },
+  "challenge": {
+    "audience": "https://pinbook.example",
+    "authorityEpoch": "public-epoch",
+    "accountId": "public-account",
+    "sessionId": "public-session",
+    "deviceId": "public-device",
+    "challengeId": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    "nonce": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    "keyThumbprint": "CJ_8DegV5-k7xbubmvYkiHfN9wHe51LhbxbnkSnQbSY",
+    "expiresAt": 120000
+  },
+  "message": "[\"pinbook-device-enrollment-v1\",\"https://pinbook.example\",\"public-epoch\",\"public-account\",\"public-session\",\"public-device\",\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"CJ_8DegV5-k7xbubmvYkiHfN9wHe51LhbxbnkSnQbSY\",120000]",
+  "signature": "dBTPpF2dTvHBfjKGLCHRjMMF_5b8fnRy3kSHLKb2Uvk6ehEwz6BEH_4GC9to9uwJsMAkEwyPrBkwkVxxqG-qCg"
+}

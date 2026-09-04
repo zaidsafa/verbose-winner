@@ -2,6 +2,72 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testPendingRetryUsesChineseWarningAndRequiresNewConsent() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership",
+            "-PinbookMembershipScenario", "retry-pending", "-PinbookLanguage", "zh-Hans"]
+        app.launch()
+        let check = app.buttons["membership-review"]
+        XCTAssertTrue(check.waitForExistence(timeout: 10))
+        XCTAssertEqual(check.label, "检查上次加入尝试")
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+        check.tap()
+        let retry = app.buttons["membership-join"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 5))
+        XCTAssertEqual(retry.label, "重试加入")
+        XCTAssertFalse(retry.isEnabled)
+        XCTAssertEqual(app.staticTexts["membership-status"].label,
+            "上次加入尝试仍在等待处理。请再次确认，以使用同一邀请重试。")
+        let consent = app.switches.matching(identifier: "membership-consent").firstMatch
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        let before = XCTAttachment(screenshot: app.screenshot())
+        before.name = "Chinese pending retry with fresh unchecked consent"
+        before.lifetime = .keepAlways; add(before)
+        consent.switches.firstMatch.tap()
+        XCTAssertTrue(retry.wait(for: \.isEnabled, toEqual: true, timeout: 5))
+        for _ in 0..<4 where !retry.isHittable { app.swipeUp() }
+        retry.tap()
+        XCTAssertTrue(app.buttons["membership-done"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+    }
+
+    @MainActor
+    func testPreviousJoinConfirmationDoesNotOfferAnotherJoin() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership",
+            "-PinbookMembershipScenario", "retry-joined", "-PinbookLanguage", "en"]
+        app.launch()
+        let check = app.buttons["membership-review"]
+        XCTAssertTrue(check.waitForExistence(timeout: 10))
+        XCTAssertEqual(check.label, "Check previous join")
+        check.tap()
+        XCTAssertTrue(app.buttons["membership-done"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+        XCTAssertFalse(app.switches["membership-consent"].exists)
+        XCTAssertFalse(app.buttons["membership-review"].exists)
+    }
+
+    @MainActor
+    func testRetryBackgroundClearsConsentAndCannotResumeJoin() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership",
+            "-PinbookMembershipScenario", "retry-pending", "-PinbookLanguage", "en"]
+        app.launch()
+        let check = app.buttons["membership-review"]
+        XCTAssertTrue(check.waitForExistence(timeout: 10)); check.tap()
+        let consent = app.switches.matching(identifier: "membership-consent").firstMatch
+        XCTAssertTrue(consent.waitForExistence(timeout: 5))
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        consent.switches.firstMatch.tap()
+        XCTAssertTrue(app.buttons["membership-join"].isEnabled)
+        XCUIDevice.shared.press(.home); app.activate()
+        XCTAssertTrue(app.staticTexts["Membership screen closed. Open it again to continue."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["membership-account"].exists)
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+        XCTAssertFalse(app.switches["membership-consent"].exists)
+    }
+
+    @MainActor
     func testProminentButtonPaletteRemainsVisibleAcrossSkins() throws {
         let app = XCUIApplication()
         for skin in ["paperGlass", "cleanLedger", "softPastel", "editorial", "nightInk"] {

@@ -156,13 +156,16 @@ enum PinbookSkin: String, CaseIterable, Identifiable {
 /// cannot override it. Destructive roles keep the system's red treatment.
 struct PinbookProminentButtonStyle: PrimitiveButtonStyle {
     @Environment(\.pinbookSkin) private var skin
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         if configuration.role == .destructive {
             Button(configuration).buttonStyle(.glassProminent)
         } else {
             Button(role: configuration.role, action: configuration.trigger) {
-                configuration.label.foregroundStyle(skin.prominentLabel)
+                // Disabled native glass uses a neutral surface, not the accent.
+                // Keep its label semantic instead of dark ink on dark gray.
+                configuration.label.foregroundStyle(isEnabled ? skin.prominentLabel : Color.primary)
             }
             .tint(skin.accent)
             .buttonStyle(.glassProminent)

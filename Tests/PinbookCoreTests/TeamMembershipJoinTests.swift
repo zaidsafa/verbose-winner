@@ -196,6 +196,67 @@ private struct MembershipFixture {
 }
 
 struct TeamMembershipJoinTests {
+    @MainActor @Test func retryScreenBridgeUsesRealOwnerAndDurableSameIdentityConsent() async throws {
+        for accepted in [false, true] {
+            let f = try MembershipFixture(), original = try await f.seedPending()
+            await f.transport.configure(accepted: accepted)
+            let bridge = try TeamMembershipScreenBridge(owner: f.owner(), accountID: f.account.accountID,
+                teamID: original.teamID, originalInvitationToken: membershipCode, role: original.role)
+            let model = try TeamMembershipScreenModel(service: bridge)
+            #expect(await f.transport.calls.isEmpty)
+            #expect(f.backend.writes == 1 && model.context.isRetry)
+            await model.review()
+            #expect(await f.transport.calls == ["lookup", "acceptance"])
+            if accepted {
+                #expect(model.stage == .confirmed && !model.canJoin && f.backend.writes == 3)
+                await #expect(throws: TeamMembershipJoinError.invalidated) { try await bridge.review() }
+            } else {
+                #expect(model.stage == .consent && !model.agreed && !model.canJoin && f.backend.writes == 2)
+                await model.join()
+                #expect(await f.transport.calls == ["lookup", "acceptance"])
+                model.setAgreement(true); await model.join()
+                #expect(model.stage == .confirmed && f.backend.writes == 4)
+                #expect(await f.transport.calls == ["lookup", "acceptance", "lookup", "accept"])
+            }
+            let saved = try #require(try f.saved())
+            #expect(saved.phase == .confirmed && saved.invitationHash == original.invitationHash)
+            #expect(saved.enrollmentID == original.enrollmentID && saved.role == original.role)
+            #expect(!String(decoding: try #require(f.backend.bytes), as: UTF8.self).contains(membershipCode))
+            model.close(); await model.waitForCleanup()
+            await #expect(throws: TeamMembershipJoinError.invalidated) { try await bridge.review() }
+        }
+    }
+    @MainActor @Test func retryBridgeConsumesOriginalCodeBeforeUncertainAttemptAndPreservesRecovery() async throws {
+        let f = try MembershipFixture(), original = try await f.seedPending()
+        let bridge = try TeamMembershipScreenBridge(owner: f.owner(), accountID: f.account.accountID,
+            teamID: original.teamID, originalInvitationToken: membershipCode, role: original.role)
+        let model = try TeamMembershipScreenModel(service: bridge)
+        await model.review(); model.setAgreement(true)
+        await f.transport.configure(failure: "accept"); await model.join()
+        #expect(model.stage == .uncertain && model.canCheck && !model.canJoin && !model.canReview)
+        #expect(try f.saved()?.phase == .pending)
+        await #expect(throws: TeamMembershipJoinError.invalidated) { try await bridge.review() }
+        await f.transport.configure(); await model.checkMembership()
+        #expect(model.stage == .confirmed)
+        #expect((await f.transport.calls).filter { $0 == "accept" }.count == 1)
+        model.close(); await model.waitForCleanup()
+    }
+    @MainActor @Test func retryScreenCannotTurnWrongOriginalCodeOrAccountIntoConsent() async throws {
+        for mismatch in ["code", "account"] {
+            let f = try MembershipFixture(), original = try await f.seedPending()
+            let bridge = try TeamMembershipScreenBridge(owner: f.owner(),
+                accountID: mismatch == "account" ? "foreign" : f.account.accountID, teamID: original.teamID,
+                originalInvitationToken: mismatch == "code" ? String(repeating: "F", count: 42) + "A" : membershipCode,
+                role: original.role)
+            let model = try TeamMembershipScreenModel(service: bridge)
+            await model.review()
+            #expect(model.stage == .reviewFailed && !model.canJoin && model.details == nil)
+            #expect(!(await f.transport.calls).contains("accept"))
+            #expect(try f.saved()?.phase == .pending)
+            model.close(); await model.waitForCleanup()
+        }
+    }
+
     private func retryPreview(_ f: MembershipFixture, _ owner: TeamMembershipJoin) async throws -> TeamMembershipJoinPreview {
         guard case .ready(let display) = try await owner.prepareRetry(token: membershipCode, teamID: "public-team", role: .reviewer) else {
             Issue.record("Expected synthetic eligible-pending consent"); throw TeamMembershipJoinError.invalidIntent

@@ -54,7 +54,7 @@ struct TeamMembershipView: View {
 
                     if model.stage == .consent {
                         Toggle(isOn: Binding(get: { model.agreed }, set: { model.setAgreement($0) })) {
-                            Text("I agree to join this team with the role shown.")
+                            Text(model.context.isRetry ? "I agree to retry joining this team with the role shown." : "I agree to join this team with the role shown.")
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .frame(minHeight: 48)
@@ -91,14 +91,14 @@ struct TeamMembershipView: View {
     @ViewBuilder private var actions: some View {
         if model.canReview {
             Button { Task { await model.review() } } label: {
-                Text("Review invitation").frame(maxWidth: .infinity, minHeight: 44)
+                Text(model.context.isRetry ? "Check previous join" : "Review invitation").frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.pinbookProminent)
             .accessibilityIdentifier("membership-review")
         }
         if model.stage == .consent {
             Button { Task { await model.join() } } label: {
-                Text("Join team").frame(maxWidth: .infinity, minHeight: 44)
+                Text(model.context.isRetry ? "Retry join" : "Join team").frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.pinbookProminent)
             .disabled(!model.canJoin)
@@ -131,6 +131,12 @@ struct TeamMembershipView: View {
     }
     private var statusMessage: LocalizedStringKey {
         switch model.stage {
+        case .ready where model.context.isRetry, .reviewing where model.context.isRetry:
+            "Check the previous attempt before sending another join request."
+        case .consent where model.context.isRetry:
+            "The previous join is still pending. Confirm again to retry the same invitation."
+        case .reviewFailed where model.context.isRetry:
+            "The previous attempt could not be checked. You can check it again or close this screen."
         case .ready where model.context.invitedRole == nil: "Check whether this account still belongs to the team."
         case .joining: "Joining team…"
         case .checking: "Check membership"
@@ -149,11 +155,17 @@ struct TeamMembershipView: View {
 private actor TeamMembershipDebugService: TeamMembershipScreenService {
     nonisolated let context: TeamMembershipScreenContext
     private let uncertain: Bool
+    private let retryJoined: Bool
     init(scenario: String) {
-        context = .init(accountID: "public-test-account", teamID: "public-test-team", invitedRole: scenario == "recovery" ? nil : .member)
+        context = .init(accountID: "public-test-account", teamID: "public-test-team", invitedRole: scenario == "recovery" ? nil : .member,
+            isRetry: scenario == "retry-pending" || scenario == "retry-joined")
         uncertain = scenario == "uncertain"
+        retryJoined = scenario == "retry-joined"
     }
-    func review() async throws -> TeamMembershipJoinPreview { .init(accountID: context.accountID, teamID: context.teamID, role: .member) }
+    func review() async throws -> TeamMembershipRetryPreparation {
+        if retryJoined { return .joined(try result()) }
+        return .ready(.init(accountID: context.accountID, teamID: context.teamID, role: .member))
+    }
     func join(_ preview: TeamMembershipJoinPreview, consent: Bool) async throws -> TeamJoinSnapshot {
         guard consent else { throw TeamMembershipJoinError.consentRequired }
         if uncertain { throw TeamMembershipJoinError.transportFailure }

@@ -53,6 +53,33 @@ late/uncertain write may have committed, but cannot return dispatch permission.
 The owner must still perform current account/device and monotonic checks around
 this synchronous IO; local metadata is not a separate authorization source.
 
+## Native screen integration
+
+The membership bridge now accepts a distinct original-invitation entry with the
+exact account/team/role and original token supplied again by the caller. The token
+is memory-only inside the bridge/owner; screen context contains only identities,
+role and a retry flag. No request occurs at construction or appearance.
+
+**Check previous join** invokes the real `prepareRetry` owner. An exact confirmed
+result goes directly to Done, without consent or another accept. Eligible pending
+shows the original identity/role, a previous-attempt warning and NEW unchecked
+consent. Only an explicit enabled **Retry join** can invoke the existing durable
+same-identity retry. Code is cleared from the bridge before that attempt, on
+confirmed lookup, on tokenless recovery, and on close. An uncertain attempted
+retry offers only tokenless Check; retrying again requires a new original-link
+presentation. Read-only check failures can be explicitly checked again.
+
+Foreign account/team/role, pending-as-confirmed, and an unexpected confirmed result
+from a new-invitation review never enable consent or show success. Close/background
+clears details/consent immediately and drains the retained owner's pending work.
+Caller cancellation rejects late pending/confirmed outcomes. The parent must still
+close/recreate the entire model/bridge on account/session generation changes.
+
+Six new messages are assistant-translated across15 locales plus English. DEBUG
+fixtures `retry-pending` and `retry-joined` require the existing ephemeral-fixture
+double gate and use no real account, Keychain, network or financial records.
+Normal account/workspace routing remains inactive until integration gates pass.
+
 ## Evidence and remaining work
 
 - Five new store cases; focused store **17/17 PASS**,1.069s.
@@ -70,10 +97,24 @@ this synchronous IO; local metadata is not a separate authorization source.
 - Initial store-test compilation failed on throwing assertions; corrected only
   the tests. Exact logs and native build results are in VALIDATION.md.
 
-Retry screen/bridge entry, invitation/account UI and retained workspace routing are
-still NOT connected. The existing membership modal only exposes new-join and
-tokenless recovery. Owner creation/management, actual provider/client/origin setup,
-physical custody, MLS/media/delivery/recovery/cloud/widgets and final UX/staging
-acceptance remain open. Previous intermittentTLS failures remain unproven/unfixed
-despite this passing run. No cross-task message, shared resource, physical install,
-source push, signing/version change or TestFlight update.
+- New screen integration: five synthetic-model tests and three real bridge/owner/
+  store compositions. Focused **42/42 PASS**. Complete core initially244 tests with
+  three unrelated localTLS issues; after a fixture-only atomic port publication
+  correction and its regression test, **245/245 PASS** on three bounded full runs:
+ 20.221s,17.294s,19.769s. Exact evidence and attribution limits in VALIDATION.md.
+- Initial physical run: all six membership UI tests PASS, but the catalog test
+  still expected306 entries instead of312. Updated its exact count and explicit
+  checks for all six new translations. Source/compiled catalog parity already
+  passes312 keys. Final rebuilt physical run **272 app +20 UI PASS**,292 total,
+  zero failures/skips. UI273.596s; corrected Chinese pending-consent screenshot
+  inspected with readable disabled-button text. Result:
+  `/private/tmp/Pinbook-QA-Physical-Retry-Final-20260905.xcresult`;
+  log: `/private/tmp/pinbook-qa-physical-retry-final-20260905.log`.
+  Ordinary unsigned Release PASS:
+  `/private/tmp/pinbook-ios-retry-screen-release-20260905.log`.
+
+Invitation/account UI and retained parent workspace routing remain NOT connected.
+Owner creation/management, actual provider/client/origin setup, complete physical
+custody, MLS/media/delivery/recovery/cloud/widgets and final UX/staging acceptance
+remain open. Separate physical QA is owner-authorized; no production identity,
+financial data, shared runtime, source push or TestFlight change.

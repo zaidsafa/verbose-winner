@@ -34,7 +34,7 @@ struct PinbookLaunchConfiguration: Equatable {
         showsTeamKeySetupFixture = usesEphemeralStore && arguments.contains("-PinbookTeamKeySetup")
         showsTeamMembershipFixture = usesEphemeralStore && arguments.contains("-PinbookTeamMembership")
         if showsTeamMembershipFixture, let scenario = arguments.value(after: "-PinbookMembershipScenario"),
-           ["success", "uncertain", "recovery"].contains(scenario) { membershipFixtureScenario = scenario }
+           ["success", "uncertain", "recovery", "retry-pending", "retry-joined"].contains(scenario) { membershipFixtureScenario = scenario }
         onboardingMode = usesEphemeralStore ? .skip : .automatic
 
         switch arguments.value(after: "-PinbookTab") {

@@ -27,6 +27,11 @@ on appearance; no raw invitation, bearer, persistence or raw error is in UI stat
    operation and rejects late results by generation. Separate cleanup waits for
    both the service's close and actual pending task completion. The parent must
    await cleanup before releasing/reusing its shared workspace resources.
+5. An explicit original-link retry entry now displays **Check previous join**.
+   It can reconcile an already-completed join without another accept, or show
+   previous-attempt guidance and NEW unchecked consent before **Retry join**.
+   Errors cannot automatically resend. See TEAM_MEMBERSHIP_RETRY_IOS.md for the
+   real owner/bridge composition and token lifecycle; no code enters UI state.
 
 The screen explains that joining does not share existing private notes and that
 shared-note delivery is not enabled. Native glass buttons, semantic text colors,
@@ -38,7 +43,7 @@ compiled source is evidence of live accessibility/contrast acceptance.
 
 DEBUG presentation requires BOTH an ephemeral `-PinbookFixture` and explicit
 `-PinbookTeamMembership`. Whitelisted `-PinbookMembershipScenario` values are
-`success`, `uncertain`, `recovery`. These actors use public synthetic values only,
+`success`, `uncertain`, `recovery`, `retry-pending`, `retry-joined`. These actors use public synthetic values only,
 with no Keychain, network, provider, account or financial mutation. Release excludes
 the fixture host and remains on normal `AppShellView` navigation.
 
@@ -70,12 +75,12 @@ failure caveats. Physical QA results do not imply real provider or team activati
 ## Remaining integration
 
 Invitation/account consent UI, root workspace lifecycle and reauthentication,
-explicit original-invitation pending-acceptance retry, owner/invitation management,
+parent routing into original-invitation retry, owner/invitation management,
 real provider/origin configuration and final UX/security acceptance remain open.
-`teams/acceptance` now has separately tested transport and an explicit retry owner,
-but is not exposed by this screen. A future UI null response must never clear
-PENDING or trigger automatic replay; retain exact original identity/hash and require
-fresh consent plus a durable generation for one same-identity retry.
+`teams/acceptance` now composes through the retry screen's retained bridge and real
+owner. A successful null response only prepares fresh consent; it never clears
+PENDING or triggers automatic replay. Exact original identity/hash and a durable
+generation remain required for one explicit same-identity retry.
 
 All FINAL_UPDATE_CHECKLIST gates remain open. Existing financial data, archive
 schema/keys, production signing, source-push hold and TestFlight `0.1.0 (3)` are

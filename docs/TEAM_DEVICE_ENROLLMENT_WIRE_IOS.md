@@ -45,10 +45,34 @@ nine individual field-mutation negatives. The script additionally checks newline
 and double-hash mismatches. These vectors are interoperability tests, not audited
 key-custody or real-account acceptance.
 
-This is not a complete signer/enrollment flow. Still required: dedicated private-key
-custody, durable generation, wall/monotonic operation ownership, trusted epoch,
-HTTP route contract, uncertain-finish reconciliation, revocation/replacement UX,
-physical key-protection checks and server/Infrastructure admission. Do not import
+## Physical Android QA public vector — September 5
+
+The Android task supplied `shared/team-device-enrollment-android-qa-v1.json`,
+reporting generation by its physical Samsung AndroidKeyStore QA test and deletion
+of the ephemeral private alias afterward. Only public JWK, synthetic bindings,
+canonical bytes and raw64 signature are in this fixture. Its copied iOS test
+resource has the exact same SHA256:
+`bebd7e86c612c42edf117a5076e27773e61b7806b69f94cffdfa4fd25b6cf603`.
+
+Swift/CryptoKit **7/7 focused tests PASS**,0.017s, including the exact new Android
+vector: canonical bytes/thumbprint/raw signature and public JWK round trip;
+rejection of changed local bindings, challenge/nonce/expiry, appended newline,
+DER-as-raw and double hashing. Log:
+`/private/tmp/pinbook-ios-android-qa-wire-20260905.log`.
+Physical iPhone16Pro/iOS26.6.1 execution now also **PASS**,0.001s for this exact
+Android-vector test; complete latest app-host suite **273/273 PASS**,8.533s, zero
+skips/failures. Result:
+`/private/tmp/Pinbook-QA-Physical-Android-Vector-20260905.xcresult`;
+log: `/private/tmp/pinbook-qa-physical-android-vector-20260905.log`.
+The20-test UI suite passed immediately before this test-only fixture addition;
+it was not repeated after that rebuild. This proves
+compatibility of these bytes, not attestation of their origin, live enrollment,
+provider admission, reviewed MLS or notes delivery.
+
+This is not a complete activated signer/enrollment flow. Integration still needs
+the implemented custody/generation/operation owners and HTTP routes connected to
+trusted epoch/configuration, uncertain-finish and revocation/replacement UX,
+complete physical key-lifecycle checks and server/Infrastructure admission. Do not import
 archive keys or restore device authority from backup. A current-epoch lookup null
 does not establish that an older-epoch registration row or quota reservation is absent.
 See VALIDATION.md for executed evidence; compilation is not runtime acceptance.

@@ -1,6 +1,570 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Check previous join": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحقق من محاولة الانضمام السابقة"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önceki katılma girişimini kontrol et"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查上次加入尝试"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢查上次加入嘗試"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobar intento anterior"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier la tentative précédente"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorherigen Beitritt prüfen"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificar tentativa anterior"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछले प्रयास की जाँच करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periksa percobaan sebelumnya"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回の参加を確認"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전 참여 시도 확인"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить предыдущую попытку"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica il tentativo precedente"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پچھلی کوشش کی جانچ کریں"
+          }
+        }
+      }
+    },
+    "Check the previous attempt before sending another join request.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحقق من المحاولة السابقة قبل إرسال طلب انضمام آخر."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başka bir katılma isteği göndermeden önce önceki girişimi kontrol edin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送新的加入请求前，请先检查上次尝试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "傳送新的加入請求前，請先檢查上次嘗試。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprueba el intento anterior antes de enviar otra solicitud para unirte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifiez la tentative précédente avant d’envoyer une autre demande d’adhésion."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe den vorherigen Versuch, bevor du eine weitere Beitrittsanfrage sendest."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifique a tentativa anterior antes de enviar outro pedido para entrar."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जुड़ने का दूसरा अनुरोध भेजने से पहले पिछले प्रयास की जाँच करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periksa percobaan sebelumnya sebelum mengirim permintaan bergabung lagi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別の参加リクエストを送信する前に、前回の試行を確認してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다른 참여 요청을 보내기 전에 이전 시도를 확인하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверьте предыдущую попытку, прежде чем отправлять ещё один запрос на вступление."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica il tentativo precedente prima di inviare un’altra richiesta di adesione."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شامل ہونے کی ایک اور درخواست بھیجنے سے پہلے پچھلی کوشش کی جانچ کریں۔"
+          }
+        }
+      }
+    },
+    "The previous join is still pending. Confirm again to retry the same invitation.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا تزال محاولة الانضمام السابقة معلقة. أكّد مجددًا لإعادة المحاولة بالدعوة نفسها."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önceki katılma girişimi hâlâ beklemede. Aynı daveti yeniden denemek için tekrar onaylayın."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次加入尝试仍在等待处理。请再次确认，以使用同一邀请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次加入嘗試仍在等待處理。請再次確認，以使用同一邀請重試。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El intento anterior sigue pendiente. Confirma de nuevo para reintentar con la misma invitación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tentative précédente est toujours en attente. Confirmez à nouveau pour réessayer avec la même invitation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der vorherige Beitritt ist noch ausstehend. Bestätige erneut, um es mit derselben Einladung noch einmal zu versuchen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tentativa anterior ainda está pendente. Confirme novamente para tentar com o mesmo convite."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जुड़ने का पिछला प्रयास अभी लंबित है। उसी निमंत्रण से दोबारा प्रयास करने के लिए फिर से पुष्टि करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Percobaan bergabung sebelumnya masih tertunda. Konfirmasikan lagi untuk mencoba ulang undangan yang sama."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回の参加はまだ保留中です。同じ招待で再試行するには、もう一度確認してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전 참여 시도가 아직 대기 중입니다. 같은 초대로 다시 시도하려면 다시 확인하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предыдущая попытка вступления ещё ожидает обработки. Подтвердите снова, чтобы повторить её с тем же приглашением."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tentativo precedente è ancora in sospeso. Conferma di nuovo per riprovare con lo stesso invito."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شامل ہونے کی پچھلی کوشش ابھی زیرِ التوا ہے۔ اسی دعوت سے دوبارہ کوشش کرنے کے لیے پھر تصدیق کریں۔"
+          }
+        }
+      }
+    },
+    "Retry join": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أعد محاولة الانضمام"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Katılmayı yeniden dene"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试加入"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重試加入"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar unirse"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer de rejoindre"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beitritt erneut versuchen"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar entrar novamente"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जुड़ने का फिर प्रयास करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coba bergabung lagi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参加を再試行"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "참여 다시 시도"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить вступление"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprova a unirti"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شامل ہونے کی دوبارہ کوشش"
+          }
+        }
+      }
+    },
+    "I agree to retry joining this team with the role shown.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أوافق على إعادة محاولة الانضمام إلى هذا الفريق بالدور الموضح."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gösterilen rolle bu ekibe katılmayı yeniden denemeyi kabul ediyorum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我同意按所示角色再次尝试加入此团队。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我同意按所示角色再次嘗試加入此團隊。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acepto volver a intentar unirme a este equipo con el rol indicado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J’accepte de réessayer de rejoindre cette équipe avec le rôle indiqué."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich stimme zu, diesem Team erneut mit der angezeigten Rolle beizutreten."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concordo em tentar entrar novamente nesta equipe com a função indicada."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मैं दिखाई गई भूमिका के साथ इस टीम में जुड़ने का फिर से प्रयास करने के लिए सहमत हूँ।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saya setuju untuk mencoba bergabung lagi ke tim ini dengan peran yang ditampilkan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示された役割でこのチームへの参加を再試行することに同意します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "표시된 역할로 이 팀에 참여하는 것을 다시 시도하는 데 동의합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я согласен повторить попытку вступления в эту команду с указанной ролью."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accetto di riprovare a unirmi a questo team con il ruolo indicato."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "میں دکھائے گئے کردار کے ساتھ اس ٹیم میں شامل ہونے کی دوبارہ کوشش سے اتفاق کرتا ہوں۔"
+          }
+        }
+      }
+    },
+    "The previous attempt could not be checked. You can check it again or close this screen.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر التحقق من المحاولة السابقة. يمكنك التحقق مجددًا أو إغلاق هذه الشاشة."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önceki girişim kontrol edilemedi. Yeniden kontrol edebilir veya bu ekranı kapatabilirsiniz."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查上次尝试。你可以再次检查或关闭此页面。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法檢查上次嘗試。你可以再次檢查或關閉此頁面。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo comprobar el intento anterior. Puedes comprobarlo de nuevo o cerrar esta pantalla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de vérifier la tentative précédente. Vous pouvez réessayer la vérification ou fermer cet écran."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der vorherige Versuch konnte nicht geprüft werden. Du kannst ihn erneut prüfen oder diesen Bildschirm schließen."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível verificar a tentativa anterior. Você pode verificar novamente ou fechar esta tela."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पिछले प्रयास की जाँच नहीं हो सकी। आप फिर से जाँच कर सकते हैं या यह स्क्रीन बंद कर सकते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Percobaan sebelumnya tidak dapat diperiksa. Anda dapat memeriksanya lagi atau menutup layar ini."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回の試行を確認できませんでした。もう一度確認するか、この画面を閉じてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전 시도를 확인할 수 없습니다. 다시 확인하거나 이 화면을 닫을 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось проверить предыдущую попытку. Можно проверить её снова или закрыть этот экран."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile verificare il tentativo precedente. Puoi verificarlo di nuovo o chiudere questa schermata."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پچھلی کوشش کی جانچ نہیں ہو سکی۔ آپ دوبارہ جانچ کر سکتے ہیں یا یہ اسکرین بند کر سکتے ہیں۔"
+          }
+        }
+      }
+    },
     "Team membership": {
       "localizations": {
         "ar": {

@@ -1,5 +1,63 @@
 # Validation plan
 
+## 2026-09-05 explicit retry screen and TLS-fixture readiness correction
+
+- Five new screen cases and three real bridge/owner/store compositions; focused
+  **42/42 PASS**,0.073s:
+  `/private/tmp/pinbook-ios-retry-screen-focused-20260905.log`.
+- First full run **FAILED**,244 tests/three issues:
+  `/private/tmp/pinbook-ios-retry-screen-full-core-20260905.log`.
+  Existing tlsTrustAndActualPostBody and503 one-transmission assertions failed;
+  private diagnostics recorded URL error-1004 (cannot connect). New retry cases
+  and composed membershipTLS cases passed. This was not dismissed as a green run.
+- Found a concrete fixture startup race: Python write_text creates the `port` file
+  before filling it, while Swift treated existence as readiness. Empty text forms
+  `https://localhost:` with no port in Foundation, silently targeting the default
+  HTTPS port. Fixture now writes `port.pending` then atomically renames it; Swift
+  independently requires a canonical1...65535 port and verifies URL.port. New
+  regression rejects empty/whitespace/overflow/noncanonical values. Production
+  transport, trust policies, deadlines and one-transmission rules are unchanged.
+- Complete **245/245 PASS** on three bounded runs:20.221s,17.294s,19.769s:
+  `/private/tmp/pinbook-ios-retry-screen-atomic-port-core-20260905.log`,
+  `/private/tmp/pinbook-ios-retry-screen-atomic-port-core-20260905-2.log`,
+  `/private/tmp/pinbook-ios-retry-screen-atomic-port-core-20260905-3.log`.
+  The race is eliminated by construction and is consistent with these connection
+  failures. Historical failed runs did not record the parsed port, so this does
+  not prove the cause of every older TLS failure. Retain that evidence and watch
+  for recurrence in final validation; never relax trust/timeouts to force passes.
+- QA signed build PASS. Initial physical run had **six membership UI PASS**, but
+  one app catalog test failed its stale306 count in15 locales (actual312). Fixed
+  exact count and added assertions for all six new retry translations.
+  Initial result: `/private/tmp/Pinbook-QA-Physical-Retry-Screen-20260905.xcresult`;
+  log: `/private/tmp/pinbook-qa-physical-retry-screen-20260905.log`.
+  Source/compiled QA app/widget parity PASS312 keys×15 translations+English.
+- Chinese retry screenshot inspected: warning and unchecked consent wrap cleanly;
+  disabled prominent text was too dark on its neutral surface. Use semantic text
+  for disabled native buttons, retaining contrasting accent labels when enabled.
+  Final rebuilt physical **272 app +20 UI PASS**,292 total with zero failures/
+  skips; UI273.596s. Exact result:
+  `/private/tmp/Pinbook-QA-Physical-Retry-Final-20260905.xcresult`;
+  log: `/private/tmp/pinbook-qa-physical-retry-final-20260905.log`.
+  Corrected Chinese pending-consent screenshot inspected: warning/role/account
+  and unchecked switch readable; disabled label now legible on its neutral surface.
+  Ordinary unsigned Release PASS:
+  `/private/tmp/pinbook-ios-retry-screen-release-20260905.log`.
+  Source and compiled QA/Release app/widget catalogs exactly match312 entries.
+- Android supplied a new public physical-Keystore fixture; copied bytes match
+  SHA256 bebd7e86c612c42edf117a5076e27773e61b7806b69f94cffdfa4fd25b6cf603.
+  Swift focused7/7 PASS; subsequent complete core **246/246 PASS**,18.268s:
+  `/private/tmp/pinbook-ios-retry-android-vector-full-core-20260905.log`.
+  No new runtime code change; a test-only rebuild adds native fixture verification.
+  Physical iPhone Android-vector test now PASS0.001s; all273 app tests PASS8.533s,
+  zero skips/failures. Result:
+  `/private/tmp/Pinbook-QA-Physical-Android-Vector-20260905.xcresult`;
+  log: `/private/tmp/pinbook-qa-physical-android-vector-20260905.log`.
+  Full20 UI preceded that test-only rebuild. See TEAM_DEVICE_ENROLLMENT_WIRE_IOS.md
+  for scope; no live enrollment/notes or attestation is inferred. QA launched
+  normally afterward; receipt `/private/tmp/pinbook-qa-post-retry-normal-launch-20260905.json`.
+- No normal team activation, real provider/shared service, production data/identity,
+  source push or TestFlight update. See TEAM_MEMBERSHIP_RETRY_IOS.md.
+
 ## 2026-09-05 isolated physical iPhone QA
 
 Separate development QA build, signature verification and installation PASS.

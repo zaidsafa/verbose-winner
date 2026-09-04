@@ -6,13 +6,19 @@ struct TeamMembershipScreenContext: Sendable {
     let teamID: String
     /// Nil means a saved-team recovery entry, not a new invitation.
     let invitedRole: TeamInvitationRole?
+    let isRetry: Bool
+    init(accountID: String, teamID: String, invitedRole: TeamInvitationRole?, isRetry: Bool = false) {
+        self.accountID = accountID; self.teamID = teamID
+        self.invitedRole = invitedRole; self.isRetry = isRetry
+    }
     func validate() throws {
-        guard TeamAuthWire.identifier(accountID), TeamAuthWire.identifier(teamID) else { throw TeamMembershipJoinError.invalidIntent }
+        guard TeamAuthWire.identifier(accountID), TeamAuthWire.identifier(teamID),
+              !isRetry || invitedRole != nil else { throw TeamMembershipJoinError.invalidIntent }
     }
 }
 protocol TeamMembershipScreenService: Sendable {
     var context: TeamMembershipScreenContext { get }
-    func review() async throws -> TeamMembershipJoinPreview
+    func review() async throws -> TeamMembershipRetryPreparation
     func join(_ preview: TeamMembershipJoinPreview, consent: Bool) async throws -> TeamJoinSnapshot
     func recover() async throws -> TeamJoinSnapshot
     func close() async
@@ -23,6 +29,7 @@ actor TeamMembershipScreenBridge: TeamMembershipScreenService {
     nonisolated let context: TeamMembershipScreenContext
     private let owner: TeamMembershipJoin
     private var invitation: TeamInviteJoinIntent?
+    private var retryToken: String?
     private var closed = false
     init(owner: TeamMembershipJoin, invitation: TeamInviteJoinIntent) {
         self.owner = owner; self.invitation = invitation
@@ -33,23 +40,40 @@ actor TeamMembershipScreenBridge: TeamMembershipScreenService {
         context = .init(accountID: accountID, teamID: savedTeamID, invitedRole: nil)
         try context.validate()
     }
-    func review() async throws -> TeamMembershipJoinPreview {
-        guard !closed, let invitation else { throw TeamMembershipJoinError.invalidated }
-        return try await owner.prepare(invitation)
+    /// Reopening the original link is explicit. The raw token is memory-only;
+    /// this entry does not require a fresh preview of an expired/consumed link.
+    init(owner: TeamMembershipJoin, accountID: String, teamID: String,
+         originalInvitationToken: String, role: TeamInvitationRole) throws {
+        guard TeamAuthWire.credential(originalInvitationToken) else { throw TeamMembershipJoinError.invalidIntent }
+        self.owner = owner; retryToken = originalInvitationToken
+        context = .init(accountID: accountID, teamID: teamID, invitedRole: role, isRetry: true)
+        try context.validate()
+    }
+    func review() async throws -> TeamMembershipRetryPreparation {
+        guard !closed else { throw TeamMembershipJoinError.invalidated }
+        let result: TeamMembershipRetryPreparation
+        if let retryToken, let role = context.invitedRole {
+            result = try await owner.prepareRetry(token: retryToken, teamID: context.teamID, role: role)
+        } else if let invitation {
+            result = .ready(try await owner.prepare(invitation))
+        } else { throw TeamMembershipJoinError.invalidated }
+        guard !closed else { throw TeamMembershipJoinError.invalidated }
+        if case .joined = result { invitation = nil; retryToken = nil }
+        return result
     }
     func join(_ preview: TeamMembershipJoinPreview, consent: Bool) async throws -> TeamJoinSnapshot {
-        guard !closed, consent, invitation != nil,
+        guard !closed, consent, invitation != nil || retryToken != nil,
               preview.teamID == context.teamID, preview.accountID == context.accountID,
               preview.role == context.invitedRole else { throw TeamMembershipJoinError.staleConsent }
-        invitation = nil
+        invitation = nil; retryToken = nil
         return try await owner.join(preview, consent: consent)
     }
     func recover() async throws -> TeamJoinSnapshot {
         guard !closed else { throw TeamMembershipJoinError.invalidated }
-        invitation = nil
+        invitation = nil; retryToken = nil
         return try await owner.recover(teamID: context.teamID)
     }
-    func close() async { closed = true; invitation = nil; await owner.close() }
+    func close() async { closed = true; invitation = nil; retryToken = nil; await owner.close() }
 }
 
 enum TeamMembershipScreenStage: Sendable, Equatable {
@@ -87,7 +111,15 @@ final class TeamMembershipScreenModel {
         guard canReview, !Task.isCancelled else { return }
         preview = nil; agreed = false; details = nil
         let service = service
-        await run(stage: .reviewing) { .preview(try await service.review()) }
+        let isRetry = context.isRetry
+        await run(stage: .reviewing) {
+            switch try await service.review() {
+            case .ready(let value): return .preview(value)
+            case .joined(let value):
+                guard isRetry else { throw TeamMembershipJoinError.invalidIntent }
+                return .membership(value)
+            }
+        }
     }
     func join() async {
         guard canJoin, let selected = preview, !Task.isCancelled else { return }

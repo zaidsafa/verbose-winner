@@ -8,13 +8,13 @@ import Testing
 #endif
 
 struct TeamDeviceEnrollmentWireTests {
-    private func vector() throws -> [String: Any] {
+    private func vector(_ name: String = "team-device-enrollment-v1") throws -> [String: Any] {
         #if SWIFT_PACKAGE
         let bundle = Bundle.module
         #else
         let bundle = Bundle(for: FixtureBundleMarker.self)
         #endif
-        let url = try #require(bundle.url(forResource: "team-device-enrollment-v1", withExtension: "json", subdirectory: "Fixtures"))
+        let url = try #require(bundle.url(forResource: name, withExtension: "json", subdirectory: "Fixtures"))
         return try #require(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
     }
     private func binding(_ fixture: [String: Any], expiry: Int64 = 120_000) throws -> TeamDeviceEnrollmentWire.Binding {
@@ -24,7 +24,17 @@ struct TeamDeviceEnrollmentWireTests {
             keyThumbprint: key.thumbprint, accessExpiresAt: expiry)
     }
     @Test func nodeSignatureAndExactCanonicalMessageVerifyInCryptoKit() throws {
-        let fixture = try vector(), expected = try binding(fixture)
+        try verifyCanonicalSignature(vector())
+    }
+    @Test func physicalAndroidQAKeySignatureAndEveryBindingVerifyInCryptoKit() throws {
+        // Exact public Samsung AndroidKeyStore handoff; never includes a private
+        // alias/key or real account authority. Verifies crypto, not live delivery.
+        let fixture = try vector("team-device-enrollment-android-qa-v1")
+        try verifyCanonicalSignature(fixture)
+        try verifyChangedFields(fixture)
+    }
+    private func verifyCanonicalSignature(_ fixture: [String: Any]) throws {
+        let expected = try binding(fixture)
         let key = try TeamDeviceEnrollmentWire.publicKey(#require(fixture["publicKey"] as? [String: String]))
         let challenge = try #require(fixture["challenge"] as? [String: Any])
         let message = try TeamDeviceEnrollmentWire.message(challenge: JSONSerialization.data(withJSONObject: challenge), expected: expected, now: 1)
@@ -41,7 +51,10 @@ struct TeamDeviceEnrollmentWireTests {
         #expect(try TeamDeviceEnrollmentWire.publicKey(key.key).jwk == key.jwk)
     }
     @Test func eachLocallyKnownBindingAndEverySignedFieldMatter() throws {
-        let fixture = try vector(), expected = try binding(fixture)
+        try verifyChangedFields(vector())
+    }
+    private func verifyChangedFields(_ fixture: [String: Any]) throws {
+        let expected = try binding(fixture)
         let original = try #require(fixture["challenge"] as? [String: Any])
         for field in ["audience", "authorityEpoch", "accountId", "sessionId", "deviceId", "keyThumbprint"] {
             var changed = original; changed[field] = "wrong"

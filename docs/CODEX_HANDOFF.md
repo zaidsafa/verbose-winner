@@ -45,6 +45,38 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Explicit original-link retry now connects native model/bridge to the real
+  membership owner. Check previous join can finish without another accept, or
+  present previous-attempt guidance and NEW unchecked consent before one exact
+  retry. Bridge clears original code before attempt/on recovery/confirmation/close;
+  uncertain attempt offers tokenless Check, not replay. Five new model +three
+  real composition tests; focused42/42 PASS. Six new messages translated across
+  all15 locales+English (312 total catalog keys), source and compiled QA/Release
+  parity PASS. Initial physical six UI tests PASS; stale306 catalog assertion
+  corrected to312 and all six new keys checked. Final full physical QA **272 app
+  +20 UI PASS**,292 total, no skips/failures. Shared disabled native button uses semantic text
+  over its neutral surface. Both QA test build and ordinary unsigned Release PASS.
+  See TEAM_MEMBERSHIP_RETRY_IOS.md and VALIDATION.md. Parent invitation/account
+  screens and workspace/session lifecycle routing are NEXT, not live activation.
+  Integration detail: TeamInvitedSignIn.clear cancels/invalidate its pending flow
+  but does not itself await every preview task. Its screen wrapper must retain and
+  drain real pending work, reject late results, and close permanently on session
+  replacement. Keep raw join intents/tokens inside service/workspace ownership,
+  not displayed or persisted UI state. Device enrollment still needs its separate
+  explicit consent; completing account access must not silently register or join.
+  Initial full244-core run failed with existing localhostTLS -1004 errors; found
+  and fixed a concrete fixture startup race (existence before port contents), with
+  atomic port-file publication +strict port parsing/regression. Full245/245 PASS
+  three times20.221s/17.294s/19.769s. Old failures lack port evidence, so do not
+  claim this proves every historical cause. No production transport/trust/timeout
+  changes or source push/TestFlight/shared runtime changes.
+  Android supplied an exact public Samsung Keystore signature fixture; copied
+  SHA256 matches producer, Swift focused7/7 and subsequent full246/246 PASS.
+  Exact Android public vector now verifies on physical iPhone0.001s; all273 app
+  tests PASS8.533s, zero skips/failures. Full20 UI preceded that test-only rebuild.
+  QA launched normally afterward. No new runtime feature/code in that addition.
+  See TEAM_DEVICE_ENROLLMENT_WIRE_IOS.md for byte-level interoperability scope.
+
 - Separate signed Pinbook QA app/widget now installed on iPhone16Pro/iOS26.6.1:
   distinct `.qa` app identity, `pinbook-qa` links, default Keychain/container
   isolation, no App Group/sharing entitlement. Production defaults remain

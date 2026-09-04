@@ -202,8 +202,12 @@ func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
         let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
         let data = try Data(contentsOf: url)
         let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
-        #expect(values.count == 306)
-        for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed.", "I agree to join this team with the role shown.", "We couldn't confirm the result. Check membership before trying anything else.", "Check whether this account still belongs to the team."] {
+        #expect(values.count == 312)
+        for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed.", "I agree to join this team with the role shown.", "We couldn't confirm the result. Check membership before trying anything else.", "Check whether this account still belongs to the team.",
+                    "Check previous join", "Check the previous attempt before sending another join request.",
+                    "The previous join is still pending. Confirm again to retry the same invitation.",
+                    "Retry join", "I agree to retry joining this team with the role shown.",
+                    "The previous attempt could not be checked. You can check it again or close this screen."] {
             let value = try #require(values[key])
             #expect(!value.isEmpty && value != key)
         }
