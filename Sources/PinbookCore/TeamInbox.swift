@@ -1,6 +1,12 @@
 import Foundation
 import SQLite3
 import Darwin
+import CryptoKit
+
+public struct TeamArchiveRestoreResult: Equatable, Sendable {
+    public let inserted: Int
+    public let unchanged: Int
+}
 
 public struct ArchivedTeamNote: Equatable, Sendable {
     public let envelope: TeamNoteEnvelope
@@ -168,6 +174,56 @@ public final class TeamInboxStore: @unchecked Sendable {
         return try lock.withLock { try archivedUnlocked(deliveryId: deliveryId) }
     }
 
+    /// Account-wide archive export, distinct from the team's live delivery/receipt scope.
+    /// Returns authenticated ciphertext only; no plaintext file or key is written to disk.
+    public func exportEncryptedAccountArchive(exportedAt: Int64, recoveryKey: SymmetricKey) throws -> String {
+        guard recoveryKey.bitCount == 256 else { throw TeamArchiveError.invalidKey }
+        var plaintext = try lock.withLock {
+            var writer = try BoundedTeamArchiveWriter(accountId: target.userId, exportedAt: exportedAt)
+            let statement = try prepare("SELECT team_id, delivery_id, envelope, saved_at FROM archive WHERE account_id=? ORDER BY team_id, delivery_id",
+                                        [.text(target.userId)])
+            defer { sqlite3_finalize(statement) }
+            while try step(statement) == SQLITE_ROW {
+                let rowTeam = String(cString: sqlite3_column_text(statement, 0))
+                let rowDelivery = String(cString: sqlite3_column_text(statement, 1))
+                let envelope = try readEnvelope(statement, column: 2)
+                guard envelope.teamId == rowTeam, envelope.deliveryId == rowDelivery else {
+                    throw TeamDeliveryError.storage(SQLITE_CORRUPT)
+                }
+                try writer.append(ArchivedTeamNote(envelope: envelope, savedAt: sqlite3_column_int64(statement, 3)))
+            }
+            return writer.finish()
+        }
+        defer { plaintext.resetBytes(in: plaintext.startIndex..<plaintext.endIndex) }
+        return try TeamArchiveJWE.encryptValidatedPlaintext(plaintext, recoveryKey: recoveryKey)
+    }
+
+    /// Authenticate and validate EVERYTHING before the archive-only transaction. No receipts restored.
+    public func restoreEncryptedAccountArchive(_ compact: String, recoveryKey: SymmetricKey) throws -> TeamArchiveRestoreResult {
+        let archive = try TeamArchiveJWE.decrypt(compact, recoveryKey: recoveryKey, expectedAccountId: target.userId)
+        return try lock.withLock {
+            var inserted = 0
+            var unchanged = 0
+            try transaction {
+                for note in archive.notes {
+                    let envelope = note.envelope
+                    if let previous = try archivedUnlocked(deliveryId: envelope.deliveryId, archiveTeamId: envelope.teamId) {
+                        guard previous.envelope == envelope else { throw TeamDeliveryError.immutableConflict }
+                        unchanged += 1 // Preserve the first locally saved timestamp.
+                    } else {
+                        try execute("INSERT INTO archive VALUES (?,?,?,?,?,?,?,?)", [
+                            .text(target.userId), .text(envelope.teamId), .text(envelope.deliveryId),
+                            .text(envelope.recipient.deviceId), .text(envelope.recipient.enrollmentId),
+                            .integer(envelope.acceptedAt), .integer(note.savedAt), .blob(try JSONEncoder().encode(envelope))
+                        ])
+                        inserted += 1
+                    }
+                }
+            }
+            return TeamArchiveRestoreResult(inserted: inserted, unchanged: unchanged)
+        }
+    }
+
     public func pendingReceipts(limit: Int = 100) throws -> [PendingTeamReceipt] {
         guard (1...100).contains(limit) else { throw TeamDeliveryError.invalidLimit }
         return try lock.withLock {
@@ -203,20 +259,27 @@ public final class TeamInboxStore: @unchecked Sendable {
         }
     }
 
-    private func archivedUnlocked(deliveryId: String) throws -> ArchivedTeamNote? {
+    private func archivedUnlocked(deliveryId: String, archiveTeamId: String? = nil) throws -> ArchivedTeamNote? {
+        let teamId = archiveTeamId ?? self.teamId
         let statement = try prepare("SELECT envelope, saved_at FROM archive WHERE account_id=? AND team_id=? AND delivery_id=?",
                                     [.text(target.userId), .text(teamId), .text(deliveryId)])
         defer { sqlite3_finalize(statement) }
         guard try step(statement) == SQLITE_ROW else { return nil }
-        guard let bytes = sqlite3_column_blob(statement, 0) else { throw TeamDeliveryError.storage(SQLITE_CORRUPT) }
-        let data = Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, 0)))
-        let envelope = try TeamNoteEnvelope.decodeLocalJSON(data)
+        let envelope = try readEnvelope(statement, column: 0)
         guard envelope.recipient.userId == target.userId else { throw TeamDeliveryError.invalidScope }
         // An own-account archive remains readable after enrollment changes. This does not
         // authorize sending its old-enrollment receipt or accessing remote content.
         try envelope.validate(for: envelope.recipient, expectedTeamId: teamId)
         guard envelope.deliveryId == deliveryId else { throw TeamDeliveryError.storage(SQLITE_CORRUPT) }
         return ArchivedTeamNote(envelope: envelope, savedAt: sqlite3_column_int64(statement, 1))
+    }
+
+    private func readEnvelope(_ statement: OpaquePointer, column: Int32) throws -> TeamNoteEnvelope {
+        let count = Int(sqlite3_column_bytes(statement, column))
+        guard count > 0, count <= 256 * 1024, let bytes = sqlite3_column_blob(statement, column) else {
+            throw TeamDeliveryError.storage(SQLITE_CORRUPT)
+        }
+        return try TeamNoteEnvelope.decodeLocalJSON(Data(bytes: bytes, count: count))
     }
 
     private enum Value { case text(String), integer(Int64), blob(Data) }

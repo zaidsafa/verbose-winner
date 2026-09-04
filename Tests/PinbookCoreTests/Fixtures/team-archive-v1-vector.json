@@ -1,0 +1,9 @@
+{
+  "warning": "PUBLIC TEST KEY AND NONCE ONLY; never use for real archives",
+  "profile": "pinbook-team-archive-v1",
+  "keyHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "nonceHex": "000102030405060708090a0b",
+  "protectedHeader": "{\"alg\":\"dir\",\"enc\":\"A256GCM\",\"typ\":\"pinbook-team-archive-v1\"}",
+  "plaintext": "[\"pinbook-team-archive-v1\",\"alice\",\"2000\",[[\"team-1\",\"delivery-1\",\"note-1\",\"sender\",\"alice-phone\",\"alice-enrollment\",\"Team note: مرحباً — 你好 🌍\",\"19d17e9b0ab1641d6305b8d3f5968720217a8651be8e800bf03c09f9d6b2e276\",\"1000\",\"2592001000\",\"1500\"]]]",
+  "compact": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwidHlwIjoicGluYm9vay10ZWFtLWFyY2hpdmUtdjEifQ..AAECAwQFBgcICQoL.HCCmcquHrXTmbOPu0IRVDPG1712GHnIKCUXJp3wFadFkMoLenfEiqFaIJLaq801Zg3RRr3b0x79T_lx8aprY39IQ5BS8pUNMLXaGTJzqYIxd-OtOVAI_AZ6Ys7wQn9fo6dR7h8goq3-zeVDAJxlNEt8JFonP53H_LJJ3o-2SCzSbi4UeBQ9mi6A573i2-q5CotQHiJX0Nvesr3f7d_DFzKKu-iTemvUclwK_y-m0t9-r_foX6ZMXjwPq-fFJ8oXDIX29mzXr4_hVM-uDgnHp5odOyxUNOdzIFaf49SR6uMxhD_ae1hAzB35lij2MI0xhmaOJRb8cq5QiW1dR1sEf.TloEQJOfOtgShmZrm69NMg"
+}

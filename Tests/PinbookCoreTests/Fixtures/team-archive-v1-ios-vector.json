@@ -1,0 +1,9 @@
+{
+  "compact" : "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwidHlwIjoicGluYm9vay10ZWFtLWFyY2hpdmUtdjEifQ..6XBClvJZKgzJEjSM.y-bly3X-fBP6MNLtUD2uvWLnbpi5r0pl62vtBNkzAdw8lRPFl7gLazvq4bnIQZPm85nfXABP1vWayy_c0w5O9we-JaxKRknQk-Mtg4F8pf3Npcnib3mFb1FnJdOYTkFaBsNRzjsUtxIpTL0Pt-SN6fQ1V3WG1SKAHXi60vakBbCQ8MFQFc1I840nMpGE45x_iyic4Do0IQVNTQCmJ6p-YkDqt5kBwX6ED3_54bxGZ1m49IRg_GDb5snLUiBEGqpZvz92iOA9IZ6U9IaCjQh63QbPwC9o32ln2VllrqG82HDIFP82D58nuEECn8gN0PLaCTJbaV1wIoA5wmTOmHAP.AwZTpUUZaceWV1Vi8XkMGg",
+  "keyHex" : "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "nonceHex" : "e9704296f2592a0cc912348c",
+  "plaintext" : "[\"pinbook-team-archive-v1\",\"alice\",\"4000\",[[\"team-1\",\"delivery-1\",\"note-1\",\"sender\",\"alice-phone\",\"alice-enrollment\",\"Team note: مرحباً — 你好 🌍\",\"19d17e9b0ab1641d6305b8d3f5968720217a8651be8e800bf03c09f9d6b2e276\",\"1000\",\"2592001000\",\"1500\"]]]",
+  "profile" : "pinbook-team-archive-v1",
+  "protectedHeader" : "{\"alg\":\"dir\",\"enc\":\"A256GCM\",\"typ\":\"pinbook-team-archive-v1\"}",
+  "warning" : "PUBLIC TEST KEY ONLY; CryptoKit-generated nonce; never use for real archives"
+}

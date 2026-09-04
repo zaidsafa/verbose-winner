@@ -96,23 +96,37 @@ public activation, App Store metadata change, or phone connection is needed here
 See `CODEX_HANDOFF.md` and `VALIDATION.md` for the final commands, outcomes and
 source-publication status. No physical-device result is claimed for this slice.
 
-## Next archive slice: review only, awaiting frozen fixture
+## Implemented local portable archive slice
 
-Android proposes a narrow portable archive format using JWE Compact `dir` /
-`A256GCM`, a random 256-bit recovery key, fresh 96-bit nonce and 128-bit tag. This is
-feasible using native CryptoKit, but is not yet implemented or a group-key protocol.
-Freeze the exact protected-header bytes and authenticate their base64url ASCII form
-as AAD. Require an empty encrypted-key segment, strict canonical unpadded base64url,
-known header only, no compression, and explicit size/count limits before allocation.
-Fixed PUBLIC test keys/nonces belong only in conformance fixtures, never runtime
-encryption. Keys must not enter logs, relay custody or source-controlled secrets.
+Android froze `TEAM_ARCHIVE_V1.md`. `TeamPortableArchive.swift` implements its narrow
+JWE Compact `dir` / `A256GCM` profile using native CryptoKit: random 256-bit recovery
+key, fresh provider-generated 96-bit nonce, 128-bit tag and exact protected-header
+bytes. Header base64url ASCII is AAD. Only an empty encrypted-key segment, canonical
+unpadded base64url, known header and fixed bounded JSON tuples are accepted. No
+compression, alternate headers, passwords or caller-provided encryption nonces.
+Authentication completes before plaintext decoding. Mutable plaintext buffers are
+best-effort cleared; Swift String/copy zeroization is not guaranteed.
+
+`TeamInboxStore.exportEncryptedAccountArchive` streams one account-wide SQLite
+SELECT snapshot into a bounded encoder and returns ciphertext only. Restore
+validates the whole authenticated archive before one atomic archive-only import.
+Immutable conflicts roll back all inserts; identical records preserve local savedAt.
+Historical enrollment remains metadata, not current authority. Existing receipts
+and personal data are untouched. No ACK outbox entries, enrollment, membership or
+revoked remote access are recreated. Production files/key custody are not wired up.
+
+Node, iOS SQLite-export and Android Room/JCA-returned PUBLIC fixtures are checked
+in and pass CryptoKit conformance plus SQLite restore/re-export. Android reports
+Room/JCA consumption of the exact iOS fixture at `69822e1`. See
+`VALIDATION.md` for hashes and final 36 core / 56 executed Simulator tests. All
+fixtures are test-only; they contain no production keys. The ten-member pilot
+permits nine peer recipients, excluding the sender.
 
 References: [JWE Compact and authenticated data](https://www.rfc-editor.org/rfc/rfc7516.html),
 [JWA algorithms](https://www.rfc-editor.org/rfc/rfc7518), and
 [CryptoKit AES-GCM](https://developer.apple.com/documentation/cryptokit/aes/gcm).
 
-Before implementation, Android must freeze plaintext schema/fixture, duplicate-key
-and duplicate-delivery policy, account/team scope and bounded input limits. Restore
-must validate the entire archive before atomic import and reject immutable conflicts.
-It must NOT recreate ACK outbox entries, enrollment or revoked remote access.
-Portable recovery remains a real-user activation gate, not satisfied by this review.
+This is received-text recovery only, not outgoing drafts, sender submissions,
+reviews/revisions or media. Recovery-key custody, import preview/Files cleanup,
+cross-platform end-to-end transfer, hardware protection and complete pilot recovery
+remain activation gates. It is not a group-key protocol or cryptographic audit.

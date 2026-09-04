@@ -89,6 +89,12 @@ private func rawSQL(_ url: URL, _ sql: String) throws {
         #expect(throws: TeamDeliveryError.invalidTime) { try TeamDeliveryRules.expiresAt(acceptedAt: time) }
     }
     #expect(try TeamDeliveryRules.expiresAt(acceptedAt: Int64.max - TeamDeliveryRules.retentionMilliseconds) == Int64.max)
+    let nine = try Set((0..<9).map { try DeliveryTarget(userId: "peer-\($0)", deviceId: "device-\($0)", enrollmentId: "enrollment-\($0)") })
+    #expect(try DeliveryRetention(acceptedAt: 1, targets: nine, authorUserId: "author").targets.count == 9)
+    let tenth = try DeliveryTarget(userId: "peer-9", deviceId: "device-9", enrollmentId: "enrollment-9")
+    #expect(throws: TeamDeliveryError.invalidTargets) {
+        try DeliveryRetention(acceptedAt: 1, targets: nine.union([tenth]), authorUserId: "author")
+    }
 }
 
 @Test func teamTargetsAreFrozenAndForeignACKsFailClosed() throws {

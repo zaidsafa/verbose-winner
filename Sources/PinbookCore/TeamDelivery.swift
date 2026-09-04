@@ -12,7 +12,7 @@ public enum TeamDeliveryRules {
     public static let protocolVersion = 1
     public static let retentionMilliseconds: Int64 = 2_592_000_000
     public static let maximumTextBytes = 32 * 1024
-    public static let maximumRecipients = 10
+    public static let maximumRecipients = 9 // Ten-member pilot includes the excluded sender.
 
     public static func expiresAt(acceptedAt: Int64) throws -> Int64 {
         guard acceptedAt >= 0, acceptedAt <= Int64.max - retentionMilliseconds else {

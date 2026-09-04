@@ -1,5 +1,52 @@
 # Validation plan
 
+## 2026-09-04 inactive portable encrypted archive/restore
+
+- Frozen profile: `docs/TEAM_ARCHIVE_V1.md`. Native CryptoKit JWE Compact `dir` /
+  `A256GCM`; strict header/base64url/tuple JSON, 16 MiB plaintext and ciphertext,
+  22,370,000-byte compact limit, 10,000 records. Production generates fresh nonces.
+- Final core tests: **36/36 passed**. Log:
+  `/private/tmp/pinbook-ios-team-archive-roundtrip-core.log`; command:
+  `swift test --disable-sandbox --scratch-path /private/tmp/pinbook-ios-team-foundation-swift`.
+- Final Simulator app tests: **56 executed/passed**, **one explicitly skipped**
+  hardware protection test (57 discovered), **TEST SUCCEEDED**. Result:
+  `/private/tmp/Pinbook-Team-Archive-Roundtrip.xcresult`; log:
+  `/private/tmp/pinbook-ios-team-archive-roundtrip-simulator.log`.
+  Dedicated iPhone 17 Pro `4A87A62E-C254-4FBE-8673-7D089E4165C1`, iOS 26.5,
+  Debug, `-only-testing:PinbookTests`, `CODE_SIGNING_ALLOWED=NO`.
+  This includes the prior rollback-close guard. XCUITests were not rerun for this
+  inactive slice; their earlier 10/10 result remains historical foundation evidence.
+- Final generic iPhone unsigned Release **BUILD SUCCEEDED**. Log:
+  `/private/tmp/pinbook-ios-team-archive-final-release.log`.
+- All three PUBLIC fixtures decrypt and reproduce byte-for-byte in CryptoKit tests:
+  Node fixture `team-archive-v1-vector.json`, SHA-256
+  `4a92f6b9f1f940daf73f8ed3774354ed3ef883ab0c397319da03f15da397d504`;
+  iOS store-export fixture `team-archive-v1-ios-vector.json`, SHA-256
+  `a08c173173a3d73243444db5862b46fd25187b00c43fdfd8528388578ad73a3a`;
+  Android Room/JCA return fixture `team-archive-v1-android-vector.json`, SHA-256
+  `c653fd21479780674344bf009f569de59279b0566d862b7fb7f9af516cb543a0`.
+  All live under `Tests/PinbookCoreTests/Fixtures`; keys/nonces are public test
+  material, never production key custody. Android reports 77/77 tests at `69822e1`
+  including exact iOS fixture restore/re-export through Room and JCA. The returned
+  fixture decrypts, restores and reopens through native iOS SQLite with unchanged
+  archive content and no ACKs; it re-exports successfully. This proves the local
+  received-text fixture round trip, not full real-user recovery. Test resources only.
+- Twelve new archive tests cover authenticated tampering/wrong keys, alternate
+  headers/noncanonical encoding, malformed JSON/Unicode/types/timestamps, exact
+  10,000-record acceptance, independent size bounds, historical enrollment,
+  account scoping, immutable conflict rollback, close/reopen, idempotence,
+  preserved local savedAt and unaffected live receipt/personal fixture state.
+- Foundation JSONDecoder accepted a trailing array comma during negative testing.
+  A bounded fixed-shape syntax preflight now rejects that extension, comments and
+  trailing input before JSONDecoder; all final tests include this correction.
+- Account-wide SQLite export streams one SELECT snapshot into a bounded encoder;
+  restore authenticates/validates everything before one archive-only transaction.
+  No receipt outbox or enrollment changes. Nine peer targets pass; ten reject.
+- No personal backup-v8 changes, migrations, signing/version change, phone, live
+  team UI, network service, shared Infrastructure, release or App Store action.
+  No key custody/recovery UI, group-crypto audit, outbound/revision/media recovery,
+  physical lock/backup extraction or complete pilot recovery is claimed.
+
 ## 2026-09-04 inactive team-delivery foundation
 
 - Isolated branch `codex/team-delivery-foundation` based on `4c8087b`; no release,

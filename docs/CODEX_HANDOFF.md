@@ -4,6 +4,22 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Current isolated team-delivery workstream
 
+- Portable received-text archive/restore is now implemented locally. Read
+  `docs/TEAM_ARCHIVE_V1.md` for the frozen cross-platform profile and
+  `docs/TEAM_DELIVERY_IOS.md` for native implementation boundaries. Final core
+  tests passed 36/36; final Simulator app tests passed 56 executed with one
+  hardware-only protection check skipped (57 discovered). Unsigned iPhone Release
+  build passed. No current-slice UI regression or physical-device result is claimed.
+- Node, iOS SQLite-export and Android Room/JCA-returned PUBLIC fixtures pass
+  CryptoKit conformance and native SQLite restore/re-export checks. Android reports
+  77/77 tests at `69822e1`, including Room/JCA consumption of the exact iOS fixture.
+  Restore is atomic and archive-only: no ACKs, enrollment or remote access restored.
+  Ten-member pilot policy now permits nine peer recipients, excluding the sender.
+- This remains inactive source-only work: no recovery-key custody/Files UI, outbound
+  drafts/revisions/media recovery, group encryption, authenticated transport or
+  real-user activation. Hardware protection and complete cross-platform recovery
+  remain gates. Archive source publication will follow the existing owner-approved
+  branch export; commit/remote verification is recorded in the final task handoff.
 - Owner requested native local foundation coordinated with Android. Worktree:
   `/Users/zaidsmac/Documents/ChatGPT/TC Projects/pinbook-ios-team-delivery`, branch
   `codex/team-delivery-foundation`, based on `4c8087b`. The original iOS worktree
@@ -32,9 +48,9 @@ Updated: 2026-09-04 (Asia/Shanghai)
   for exact final-source versus Simulator evidence boundaries.
 - Both final-source unsigned builds passed: generic iPhone Release and generic
   Simulator Debug. Compiled binaries include the final rollback-failure guard.
-- Android requests the next local portable archive slice. Feasibility review was
-  returned directly; implementation is waiting for the frozen plaintext schema and
-  cross-platform fixture. See `docs/TEAM_DELIVERY_IOS.md`. Do not invent group crypto.
+- Android froze the portable archive schema and public fixture; the native local
+  implementation above supersedes the earlier feasibility-only hold. Do not invent
+  group crypto or treat received-text recovery as complete pilot recovery.
 - Infrastructure and Android were notified directly. Admission remains NEEDS_INFO.
   Auth/crypto/enrollment/recovery, portable encrypted Android/iOS archive transfer,
   complete durable media handling and deployment admission remain prerequisites.
