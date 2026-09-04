@@ -27,6 +27,29 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Retained membership owner now binds ONE exact access-only account generation,
+  current REGISTERED device and fresh server lookup, read-only preview, separate
+  single-use five-minute consent, durable PENDING before one accept, and tokenless
+  current-team recovery under a new durable generation. Account checks follow
+  slow device/metadata reads; deadlines include owner-wide monotonic access
+  lifetime anchored BEFORE the first slow account read. Close waits for real
+  unresolved work. Fifteen new owner tests plus composed actual localhost TLS/
+  storage-driver path; final full **205/205 PASS**,15.797s:
+  `/private/tmp/pinbook-ios-membership-verified-core.log`. See
+  TEAM_MEMBERSHIP_JOIN_IOS.md. Next: localized invitation/join screens and optional
+  host lifecycle/account routing, then explicit pending-acceptance retry/owner
+  management. Android's new source-only teams/acceptance contract inspected locally:
+  null is eligible pending, NOT proof no queued accept can commit. iOS route/retry
+  is still unimplemented; no automatic replay/clearing allowed. Outbound cross-task
+  updates remain paused pending the earlier approval; no new duplicate question.
+  Every final scope/activation/TestFlight hold below remains unchanged.
+  Final Simulator build-for-testing PASS:
+  `/private/tmp/pinbook-ios-membership-verified-test-build.log`; unsigned iPhone
+  Release PASS: `/private/tmp/pinbook-ios-membership-verified-release.log`.
+  No new app-host/UI runtime; the previous cross-task GUI coordination limitation
+  remains separate from useful local implementation. Do not infer GUI ownership
+  or release from task activity alone.
+
 - Durable join recovery metadata now records scoped PENDING before accept, with
   no raw invitation or account credentials, exact generation/response binding,
   fresh recovery generations and read-only scoped listing. Dedicated passcode-only

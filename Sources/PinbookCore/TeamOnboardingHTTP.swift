@@ -181,15 +181,22 @@ extension TeamAuthHTTPClient {
         return try TeamOnboardingWire.membership(reply.data, teamID: teamID, enrollmentID: enrollmentID, accountID: session.accountID, role: .owner)
     }
     func currentTeam(teamID: String, enrollmentID: String, session: TeamAccountSessionSnapshot) async throws -> TeamMembership {
+        try await currentTeam(teamID: teamID, enrollmentID: enrollmentID, ticket: .init(snapshot: session))
+    }
+    func currentTeam(teamID: String, enrollmentID: String, ticket: TeamAccountAccessTicket) async throws -> TeamMembership {
         try TeamOnboardingWire.ids(teamID, enrollmentID)
-        let reply = try await onboarding(.currentTeam, fields: ["teamId": teamID, "enrollmentId": enrollmentID], session: session)
-        return try TeamOnboardingWire.membership(reply.data, teamID: teamID, enrollmentID: enrollmentID, accountID: session.accountID)
+        let reply = try await onboarding(.currentTeam, fields: ["teamId": teamID, "enrollmentId": enrollmentID], ticket: ticket)
+        return try TeamOnboardingWire.membership(reply.data, teamID: teamID, enrollmentID: enrollmentID, accountID: ticket.accountID)
     }
     func acceptInvitation(token: String, teamID: String, enrollmentID: String, role: TeamInvitationRole,
                           session: TeamAccountSessionSnapshot) async throws -> TeamMembership {
+        try await acceptInvitation(token: token, teamID: teamID, enrollmentID: enrollmentID, role: role, ticket: .init(snapshot: session))
+    }
+    func acceptInvitation(token: String, teamID: String, enrollmentID: String, role: TeamInvitationRole,
+                          ticket: TeamAccountAccessTicket) async throws -> TeamMembership {
         try TeamOnboardingWire.ids(teamID, enrollmentID); try TeamOnboardingWire.token(token)
-        let reply = try await onboarding(.acceptInvitation, fields: ["token": token, "teamId": teamID, "enrollmentId": enrollmentID, "role": role.rawValue], session: session)
-        return try TeamOnboardingWire.membership(reply.data, teamID: teamID, enrollmentID: enrollmentID, accountID: session.accountID,
+        let reply = try await onboarding(.acceptInvitation, fields: ["token": token, "teamId": teamID, "enrollmentId": enrollmentID, "role": role.rawValue], ticket: ticket)
+        return try TeamOnboardingWire.membership(reply.data, teamID: teamID, enrollmentID: enrollmentID, accountID: ticket.accountID,
             role: role == .member ? .member : .reviewer)
     }
     func issueInvitation(teamID: String, enrollmentID: String, role: TeamInvitationRole, session: TeamAccountSessionSnapshot) async throws -> TeamIssuedInvitation {

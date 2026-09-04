@@ -92,7 +92,7 @@ public struct TeamAccountSessionSnapshot: Sendable, CustomStringConvertible, Cus
 
 /// Volatile access-only capability. A snapshot of identity/expiry is NOT proof
 /// of continuing authority; requireCurrentAccess must precede protected work.
-struct TeamAccountAccessTicket: TeamOnboardingDiagnostic {
+struct TeamAccountAccessTicket: Equatable, TeamOnboardingDiagnostic {
     let scope: TeamAccountSessionScope
     let accountID: String
     let sessionID: String

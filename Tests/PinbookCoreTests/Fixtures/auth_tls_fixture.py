@@ -62,7 +62,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.path == "/api/v1/invitations/preview":
             fields = {"inviteId": "public-invite", "teamId": "public-team",
                       "role": "MEMBER", "expiresAt": 20000}
-        if self.path == "/api/v1/teams/current":
+        if self.path in ("/api/v1/teams/current", "/api/v1/teams/accept"):
             fields = {"teamId": "public-team", "accountId": "public-account",
                       "enrollmentId": "public-enrollment", "role": "MEMBER",
                       "membershipRevision": 1}
@@ -95,6 +95,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if mode in ("503", "408"):
             status = int(mode)
             fields = {"error": "uncertain" if mode == "503" else "request_timeout"}
+        if mode == "join-uncertain" and self.path == "/api/v1/teams/accept":
+            status = 503
+            fields = {"error": "uncertain"}
         if mode == "redirect":
             status = 307
         payload = json.dumps(fields).encode()

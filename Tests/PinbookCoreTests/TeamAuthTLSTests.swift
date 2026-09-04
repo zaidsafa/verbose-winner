@@ -213,6 +213,50 @@ struct TeamAuthTLSTests {
         }
     }
 
+    @Test func membershipOwnerUsesTLSAndRecoversUnknownAcceptWithoutInvitationReplay() async throws {
+        let fixture = try await Fixture(mode: "join-uncertain"), client = try fixture.client()
+        let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
+        let sessions = TeamAccountSessionStore(testService: "membership-tls-account", keychain: SessionMemoryKeychain())
+        let account = try TeamAccountAccessTicket(snapshot: sessions.saveInitial(pair, scope: scope, now: 1_000, consent: true))
+        let instant = ContinuousClock.now
+        let deviceMetadata = try KeychainTeamDeviceMetadata(testService: "pinbook.device-test.membership-tls", keychain: SessionMemoryKeychain())
+        let custody = TeamDeviceCustody(storage: deviceMetadata, keys: DeviceFixtureKeys(), clock: { 1_000 })
+        let registration = try TeamDeviceRegistration(scope: scope, authorityEpoch: "public-epoch", sessions: sessions,
+            devices: TeamRegistrationCustodyDriver(custody: custody), transport: client,
+            clock: { .init(wallTime: 1_000, instant: instant) })
+        guard case .registered = try await registration.register(consent: true) else { throw FixtureError.setup }
+        let invitation = TeamInvitedSignIn(provider: .apple, scope: scope, sessions: sessions, identity: SyntheticAppleIdentity(),
+            transport: client, clock: { .init(wallTime: 1_000, instant: instant) })
+        let code = String(repeating: "E", count: 42) + "A"
+        let preview = try await invitation.preview(code: code), intent = try await invitation.existingAccountIntent(preview)
+        let joinBackend = SessionMemoryKeychain()
+        let joins = TeamJoinStore(storage: try KeychainTeamJoinMetadata(testService: "pinbook.join-test.membership-tls", keychain: joinBackend), clock: { 1_000 })
+        let owner = try TeamMembershipJoin(account: account, authorityEpoch: "public-epoch", sessions: sessions,
+            devices: TeamMembershipDeviceDriver(custody: custody), metadata: TeamMembershipMetadataDriver(store: joins),
+            transport: client, clock: { .init(wallTime: 1_000, instant: instant) })
+        let display = try await owner.prepare(intent)
+        #expect(joinBackend.writes == 0)
+        await #expect(throws: TeamMembershipJoinError.transportFailure) { try await owner.join(display, consent: true) }
+        let deviceScope = try TeamDeviceScope(audience: fixture.origin.absoluteString, accountID: account.accountID, authorityEpoch: "public-epoch")
+        #expect(try joins.load(scope: deviceScope, teamID: intent.teamID)?.phase == .pending)
+        await owner.close()
+        let reopened = try TeamMembershipJoin(account: account, authorityEpoch: "public-epoch", sessions: sessions,
+            devices: TeamMembershipDeviceDriver(custody: custody), metadata: TeamMembershipMetadataDriver(store: joins),
+            transport: client, clock: { .init(wallTime: 1_000, instant: instant) })
+        let result = try await reopened.recover(teamID: intent.teamID)
+        #expect(result.phase == .confirmed && result.role == .member)
+        let requests = try fixture.records("attempts").suffix(5)
+        #expect(requests.compactMap { $0["path"] as? String } == ["/api/v1/devices/lookup", "/api/v1/devices/lookup",
+            "/api/v1/teams/accept", "/api/v1/devices/lookup", "/api/v1/teams/current"])
+        #expect(requests.allSatisfy { $0["authorization"] as? String == "Bearer \(account.accessToken)" })
+        let body = try #require(fixture.records("bodies").last?["body"] as? String)
+        let fields = try TeamStrictJSON.object(Data(body.utf8))
+        #expect(Set(fields.keys) == ["teamId", "enrollmentId"])
+        #expect(fields["teamId"] as? String == result.teamID && fields["enrollmentId"] as? String == result.enrollmentID)
+        #expect(!String(decoding: try #require(joinBackend.bytes), as: UTF8.self).contains(code))
+        try sessions.requireCurrentAccess(account, now: 1_000)
+    }
+
     @Test func deviceCustodyComposesWithActualTLSAndTransmittedSignatureVerifies() async throws {
         let fixture = try await Fixture(mode: "success"), client = try fixture.client()
         let scope = try TeamDeviceScope(audience: fixture.origin.absoluteString, accountID: pair.accountID, authorityEpoch: "public-epoch")

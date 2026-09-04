@@ -84,8 +84,13 @@ checkboxes deliberately remain open until checked against the exact next candida
   wall/monotonic consent, tested synthetically and over private localhost TLS.
   It returns a memory-only intent, not membership authority. Durable scoped join
   metadata now supports exact pending/confirmation/recovery generations without
-  storing the raw code; separate current-account/device membership orchestration
-  and consent remain next. See TEAM_JOIN_RECOVERY_IOS.md and
+  storing the raw code. Separate current-account/device membership orchestration
+  now performs fresh lookup, one-use consent, durable-before-accept and tokenless
+  current-team recovery, tested synthetically and with local TLS/native drivers.
+  Screens/host wiring and explicit eligible-pending acceptance retry remain open;
+  the backend's new source-only teams/acceptance route is not yet on iOS, and null
+  must not become automatic retry or PENDING deletion. See TEAM_MEMBERSHIP_JOIN_IOS.md,
+  TEAM_JOIN_RECOVERY_IOS.md and
   TEAM_INVITATION_CONSENT_IOS.md.
   Consent/join UI, real
   hardware/protection/provider acceptance and live enrollment remain open.

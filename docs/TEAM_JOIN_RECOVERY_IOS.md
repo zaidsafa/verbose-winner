@@ -99,10 +99,11 @@ lock/unlock, restore and retirement need physical acceptance. Synthetic storage 
 not proof of device protection. No hardware, app-host UI or live service claim is
 made. See VALIDATION.md for exact runs, including intermittent TLS regression errors.
 
-Next: compose the retained current-session/current-registered-device owner, fresh
-lookup, one-use separate membership consent, durable begin, single accept and
-read-only current-membership recovery. Explicit reattempt after a definitely
-uncommitted accept still requires a designed reconciliation/consent path; never
+The retained current-session/current-registered-device owner is now implemented
+and documented in TEAM_MEMBERSHIP_JOIN_IOS.md, with fresh lookup, one-use separate
+membership consent, durable begin, single accept and read-only current-membership
+recovery. Explicit reattempt after eligible-pending reconciliation still requires
+a designed confirmation path (null does not prove no late commit); never
 silently clear a pending record to make retry work. Then add localized screens and
 session/lifecycle host wiring. Keep all other FINAL_UPDATE_CHECKLIST.md features,
 provider/crypto/staging/physical gates, and the existing TestFlight build unchanged.

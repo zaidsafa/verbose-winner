@@ -1,5 +1,55 @@
 # Validation plan
 
+## 2026-09-04 explicit membership owner and tokenless recovery (inactive)
+
+- Existing invitation/store compatibility **23/23 PASS**,1.502s:
+  `/private/tmp/pinbook-ios-membership-compile.log`.
+- Initial new test compilation failed on two missing inner `try` expressions
+  in Swift Testing macros: `/private/tmp/pinbook-ios-membership-focused.log`.
+  Corrected assertions; initial twelve cases **12/12 PASS**,0.023s:
+  `/private/tmp/pinbook-ios-membership-focused-fixed.log`. No production guard relaxed.
+- Added close-waits-for-real-completion and foreign/regressed membership tests,
+  plus actual private localhost TLS composition through storage/device drivers.
+  Full **204/204 PASS**,14.366s:
+  `/private/tmp/pinbook-ios-membership-full-core.log`.
+- Parent handoff now rechecks cancellation/current account after child completion,
+  without claiming committed metadata was rolled back. Final full core
+  **204/204 PASS**,15.900s: `/private/tmp/pinbook-ios-membership-final-core.log`.
+- Fourteen synthetic owner tests cover separate/read-only/single-use consent,
+  current account/device replacement, wall/monotonic deadlines including access
+  lifetime across operations, missing/foreign/denied registration, uncertain marker
+  commits, sign-out after slow reads/writes, delayed cancellation and actual close
+  ownership, tokenless expired-link recovery and foreign/regressed response refusal.
+- Actual local TLS integration sets up synthetic registration and invitation, then
+  captures lookup→lookup→ONE uncertain accept→lookup→current. It verifies exact
+  bearer/body binding, no raw code in the recovery request or persisted metadata,
+  pending→confirmed recovery and unchanged account. This uses synthetic identity,
+  CryptoKit keys/Keychain APIs and a transport fixture, not deployed backend proof.
+- Earlier intermittent TLS failures remain an OPEN final-validation caveat. Two
+  full green runs here do not establish their cause or prove a fix. No trust,
+  deadline, cancellation or no-replay policy was relaxed to obtain these results.
+- Initial Simulator build-for-testing and unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-membership-test-build.log` and
+  `/private/tmp/pinbook-ios-membership-release.log`. Compilation only, before the
+  final first-read monotonic anchoring case; no app-host/UI/physical execution.
+- Review found the first access deadline was sampled after its account-store read.
+  Moved that anchor before the read and added a synthetic six-second read against
+  five seconds of remaining access with a stalled wall clock. This must fail before
+  device reads or HTTP, not extend access by the read duration. Fifteen owner cases
+  now exist; final full regression/compilation evidence follows.
+- Final exact source **205/205 PASS**,15.797s:
+  `/private/tmp/pinbook-ios-membership-verified-core.log`, including the new slow-read
+  expiry case and all actual local TLS cases. Earlier intermittent TLS caveats
+  remain unclosed; no new intermittent failure was observed in this slice's full runs.
+- Final Simulator build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-membership-verified-test-build.log`.
+  Final unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-membership-verified-release.log`.
+  These are compile gates, not fresh app-host/UI runtime, real provider/Keychain
+  protection, signed distribution or TestFlight availability evidence.
+- No normal navigation, live provider/custody activation, shared infrastructure,
+  physical phone, source push, signing/version or TestFlight change.
+
 ## 2026-09-04 durable membership intent and recovery metadata (inactive)
 
 - Invitation compatibility after initial join-store compilation **11/11 PASS**,
