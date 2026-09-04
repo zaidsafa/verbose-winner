@@ -42,7 +42,10 @@ struct PinbookApp: App {
     var body: some Scene {
         WindowGroup {
 #if DEBUG
-            if launchConfiguration.showsTeamMembershipFixture {
+            if launchConfiguration.showsTeamInvitationAccountFixture {
+                TeamInvitationAccountDebugHost(configuration: launchConfiguration)
+                    .modifier(PinbookLanguageEnvironment())
+            } else if launchConfiguration.showsTeamMembershipFixture {
                 TeamMembershipDebugHost(configuration: launchConfiguration)
                     .modifier(PinbookLanguageEnvironment())
             } else if launchConfiguration.showsTeamKeySetupFixture {

@@ -120,7 +120,11 @@ func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
     #expect(!PinbookLaunchConfiguration.production.showsTeamRecoveryPreviewFixture)
     #expect(!PinbookLaunchConfiguration.production.showsTeamKeySetupFixture)
     #expect(!PinbookLaunchConfiguration.production.showsTeamMembershipFixture)
+    #expect(!PinbookLaunchConfiguration.production.showsTeamInvitationAccountFixture)
 #if DEBUG
+    #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamInvitationAccount"]).showsTeamInvitationAccountFixture)
+    #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount"]).showsTeamInvitationAccountFixture)
+    #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount", "-PinbookInvitationAccountScenario", "invalid"]).invitationAccountFixtureScenario == "new")
     #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamMembership"]).showsTeamMembershipFixture)
     #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamMembership"]).showsTeamMembershipFixture)
     #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamKeySetup"]).showsTeamKeySetupFixture)
@@ -202,12 +206,20 @@ func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
         let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
         let data = try Data(contentsOf: url)
         let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
-        #expect(values.count == 312)
+        #expect(values.count == 323)
         for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed.", "I agree to join this team with the role shown.", "We couldn't confirm the result. Check membership before trying anything else.", "Check whether this account still belongs to the team.",
                     "Check previous join", "Check the previous attempt before sending another join request.",
                     "The previous join is still pending. Confirm again to retry the same invitation.",
                     "Retry join", "I agree to retry joining this team with the role shown.",
-                    "The previous attempt could not be checked. You can check it again or close this screen."] {
+                    "The previous attempt could not be checked. You can check it again or close this screen.",
+                    "Account access", "Review the team and role before signing in.",
+                    "Signing in does not register this device or join the team.",
+                    "I agree to sign in for this invitation.", "Continue to sign in", "Continue with this account",
+                    "Checking account access…",
+                    "Account access could not be confirmed. Close this screen before signing in again.",
+                    "Account access is ready. Registering this device and joining need separate confirmation.",
+                    "Account screen closed. Open the invitation again to continue.",
+                    "Account cleanup could not be confirmed. Do not retry this invitation yet."] {
             let value = try #require(values[key])
             #expect(!value.isEmpty && value != key)
         }

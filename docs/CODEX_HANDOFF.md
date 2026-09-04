@@ -45,6 +45,37 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Invitation account screen now has a real retained owner bridge, display-only
+  review/receipt, explicit shown-account continuation or new unchecked sign-in
+  consent, one-use private intent handoff and permanent close with pending-work
+  draining. Native preflight is DEBUG-testable only; ordinary routing stays gated.
+  Eleven messages translated across all15 locales+English (323 keys). Focused
+  25/25, initial full260/260 PASS. Self-review added a failing time-after-Keychain
+  regression (access/invitation expiry and rollback); post-read recheck fixed it,
+  final full261/261 PASS22.442s. Kept bridge busy through public state commits;
+  another complete261/261 PASS28.078s. Initial physical287 app+24 UI PASS (311,
+  zero skips/failures), Chinese/Arabic screenshots visually checked. That full UI
+  run preceded the core handoff refinement; final rebuilt physical288 app+4
+  affected UI PASS (292, zero skips/failures). Signed QA and final unsigned Release
+  builds PASS;323 compiled app/widget entries match source. QA normal launch after
+  tests succeeded. See TEAM_INVITATION_CONSENT_IOS.md/VALIDATION.md. Do not infer
+  real provider issuance or that all24 UI were rerun after the core-only fix.
+  Next: parent account/device/membership flow and registration screen. Concrete
+  prerequisite: TeamDeviceRegistration.register(consent:) currently captures the
+  account at dispatch, not the account shown in the invitation UI. Add an exact
+  expected-ticket path checked BEFORE custody.prepare/key writes, preserving all
+  existing post-await/current-generation checks. Do not rely on a final UI account
+  comparison to undo wrong-account key creation. Parent must retain the bridge,
+  consume its receipt before source dismissal, then close/drain it; keep the raw
+  intent private in workspace ownership. Teardown/recreate on session replacement.
+  No normal team activation, production identity/version change or TestFlight push.
+  Latest Android partner reports owner invitation issuance/share at a3af32e and
+  remote list/revoke at4435fcf (PR31), contracts TEAM_ANDROID_INVITATION_UI.md and
+  TEAM_ANDROID_INVITATION_REVOCATION.md in its delivery checkout. Read the actual
+  contracts before implementing iOS owner screens. Reported revoke is separate
+  from member removal; lost reply requires explicit fresh list, no auto replacement.
+  Do not contact WooOrders or infer shared Infrastructure activation permission.
+
 - Explicit original-link retry now connects native model/bridge to the real
   membership owner. Check previous join can finish without another accept, or
   present previous-attempt guidance and NEW unchecked consent before one exact

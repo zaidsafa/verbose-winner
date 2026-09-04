@@ -194,6 +194,21 @@ actor TeamInvitedSignIn {
         try validate(value, now: now); _ = try account.usableToken(now: now.wallTime)
         return .init(token: value.token, preview: display, account: account)
     }
+    /// Revalidate a memory-only handoff when its screen transfers ownership.
+    /// This is not membership authority; subsequent owners recheck their scope.
+    func requireCurrentHandoff(_ intent: TeamInviteJoinIntent) throws {
+        try Task.checkCancellation()
+        guard intent.account.scope == scope else { throw TeamAccountSessionError.scopeMismatch }
+        let now = try moment()
+        guard now.wallTime < intent.expiresAt else { throw TeamInvitationAccountError.expired }
+        try sessions.requireCurrentAccess(intent.account, now: now.wallTime)
+        // Keychain can block. The timestamp sampled before that read is not a
+        // fresh expiry/cancellation check for the value we are about to return.
+        let finished = try moment()
+        try Task.checkCancellation()
+        guard finished.wallTime < intent.expiresAt else { throw TeamInvitationAccountError.expired }
+        _ = try intent.account.usableToken(now: finished.wallTime)
+    }
     /// Editing/dismissal/background clears references and cancels only this
     /// flow's native reservation. It NEVER deletes an already-active account.
     func clear() async throws {

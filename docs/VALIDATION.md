@@ -1,5 +1,63 @@
 # Validation plan
 
+## 2026-09-05 invitation account screen and one-use handoff
+
+- New native preflight, observable model and real invitation-owner bridge. No
+  normal-navigation activation, live provider/service, device enrollment or join.
+  See TEAM_INVITATION_CONSENT_IOS.md for lifecycle/receipt boundaries.
+- Initial focused compilation caught async assertions combined inside synchronous
+  boolean autoclosures; split those test assertions without changing app behavior.
+  Corrected focused **25/25 PASS**,0.015s:
+  `/private/tmp/pinbook-ios-invitation-account-screen-focused-fixed-20260905.log`.
+- Initial full core **260/260 PASS**,26.089s:
+  `/private/tmp/pinbook-ios-invitation-account-screen-full-20260905.log`.
+- Self-review found that the new delayed receipt handoff sampled expiry before a
+  potentially slow protected-account read but not after it. Added one regression
+  with access expiry, invitation expiry and clock rollback occurring between those
+  checks. It correctly **FAILED all three cases before the fix**, not dismissed:
+  `/private/tmp/pinbook-ios-invitation-handoff-time-regression-before-20260905.log`.
+  Handoff now rechecks wall/monotonic time, invitation/access expiry and cancellation
+  after that read. It still consumes the receipt on failure and preserves custody.
+  Final full core **261/261 PASS**,22.442s:
+  `/private/tmp/pinbook-ios-invitation-account-screen-final-core-20260905.log`.
+  Final self-review also kept the bridge busy through each public operation's
+  state commit, with another closed/cancelled check after the nested async return.
+  Complete core **261/261 PASS**,28.078s on that source:
+  `/private/tmp/pinbook-ios-invitation-account-screen-ownership-final-core-20260905.log`.
+- Eleven new assistant-authored messages in all15 translated locales+English:
+  **323 catalog entries**. Source validation and exact compiled QA/Release app
+  and widget parity PASS; this is not human linguistic review.
+- Initial signed QA build-for-testing and ordinary unsigned Release both PASS:
+  `/private/tmp/pinbook-qa-invitation-account-screen-build-20260905.log`,
+  `/private/tmp/pinbook-ios-invitation-account-screen-release-20260905.log`.
+  Physical initial candidate **287 app +24 UI PASS**,311 total, no failures/skips.
+  App8.536s, UI313.554s. Result:
+  `/private/tmp/Pinbook-QA-Physical-Invitation-Account-20260905.xcresult`;
+  log `/private/tmp/pinbook-qa-physical-invitation-account-20260905.log`.
+  All four new invitation cases passed: Chinese unchecked consent, explicit shown
+  account in Arabic, uncertainty without replay and background clearing.
+- Actual Chinese and Arabic screenshots exported and visually inspected: readable
+  identity/role cards, wrapping, Arabic RTL with LTR machine IDs, unchecked consent
+  and neutral disabled label; enabled Arabic action has readable dark-on-mint text.
+  `/private/tmp/pinbook-qa-invitation-account-chinese-20260905/F66F3649-EC32-4B86-B85B-6BE4291977F6.png`;
+  `/private/tmp/pinbook-qa-invitation-account-arabic-20260905/2B016EF2-49D1-44F6-8609-C1FA0C59A06C.png`.
+  Full24 UI preceded the post-Keychain/bridge-ownership core fix. No UI code or
+  translation changed after that full run; final rebuilt affected tests follow.
+- Final signed QA build PASS:
+  `/private/tmp/pinbook-qa-invitation-account-screen-final-build-20260905.log`.
+  Physical **288 app +4 affected UI PASS**,292 total, zero failures/skips. App
+  8.623s/UI39.033s; post-protected-read expiry regression PASS on iPhone0.003s.
+  `/private/tmp/Pinbook-QA-Physical-Invitation-Account-Final-20260905.xcresult`;
+  `/private/tmp/pinbook-qa-physical-invitation-account-final-20260905.log`.
+  Final unsigned ordinary Release PASS:
+  `/private/tmp/pinbook-ios-invitation-account-screen-ownership-final-release-20260905.log`.
+  Final compiled QA/Release app/widget catalogs exactly match323 source entries.
+  QA launched normally afterward, without fixture arguments:
+  `/private/tmp/pinbook-qa-post-invitation-account-normal-launch-20260905.json`.
+  Launch receipt is not additional end-to-end UX acceptance. No source push,
+  TestFlight upload, production identity/version change, live provider/enrollment
+  or notes delivery. The next current-account/device-parent integration remains open.
+
 ## 2026-09-05 explicit retry screen and TLS-fixture readiness correction
 
 - Five new screen cases and three real bridge/owner/store compositions; focused

@@ -1,6 +1,1040 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Account access": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الوصول إلى الحساب"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hesap erişimi"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户访问"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號存取"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso a la cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès au compte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontozugriff"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acesso à conta"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खाते तक पहुँच"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akses akun"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントへのアクセス"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 접근"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к аккаунту"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso all’account"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اکاؤنٹ تک رسائی"
+          }
+        }
+      }
+    },
+    "Review the team and role before signing in.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "راجع الفريق والدور قبل تسجيل الدخول."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giriş yapmadan önce ekibi ve rolü inceleyin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录前，请查看团队和角色。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登入前，請檢視團隊和角色。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisa el equipo y el rol antes de iniciar sesión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifiez l’équipe et le rôle avant de vous connecter."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe vor der Anmeldung das Team und die Rolle."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confira a equipe e a função antes de entrar."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइन इन करने से पहले टीम और भूमिका की समीक्षा करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tinjau tim dan peran sebelum masuk."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サインインする前にチームと役割を確認してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인하기 전에 팀과 역할을 확인하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перед входом проверьте команду и роль."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla il team e il ruolo prima di accedere."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سائن ان کرنے سے پہلے ٹیم اور کردار کا جائزہ لیں۔"
+          }
+        }
+      }
+    },
+    "Signing in does not register this device or join the team.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تسجيل الدخول لا يسجّل هذا الجهاز ولا يضمك إلى الفريق."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giriş yapmak bu cihazı kaydetmez veya sizi ekibe dahil etmez."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录不会注册此设备，也不会让您加入团队。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登入不會註冊此裝置，也不會讓您加入團隊。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión no registra este dispositivo ni te une al equipo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La connexion n’enregistre pas cet appareil et ne vous fait pas rejoindre l’équipe."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Anmeldung registriert dieses Gerät nicht und tritt keinem Team bei."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrar não registra este dispositivo nem adiciona você à equipe."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइन इन करने से यह डिवाइस पंजीकृत नहीं होगा और न ही आप टीम में शामिल होंगे।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masuk tidak mendaftarkan perangkat ini atau memasukkan Anda ke tim."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サインインしても、このデバイスの登録やチームへの参加は行われません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인해도 이 기기가 등록되거나 팀에 가입되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вход не регистрирует это устройство и не добавляет вас в команду."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accesso non registra questo dispositivo e non ti aggiunge al team."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سائن ان کرنے سے یہ آلہ رجسٹر نہیں ہوتا اور نہ ہی آپ ٹیم میں شامل ہوتے ہیں۔"
+          }
+        }
+      }
+    },
+    "I agree to sign in for this invitation.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أوافق على تسجيل الدخول لهذه الدعوة."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu davet için giriş yapmayı kabul ediyorum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我同意为此邀请登录。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我同意為此邀請登入。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acepto iniciar sesión para esta invitación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J’accepte de me connecter pour cette invitation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich stimme zu, mich für diese Einladung anzumelden."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concordo em entrar para este convite."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मैं इस आमंत्रण के लिए साइन इन करने की सहमति देता/देती हूँ।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saya setuju untuk masuk untuk undangan ini."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この招待のためにサインインすることに同意します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 초대를 위해 로그인하는 데 동의합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я согласен войти для этого приглашения."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acconsento ad accedere per questo invito."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "میں اس دعوت کے لیے سائن ان کرنے پر رضامند ہوں۔"
+          }
+        }
+      }
+    },
+    "Continue to sign in": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المتابعة لتسجيل الدخول"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giriş yapmak için devam et"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续登录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續登入"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar para iniciar sesión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer pour se connecter"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter zur Anmeldung"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar para entrar"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइन इन करने के लिए आगे बढ़ें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lanjutkan untuk masuk"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サインインに進む"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인으로 계속"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перейти ко входу"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua per accedere"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سائن ان کرنے کے لیے جاری رکھیں"
+          }
+        }
+      }
+    },
+    "Continue with this account": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المتابعة بهذا الحساب"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu hesapla devam et"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用此账户继续"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用此帳號繼續"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar con esta cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer avec ce compte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit diesem Konto fortfahren"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar com esta conta"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस खाते से आगे बढ़ें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lanjutkan dengan akun ini"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアカウントで続ける"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 계정으로 계속"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжить с этим аккаунтом"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua con questo account"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس اکاؤنٹ کے ساتھ جاری رکھیں"
+          }
+        }
+      }
+    },
+    "Checking account access…": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ التحقق من الوصول إلى الحساب…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hesap erişimi kontrol ediliyor…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查账户访问权限…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在檢查帳號存取權限…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando el acceso a la cuenta…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification de l’accès au compte…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontozugriff wird geprüft…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificando o acesso à conta…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खाते की पहुँच जाँची जा रही है…"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memeriksa akses akun…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントへのアクセスを確認中…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 접근 확인 중…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка доступа к аккаунту…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica dell’accesso all’account…"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اکاؤنٹ تک رسائی کی جانچ ہو رہی ہے…"
+          }
+        }
+      }
+    },
+    "Account access could not be confirmed. Close this screen before signing in again.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر تأكيد الوصول إلى الحساب. أغلق هذه الشاشة قبل تسجيل الدخول مجددًا."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hesap erişimi doğrulanamadı. Yeniden giriş yapmadan önce bu ekranı kapatın."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认账户访问权限。请关闭此页面后再重新登录。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法確認帳號存取權限。請關閉此畫面後再重新登入。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo confirmar el acceso a la cuenta. Cierra esta pantalla antes de volver a iniciar sesión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accès au compte n’a pas pu être confirmé. Fermez cet écran avant de vous reconnecter."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kontozugriff konnte nicht bestätigt werden. Schließe diesen Bildschirm, bevor du dich erneut anmeldest."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível confirmar o acesso à conta. Feche esta tela antes de entrar novamente."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खाते तक पहुँच की पुष्टि नहीं हो सकी। दोबारा साइन इन करने से पहले यह स्क्रीन बंद करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akses akun tidak dapat dikonfirmasi. Tutup layar ini sebelum masuk lagi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントへのアクセスを確認できませんでした。再度サインインする前にこの画面を閉じてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 접근을 확인할 수 없습니다. 다시 로그인하기 전에 이 화면을 닫으세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось подтвердить доступ к аккаунту. Закройте этот экран перед повторным входом."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile confermare l’accesso all’account. Chiudi questa schermata prima di accedere di nuovo."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اکاؤنٹ تک رسائی کی تصدیق نہیں ہو سکی۔ دوبارہ سائن ان کرنے سے پہلے یہ اسکرین بند کریں۔"
+          }
+        }
+      }
+    },
+    "Account access is ready. Registering this device and joining need separate confirmation.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الوصول إلى الحساب جاهز. تسجيل هذا الجهاز والانضمام يحتاجان إلى تأكيد منفصل."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hesap erişimi hazır. Bu cihazın kaydı ve ekibe katılma için ayrı onay gerekir."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户访问已就绪。注册此设备和加入团队需要分别确认。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號存取已就緒。註冊此裝置和加入團隊需要分別確認。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El acceso a la cuenta está listo. Registrar este dispositivo y unirse al equipo requieren confirmaciones separadas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accès au compte est prêt. L’enregistrement de cet appareil et l’adhésion à l’équipe nécessitent des confirmations distinctes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kontozugriff ist bereit. Die Geräteregistrierung und der Teambeitritt müssen separat bestätigt werden."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O acesso à conta está pronto. Registrar este dispositivo e entrar na equipe exigem confirmações separadas."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खाते तक पहुँच तैयार है। इस डिवाइस का पंजीकरण और टीम में शामिल होना अलग-अलग पुष्टि माँगते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akses akun siap. Pendaftaran perangkat ini dan bergabung ke tim memerlukan konfirmasi terpisah."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントへのアクセスが準備できました。デバイスの登録とチームへの参加には、それぞれ確認が必要です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 접근이 준비되었습니다. 이 기기 등록과 팀 가입은 각각 별도의 확인이 필요합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к аккаунту готов. Регистрация устройства и вступление в команду требуют отдельных подтверждений."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accesso all’account è pronto. La registrazione del dispositivo e l’adesione al team richiedono conferme separate."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اکاؤنٹ تک رسائی تیار ہے۔ اس آلے کی رجسٹریشن اور ٹیم میں شمولیت کے لیے الگ الگ تصدیق درکار ہے۔"
+          }
+        }
+      }
+    },
+    "Account screen closed. Open the invitation again to continue.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أُغلقت شاشة الحساب. افتح الدعوة مجددًا للمتابعة."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hesap ekranı kapatıldı. Devam etmek için daveti yeniden açın."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户页面已关闭。请重新打开邀请以继续。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號畫面已關閉。請重新開啟邀請以繼續。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla de cuenta cerrada. Abre la invitación de nuevo para continuar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’écran du compte est fermé. Rouvrez l’invitation pour continuer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontobildschirm geschlossen. Öffne die Einladung erneut, um fortzufahren."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela da conta fechada. Abra o convite novamente para continuar."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खाते की स्क्रीन बंद हो गई। आगे बढ़ने के लिए आमंत्रण दोबारा खोलें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Layar akun ditutup. Buka undangan lagi untuk melanjutkan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウント画面を閉じました。続けるには招待をもう一度開いてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 화면이 닫혔습니다. 계속하려면 초대를 다시 여세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экран аккаунта закрыт. Откройте приглашение снова, чтобы продолжить."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schermata dell’account chiusa. Riapri l’invito per continuare."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اکاؤنٹ کی اسکرین بند ہو گئی۔ جاری رکھنے کے لیے دعوت دوبارہ کھولیں۔"
+          }
+        }
+      }
+    },
+    "Account cleanup could not be confirmed. Do not retry this invitation yet.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر تأكيد إنهاء عملية الحساب. لا تعِد محاولة هذه الدعوة الآن."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hesap işleminin temizlendiği doğrulanamadı. Bu daveti henüz yeniden denemeyin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认账户操作已清理完成。请暂勿重试此邀请。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法確認帳號操作已清理完成。請暫勿重試此邀請。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo confirmar la limpieza de la operación de cuenta. No reintentes esta invitación todavía."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fin du nettoyage de l’opération du compte n’a pas pu être confirmée. Ne réessayez pas encore cette invitation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Abschluss der Kontobereinigung konnte nicht bestätigt werden. Versuche diese Einladung noch nicht erneut."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível confirmar a limpeza da operação da conta. Ainda não tente este convite novamente."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खाते की प्रक्रिया की सफ़ाई की पुष्टि नहीं हो सकी। अभी इस आमंत्रण का दोबारा प्रयास न करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pembersihan proses akun tidak dapat dikonfirmasi. Jangan coba ulang undangan ini dulu."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウント処理のクリーンアップを確認できませんでした。まだこの招待を再試行しないでください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 작업 정리가 완료되었는지 확인할 수 없습니다. 아직 이 초대를 다시 시도하지 마세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось подтвердить завершение очистки операции аккаунта. Пока не повторяйте это приглашение."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile confermare la pulizia dell’operazione dell’account. Non riprovare ancora questo invito."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اکاؤنٹ کی کارروائی کی صفائی کی تصدیق نہیں ہو سکی۔ ابھی اس دعوت کو دوبارہ نہ آزمائیں۔"
+          }
+        }
+      }
+    },
     "Check previous join": {
       "localizations": {
         "ar": {

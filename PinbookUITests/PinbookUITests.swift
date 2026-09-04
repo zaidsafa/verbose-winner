@@ -2,6 +2,91 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testInvitationNewAccountUsesChineseCopyAndSeparateUncheckedConsent() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount", "-PinbookLanguage", "zh-Hans"]
+        app.launch()
+        let review = app.buttons["invitation-account-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["invitation-account-access"].exists)
+        review.tap()
+        let access = app.buttons["invitation-account-access"]
+        XCTAssertTrue(access.waitForExistence(timeout: 5)); XCTAssertFalse(access.isEnabled)
+        XCTAssertEqual(access.label, "继续登录")
+        XCTAssertEqual(app.staticTexts["invitation-account-privacy"].label, "登录不会注册此设备，也不会让您加入团队。")
+        XCTAssertFalse(app.staticTexts["invitation-account-identity"].exists)
+        let consent = app.switches.matching(identifier: "invitation-account-consent").firstMatch
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        let before = XCTAttachment(screenshot: app.screenshot())
+        before.name = "Chinese invitation account preflight with unchecked consent"
+        before.lifetime = .keepAlways; add(before)
+        consent.switches.firstMatch.tap()
+        XCTAssertTrue(access.wait(for: \.isEnabled, toEqual: true, timeout: 5))
+        for _ in 0..<4 where !access.isHittable { app.swipeUp() }
+        access.tap()
+        XCTAssertTrue(app.buttons["invitation-account-done"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["invitation-account-identity"].label, "public-test-account")
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+    }
+    @MainActor
+    func testInvitationExistingAccountIsExplicitAndUsesArabicLayout() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount",
+            "-PinbookInvitationAccountScenario", "existing", "-PinbookLanguage", "ar", "-PinbookTheme", "dark"]
+        app.launch()
+        let review = app.buttons["invitation-account-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10)); review.tap()
+        let access = app.buttons["invitation-account-access"]
+        XCTAssertTrue(access.waitForExistence(timeout: 5)); XCTAssertTrue(access.isEnabled)
+        XCTAssertEqual(access.label, "المتابعة بهذا الحساب")
+        XCTAssertEqual(app.staticTexts["invitation-account-identity"].label, "public-test-account")
+        XCTAssertFalse(app.switches["invitation-account-consent"].exists)
+        XCTAssertFalse(app.buttons["invitation-account-done"].exists)
+        for _ in 0..<4 where !access.isHittable { app.swipeUp() }
+        let before = XCTAttachment(screenshot: app.screenshot())
+        before.name = "Arabic existing invitation account explicit continuation"
+        before.lifetime = .keepAlways; add(before)
+        access.tap()
+        XCTAssertTrue(app.buttons["invitation-account-done"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["membership-join"].exists)
+    }
+    @MainActor
+    func testInvitationAccountUncertaintyDoesNotOfferSignInReplay() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount",
+            "-PinbookInvitationAccountScenario", "uncertain", "-PinbookLanguage", "en"]
+        app.launch()
+        let review = app.buttons["invitation-account-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10)); review.tap()
+        let consent = app.switches.matching(identifier: "invitation-account-consent").firstMatch
+        XCTAssertTrue(consent.waitForExistence(timeout: 5))
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        consent.switches.firstMatch.tap()
+        let access = app.buttons["invitation-account-access"]
+        for _ in 0..<4 where !access.isHittable { app.swipeUp() }
+        access.tap()
+        XCTAssertTrue(app.staticTexts["Account access could not be confirmed. Close this screen before signing in again."].waitForExistence(timeout: 5))
+        XCTAssertFalse(access.exists); XCTAssertFalse(review.exists)
+        XCTAssertFalse(app.buttons["invitation-account-done"].exists)
+    }
+    @MainActor
+    func testInvitationBackgroundClearsAccountConsentWithoutResuming() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount", "-PinbookLanguage", "en"]
+        app.launch()
+        let review = app.buttons["invitation-account-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10)); review.tap()
+        let consent = app.switches.matching(identifier: "invitation-account-consent").firstMatch
+        XCTAssertTrue(consent.waitForExistence(timeout: 5))
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        consent.switches.firstMatch.tap()
+        XCTAssertTrue(app.buttons["invitation-account-access"].isEnabled)
+        XCUIDevice.shared.press(.home); app.activate()
+        XCTAssertTrue(app.staticTexts["Account screen closed. Open the invitation again to continue."].waitForExistence(timeout: 5))
+        XCTAssertFalse(consent.exists); XCTAssertFalse(app.buttons["invitation-account-access"].exists)
+        XCTAssertFalse(app.staticTexts["invitation-account-team"].exists)
+    }
+    @MainActor
     func testPendingRetryUsesChineseWarningAndRequiresNewConsent() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamMembership",

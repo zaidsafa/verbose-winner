@@ -90,8 +90,13 @@ checkboxes deliberately remain open until checked against the exact next candida
   A localized membership modal and retained UI model now compose that owner with
   unchecked consent and tokenless recovery; synthetic core tests and three native
   membership UI tests pass on the physical QA phone. No normal activation yet. See
-  TEAM_MEMBERSHIP_UI_IOS.md. Invitation/account screens and parent host wiring
-  remain open;
+  TEAM_MEMBERSHIP_UI_IOS.md. The invitation account preflight model/bridge/modal
+  now exists with separate account consent, exact existing-account continuation,
+  display-only one-use receipt, and permanent close/late-result cleanup. Its real
+  bridge composes the invitation owner; the native DEBUG host is synthetic, not
+  provider issuance. Physical287 app+24 UI passed; after core-only handoff refinements,
+  rebuilt288 app+4 affected UI passed. All323 catalog entries match compiled app/
+  widget resources. Parent account/device/membership routing remains open;
   the backend's source-only teams/acceptance route now has bounded iOS transport,
   durable same-identity explicit retry owner and localTLS tests; the native retry
   screen/bridge now composes that owner with new consent and original-link-only

@@ -1,8 +1,66 @@
 # iOS invitation account consent — inactive
 
-Updated 2026-09-04. `TeamInvitedSignIn` adds a retained invitation account flow.
+Updated 2026-09-05. `TeamInvitedSignIn` adds a retained invitation account flow.
 It is not linked from normal navigation, and configures no live provider or service.
 Signing in is separate from registering a device and joining a team.
+
+## Account screen and lifecycle bridge
+
+`TeamInvitationAccountScreenBridge` now retains that real owner for one screen.
+Construction does no I/O. Explicit Review returns only team, role, expiry, shown
+account ID and an opaque preview ID. The original code stays privately in memory.
+New-account access requires freshly unchecked consent; an existing account has
+a separate explicit continuation and never asks for new-account consent. Exact
+preview identity and all displayed fields must match. Access consumes the code
+and prepared screen handle before one attempt; uncertain access cannot be replayed
+or silently re-previewed in the same presentation.
+
+Completion returns an opaque display-only receipt, NOT the secret join intent.
+Only the retained bridge holds that intent. A parent can call `takeIntent` once
+with the exact receipt; the owner rechecks invitation expiry and the exact current
+account generation before handoff. A changed/expired account consumes the receipt
+without returning the intent or deleting any account. This recheck is not an
+atomic lease: the next device/membership owner must still revalidate scope and
+obtain its own explicit consent. No device or membership request is made here.
+
+Close is permanent and idempotent. It drops screen handles/code/intent, cancels
+only its own operation, awaits owner cleanup AND the real pending work, and reports
+cleanup failure. The observable model clears its UI immediately, rejects late
+results by generation, retains cleanup work even when its presentation task is
+cancelled, and exposes cleanup uncertainty without restoring consent. Never share
+one bridge/owner between presentations. Host must close/recreate on code edits or
+session-generation replacement, and must consume the handoff before dismissing
+the source screen; disappearance invalidates an unconsumed receipt.
+
+`TeamInvitationAccountView` is a native preflight modal with readable identity/role
+cards, initially unchecked consent, explicit existing-account action, simple
+progress/uncertainty and Reduce Motion-aware transitions. It clears on actual
+background/disappearance, not provider-modal inactivity. Eleven new messages have
+assistant-authored translations in all15 non-English catalogs; native linguistic
+review remains open. It is not a branded Apple/Google button or live provider demo.
+Its DEBUG host requires both ephemeral fixture mode and the invitation-account
+flag; only `new`, `existing`, `uncertain` scenarios are accepted. That host has no
+Keychain/provider/network/financial write. Its Done action intentionally closes
+the isolated test screen; parent progression is NOT wired into ordinary navigation.
+
+Nine model and six real bridge/owner/session tests cover no automatic I/O, exact
+displayed-account access, consent, one-use receipt/intent, forged handles, changed
+account/expiry, cleanup, late results and no exchange replay. Focused25/25 PASS
+before the additional post-Keychain expiry regression; final full core261/261 PASS.
+The handoff samples time/cancellation again after protected account reads, rejecting
+access expiry, invitation expiry and rollback during that read. See VALIDATION.md
+for the red/green regression and native build/test evidence.
+
+Next: parent account/device/membership workspace and explicit device-registration
+screen, account-generation teardown, then owner invitations. Before UI wiring,
+registration must accept the exact displayed handoff ticket: its current
+`register(consent:)` loads whichever account is current at dispatch. Checking a
+returned result only afterward cannot prevent key creation for a switched account.
+Pin/check the expected ticket BEFORE the first custody prepare/write, then retain
+the existing before/after-operation checks. Android's owner-side
+contract is `docs/TEAM_ANDROID_INVITATION_UI.md` at a3af32e (partner report): keep
+fresh unchecked issuance consent and explicit bounded one-use native sharing;
+it is not a recipient-account contract or proof of actual server delivery.
 
 ## Review and account access
 
@@ -95,8 +153,8 @@ Fixtures use synthetic identity and Keychain adapters, not actual Apple/Google
 issuance or physical protected storage. The older intermittent localhost TLS issue
 remains documented in VALIDATION.md; this passing run does not establish its cause.
 
-Next: bounded durable join-intent storage, separate membership owner/recovery, then
-localized invitation/join screens and host lifecycle wiring. Real provider/client
+The September4 checkpoint above predates the durable membership and screen work
+described at the top. Next remains parent/device integration. Real provider/client
 IDs, trusted origin/epoch, physical protection/provider tests, reviewed group crypto,
 full delivery/recovery/cloud/widget/UX acceptance and approved staging remain gates.
 Keep the complete FINAL_UPDATE_CHECKLIST.md scope and TestFlight build 0.1.0 (3)

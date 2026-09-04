@@ -5,6 +5,28 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest invitation account screen checkpoint
+
+September5 isolated account preflight now supports read-only review, explicit
+existing-account continuation or new unchecked sign-in consent. DEBUG presentation
+uses public synthetic identities, not Apple/Google or live team requests. Normal
+app navigation remains unchanged.
+
+- Full candidate **287 app +24 UI PASS**,311 total, no skips/failures:
+  `/private/tmp/Pinbook-QA-Physical-Invitation-Account-20260905.xcresult`.
+  Chinese unchecked consent and Arabic existing-account screenshots inspected;
+  RTL/LTR identities, wrapping, neutral disabled text and enabled mint button clear.
+- After a core-only handoff expiry/ownership refinement and added regression,
+  rebuilt **288 app +4 affected UI PASS**,292 total, no skips/failures:
+  `/private/tmp/Pinbook-QA-Physical-Invitation-Account-Final-20260905.xcresult`.
+  The remaining20 UI were not rerun after that core refinement; UI source unchanged.
+- Final signed QA build and ordinary unsigned Release PASS. All323 localized
+  entries match source in both compiled app/widget artifacts. QA normal launch
+  succeeded after tests, without fixture arguments. Exact logs and screenshots in
+  VALIDATION.md. No interim TestFlight publication or ordinary-app replacement.
+- Real provider issuance, device enrollment, membership navigation, shared notes,
+  account lifecycle/hardware recovery and final full-scope acceptance remain open.
+
 ## Isolation contract
 
 | Setting | Ordinary app | Development QA |

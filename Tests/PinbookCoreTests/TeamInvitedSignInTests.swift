@@ -14,7 +14,18 @@ private let invitationPair = TeamAuthSessionPair(accountID: "public-account", se
 private final class InvitationClock: @unchecked Sendable {
     private let lock = NSLock()
     private var value = TeamSignInMoment(wallTime: 1_000, instant: .now)
-    func now() -> TeamSignInMoment { lock.withLock { value } }
+    private var shiftAfterRead: (Int64, Duration)?
+    func now() -> TeamSignInMoment {
+        lock.withLock {
+            let result = value
+            if let (wall, elapsed) = shiftAfterRead {
+                shiftAfterRead = nil
+                value = .init(wallTime: value.wallTime + wall, instant: value.instant.advanced(by: elapsed))
+            }
+            return result
+        }
+    }
+    func advanceAfterNextRead(wall: Int64, elapsed: Duration) { lock.withLock { shiftAfterRead = (wall, elapsed) } }
     func advance(wall: Int64 = 0, elapsed: Duration = .zero) {
         lock.withLock { value = .init(wallTime: value.wallTime + wall, instant: value.instant.advanced(by: elapsed)) }
     }
@@ -86,6 +97,107 @@ private struct InvitationFixture {
 }
 
 struct TeamInvitedSignInTests {
+    @Test func screenHandoffRechecksTimeAfterProtectedAccountRead() async throws {
+        for delta: Int64 in [899_000, 1_000_000, -1] {
+            let f = try InvitationFixture(active: true), bridge = try TeamInvitationAccountScreenBridge(owner: f.owner(InvitationTransport()), code: invitationCode)
+            let display = try await bridge.review(), receipt = try await bridge.access(display, consent: false)
+            // The first handoff clock read is valid; time changes before the
+            // protected-account read finishes. Test access/invite expiry/rollback.
+            f.clock.advanceAfterNextRead(wall: delta, elapsed: .milliseconds(max(0, delta)))
+            await #expect(throws: (any Error).self) { try await bridge.takeIntent(receipt) }
+            await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.takeIntent(receipt) }
+            try await bridge.close()
+            #expect(try f.sessions.load(scope: f.scope) != nil)
+        }
+    }
+    @Test func screenBridgeHidesSecretsAndMakesOneExactExistingAccountHandoff() async throws {
+        let f = try InvitationFixture(active: true), transport = InvitationTransport(), identity = InvitationIdentity()
+        let bridge = try TeamInvitationAccountScreenBridge(owner: f.owner(transport, identity: identity), code: invitationCode)
+        #expect(await transport.calls.isEmpty)
+        let display = try await bridge.review()
+        let forged = TeamInvitationAccountReview(teamID: display.teamID, role: display.role, expiresAt: display.expiresAt, accountID: display.accountID)
+        await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.access(forged, consent: true) }
+        let receipt = try await bridge.access(display, consent: false)
+        #expect(Mirror(reflecting: display).children.isEmpty && Mirror(reflecting: receipt).children.isEmpty)
+        #expect(!String(reflecting: receipt).contains(invitationCode))
+        let forgedReceipt = TeamInvitationAccountReceipt(teamID: receipt.teamID, role: receipt.role, accountID: receipt.accountID)
+        await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.takeIntent(forgedReceipt) }
+        let intent = try await bridge.takeIntent(receipt)
+        #expect(intent.token == invitationCode && intent.account.accountID == display.accountID)
+        try f.sessions.requireCurrentAccess(intent.account, now: 1_000)
+        await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.takeIntent(receipt) }
+        await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.review() }
+        #expect(await identity.calls == 0)
+        #expect(await transport.calls == ["preview"])
+        try await bridge.close()
+        #expect(try f.sessions.load(scope: f.scope) != nil)
+    }
+    @Test func screenBridgeNewAccountConsentIsSeparateAndFailedExchangeCannotReplay() async throws {
+        for fail in [false, true] {
+            let f = try InvitationFixture(), transport = InvitationTransport(failExchange: fail), identity = InvitationIdentity()
+            let bridge = try TeamInvitationAccountScreenBridge(owner: f.owner(transport, identity: identity), code: invitationCode)
+            let display = try await bridge.review()
+            await #expect(throws: TeamInvitationAccountError.consentRequired) { try await bridge.access(display, consent: false) }
+            #expect(f.backend.writes == 0)
+            #expect(await identity.calls == 0)
+            if fail { await #expect(throws: (any Error).self) { try await bridge.access(display, consent: true) } }
+            else {
+                let receipt = try await bridge.access(display, consent: true)
+                let intent = try await bridge.takeIntent(receipt)
+                #expect(intent.account.accountID == invitationPair.accountID && intent.role == .reviewer)
+            }
+            await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.access(display, consent: true) }
+            await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.review() }
+            #expect(await transport.calls == ["preview", "challenge", "exchange"])
+            #expect(await identity.calls == 1)
+            try await bridge.close()
+        }
+    }
+    @Test func screenHandoffRejectsAccountReplacementAndExpiryWithoutDeletingAccounts() async throws {
+        for expired in [false, true] {
+            let f = try InvitationFixture(active: true), bridge = try TeamInvitationAccountScreenBridge(owner: f.owner(InvitationTransport()), code: invitationCode)
+            let display = try await bridge.review(), receipt = try await bridge.access(display, consent: false)
+            if expired { f.clock.advance(wall: 1_000_000, elapsed: .seconds(1_000)) }
+            else {
+                try f.sessions.removeCurrent(scope: f.scope, consent: true)
+                _ = try f.sessions.saveInitial(invitationPair, scope: f.scope, now: 1_000, consent: true)
+            }
+            await #expect(throws: (any Error).self) { try await bridge.takeIntent(receipt) }
+            await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.takeIntent(receipt) }
+            try await bridge.close()
+            #expect(try f.sessions.load(scope: f.scope) != nil)
+        }
+    }
+    @Test func screenBridgeCloseDrainsDelayedPreviewAndCannotReopen() async throws {
+        let f = try InvitationFixture(), transport = InvitationTransport(gate: "preview")
+        let bridge = try TeamInvitationAccountScreenBridge(owner: f.owner(transport), code: invitationCode)
+        let work = Task { try await bridge.review() }
+        for _ in 0..<200 {
+            if await transport.calls.contains("preview") { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        #expect(await transport.calls == ["preview"])
+        let closing = Task { try await bridge.close() }
+        // Wait for the permanently closed state without releasing transport yet.
+        for _ in 0..<200 {
+            do { _ = try await bridge.review(); Issue.record("Unexpected second preview") }
+            catch TeamInvitationAccountError.staleConsent { break }
+            catch TeamInvitationAccountError.busy { await Task.yield() }
+        }
+        await transport.finish()
+        await #expect(throws: (any Error).self) { try await work.value }
+        try await closing.value; try await bridge.close()
+        await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.review() }
+        #expect(f.backend.writes == 0)
+        #expect(await transport.calls == ["preview"])
+    }
+    @Test func screenBridgeCloseInvalidatesCompletedReceiptButPreservesCommittedAccount() async throws {
+        let f = try InvitationFixture(), bridge = try TeamInvitationAccountScreenBridge(owner: f.owner(InvitationTransport()), code: invitationCode)
+        let display = try await bridge.review(), receipt = try await bridge.access(display, consent: true)
+        try await bridge.close()
+        await #expect(throws: TeamInvitationAccountError.staleConsent) { try await bridge.takeIntent(receipt) }
+        #expect(try f.sessions.load(scope: f.scope)?.usablePair(now: 1_000) == invitationPair)
+    }
     @Test func previewIsReadOnlyAndAccountConsentDoesNotJoinTeam() async throws {
         let f = try InvitationFixture(), transport = InvitationTransport(), identity = InvitationIdentity(), owner = f.owner(transport, identity: identity)
         let display = try await owner.preview(code: invitationCode)
