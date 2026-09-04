@@ -1,5 +1,31 @@
 # Validation plan
 
+## 2026-09-05 exact-current UI, localization and backend-profile regression
+
+- Exact iOS source at local commit `910f3dc` passed the complete signed native UI
+  suite on the dedicated iPhone 17 Pro, iOS 26.5 Simulator: **29/29 PASS**,
+  **0 failures/skips**, 440.864s. The run covers introduction/language switching,
+  Simplified and Traditional Chinese, Arabic/Urdu RTL, theme readability, the
+  searchable currency catalog, local Files recovery, final-content/tab-bar
+  clearance and the inactive invitation/device/membership consent workflows.
+  Result: `/private/tmp/Pinbook-Final-UI-20260905.xcresult`.
+- The exact compiled Debug app from that run passed localization verification:
+  **336 keys x 15 translated locales plus English**, format tokens intact, and
+  app/widget compiled strings exactly matching source. This is automated catalog
+  and structural accessibility/UI evidence; it does not claim spoken VoiceOver,
+  rotor, locked-device widgets or physical focus behavior.
+- Committed backend checkpoint `926d2ae` added strict canonical General JWE
+  validation without enabling delivery submit. The iOS JWE, payload and
+  submit-intent fixtures remain byte-identical to the shared vectors (`cmp=0`),
+  with SHA-256 `95d83009ccc53f6573edde6269d66ff6184fe3dbf518954edbcbcb0d5dc9e8a9`,
+  `6b77c4c44048741fd4fd82ef0c8a244a6b949c3c00a82555c5f760d22bc353c7`
+  and `02c4cdcbcea9e50e0e9066c5618245f321e6ec06a8854129858c44459a136b17`.
+  A fresh temporary Swift build ran the exact JWE/payload/intent selection:
+  **10/10 PASS**, 3 suites, 0.010s. The first two Swift invocations are not
+  counted: one was sandbox-blocked at the module cache; the next hit the stale
+  workspace `.build` database and selected zero tests. No source, app data,
+  physical device, network route, TestFlight build or App Store state changed.
+
 ## 2026-09-05 canonical delivery submit intent parity (inactive)
 
 - Implemented exact iOS parity with frozen Android/server checkpoint

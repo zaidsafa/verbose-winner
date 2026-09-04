@@ -45,17 +45,28 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Exact-current automated final-candidate regression at local iOS commit
+  `910f3dc` now passes: signed Simulator UI **29/29**, zero failures/skips;
+  localization **336 keys x 15 translated locales plus English**, format tokens
+  intact, with exact compiled app/widget parity. Committed backend `926d2ae`
+  tightened canonical General JWE validation but kept delivery submission
+  disabled. All three iOS delivery fixtures remain byte-identical to shared and
+  focused JWE/payload/intent **10/10 PASS** from a fresh temporary Swift build.
+  This closes only the automated regression gate. Physical accessibility,
+  provider/live staging, two-device sync, final archive and publication remain
+  open. See the newest `VALIDATION.md` section.
+
 - Frozen submit-intent checkpoint
   `a158bf8f1c83bb2813009d835d0b079999d25187` now has exact inactive iOS parity.
   Exact compact metadata pins JWE bytes/hash, delivery ID, audience digest and
   membership revision; caller-supplied expected bindings and exact re-encoding
   fail closed. Focused **3/3**, core **328/328**, signed Simulator **357/357**,
   physical QA iPhone **357/357**, normal QA relaunch and ordinary Release pass.
-  No upload/acceptance/network/UI/TestFlight action. Server-only checkpoint
-  `5d6bbf3b6cfb1178e0e6dd96e4ad560e1b44e568` adds durable acceptance fields; do
-  not port or activate it without an explicit reviewed iOS contract. Preserve
-  sender device/enrollment, revision, audience, intent/JWE hashes, server times,
-  ACCEPTED-only visibility and archive-before-ACK. See
+  No upload/acceptance/network/TestFlight action. Later committed server checkpoint
+  `926d2aeae972569476808e339923fc62c9da5014` now strictly validates the existing
+  canonical General JWE profile and retains the inactive durable acceptance
+  draft. Preserve sender device/enrollment, revision, audience, intent/JWE hashes,
+  server times, ACCEPTED-only visibility and archive-before-ACK. See
   `TEAM_DELIVERY_SUBMIT_INTENT_IOS.md` and `VALIDATION.md`.
 
 - Frozen Android/server payload/JWE checkpoint
@@ -67,8 +78,9 @@ Updated: 2026-09-05 (Asia/Shanghai)
   Simulator **354/354**, physical QA iPhone **354/354**, named Secure Enclave JWE,
   normal QA relaunch and ordinary Release all pass. JWE is not sender auth. No
   runtime/endpoint/archive-before-ACK/Android sync/TestFlight action. See
-  `TEAM_DELIVERY_JWE_IOS.md` and `VALIDATION.md`. NEXT: implement only the newly
-  frozen submit-intent metadata contract, still without activating transport.
+  `TEAM_DELIVERY_JWE_IOS.md` and `VALIDATION.md`. The later submit-intent parity is
+  complete; next work requires a reviewed committed transport/lifecycle contract,
+  still without activating production infrastructure.
 
 - Finalized outgoing draft identities cannot be recreated while their immutable
   pending events remain, preventing retry identity aliasing; generic reflection

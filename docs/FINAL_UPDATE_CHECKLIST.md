@@ -211,7 +211,11 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 - [ ] Resolve scope/provider/access decisions without silently dropping features.
 - [ ] Complete implementation and integration, not disabled foundations.
-- [ ] Full automated app/UI suites, localization and accessibility checks.
+- [x] Full automated app/UI suites, localization and structural accessibility
+      checks. Exact-current evidence: app-host **357/357**, native UI **29/29**,
+      localization **336 keys x 15 locales plus English** with compiled app/widget
+      parity. Spoken VoiceOver/rotor and physical focus remain under the separate
+      physical-only gate below.
 - [ ] Synthetic cross-platform full-workflow and staging failure/recovery acceptance.
 - [ ] Resolve physical-only acceptance separately; owner may keep phone disconnected
       during development. Simulator passes do not close hardware gates.
