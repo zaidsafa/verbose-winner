@@ -58,6 +58,14 @@ Updated: 2026-09-05 (Asia/Shanghai)
   `VALIDATION.md`. NEXT: review/design cross-platform ECDH key confirmation before
   freezing any envelope or delivery handler.
 
+- A concrete review-only ECDH confirmation proposal is now recorded in
+  `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md`: fresh server ephemeral P-256 per
+  pending challenge, agreement-key ECDH, reviewed Concat KDF, canonical HMAC
+  context, and existing registered-device signature. It deliberately changes no
+  source/route and is not a shared contract until Android/server owners review and
+  publish exact vectors. Cross-task disclosure and GitHub push are currently held
+  by safety review, so do not claim coordination completed.
+
 - Standard RFC 7518 Concat KDF and RFC 3394 A256KW now match Android/RFC vectors.
   A completely separate Secure Enclave P-256 agreement identity is bound to exact
   origin/account/authority epoch/enrollment and retained in non-synchronizing,

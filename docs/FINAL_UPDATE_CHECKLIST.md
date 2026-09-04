@@ -66,6 +66,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   key confirmation is explicitly required before staging. See
   `TEAM_AGREEMENT_ENROLLMENT_IOS.md`.
 
+- A fresh-server-ephemeral ECDH/HMAC private-key confirmation design is drafted in
+  `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md`. It is review-only and must receive a
+  shared Android/server contract plus independent vectors before implementation;
+  it does not close the staging or encryption gate.
+
 - Reviewed standard ECDH-ES Concat KDF/A256KW vectors and a separate non-exported
   Secure Enclave agreement identity now pass locally and in the isolated physical
   QA app. The key is exact enrollment scoped and cannot reuse the signing API.
