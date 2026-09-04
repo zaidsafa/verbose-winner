@@ -58,6 +58,12 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- Canonical submit-intent metadata now has exact inactive iOS parity. It pins the
+  delivery ID, complete-audience digest, membership revision and exact JWE bytes/
+  hash, with independent expected-binding and canonical decode checks. This is not
+  an upload, sender authorization or server acceptance path. See
+  `TEAM_DELIVERY_SUBMIT_INTENT_IOS.md`.
+
 - The frozen canonical payload and multi-recipient JWE now have exact inactive
   iOS parity. The plaintext binds the team, delivery, author and body hash; the
   A256GCM protected header binds the complete frozen agreement-key audience, and

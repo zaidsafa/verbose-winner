@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "audienceDigest": "d52OUOz78xW4z5kJwhETksjiIBlombyaa6P9sp_bFFE",
+  "deliveryId": "delivery_fixture",
+  "jweBytes": 1403,
+  "jweSha256": "ca24925d6adc7ac1466f242c91dcf74afebd1aeb289ab6e5e34fe9c165abe909",
+  "membershipRevision": 7,
+  "type": "pinbook-delivery-submit-v1",
+  "canonicalIntentUtf8": "{\"audienceDigest\":\"d52OUOz78xW4z5kJwhETksjiIBlombyaa6P9sp_bFFE\",\"deliveryId\":\"delivery_fixture\",\"jweBytes\":1403,\"jweSha256\":\"ca24925d6adc7ac1466f242c91dcf74afebd1aeb289ab6e5e34fe9c165abe909\",\"membershipRevision\":7,\"type\":\"pinbook-delivery-submit-v1\"}",
+  "canonicalIntentBase64url": "eyJhdWRpZW5jZURpZ2VzdCI6ImQ1Mk9VT3o3OHhXNHo1a0p3aEVUa3NqaUlCbG9tYnlhYTZQOXNwX2JGRkUiLCJkZWxpdmVyeUlkIjoiZGVsaXZlcnlfZml4dHVyZSIsImp3ZUJ5dGVzIjoxNDAzLCJqd2VTaGEyNTYiOiJjYTI0OTI1ZDZhZGM3YWMxNDY2ZjI0MmM5MWRjZjc0YWZlYmQxYWViMjg5YWI2ZTVlMzRmZTljMTY1YWJlOTA5IiwibWVtYmVyc2hpcFJldmlzaW9uIjo3LCJ0eXBlIjoicGluYm9vay1kZWxpdmVyeS1zdWJtaXQtdjEifQ"
+}

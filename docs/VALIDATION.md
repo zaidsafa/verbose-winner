@@ -1,5 +1,35 @@
 # Validation plan
 
+## 2026-09-05 canonical delivery submit intent parity (inactive)
+
+- Implemented exact iOS parity with frozen Android/server checkpoint
+  `a158bf8f1c83bb2813009d835d0b079999d25187`. The compact printable-ASCII intent
+  binds canonical JWE byte length/SHA-256, stable delivery ID, complete-audience
+  digest and membership revision. Decode compares independent expected authority
+  fields and exact re-encoding. It is metadata only; no transport is activated.
+- The shared fixture is byte-identical, SHA-256
+  `02c4cdcbcea9e50e0e9066c5618245f321e6ec06a8854129858c44459a136b17`.
+  Focused submit-intent **3/3 PASS**,1 suite,0.004s:
+  `/private/tmp/pinbook-ios-submit-intent-focused-first-20260905.log`.
+- Complete Swift core **328/328 PASS**,28 suites,15.268s:
+  `/private/tmp/pinbook-ios-submit-intent-full-core-20260905.log`. Signed Simulator
+  app-host **357/357 PASS**,29 suites,8.208s:
+  `/private/tmp/Pinbook-Submit-Intent-Signed.xcresult` and
+  `/private/tmp/pinbook-ios-submit-intent-signed-app-host-20260905.log`.
+- Separate physical-iPhone QA build-for-testing **SUCCEEDED** and app-host
+  **357/357 PASS**,29 suites,3.949s:
+  `/private/tmp/pinbook-ios-device-qa-submit-build-20260905.log`,
+  `/private/tmp/Pinbook-QA-Physical-Submit-Intent-20260905.xcresult` and
+  `/private/tmp/pinbook-qa-physical-submit-intent-20260905.log`. QA returned to a
+  successful normal launch:
+  `/private/tmp/pinbook-qa-submit-intent-normal-launch-20260905.json`.
+- Ordinary unsigned Release **BUILD SUCCEEDED** with production bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`:
+  `/private/tmp/pinbook-ios-submit-intent-release-20260905.log`. The test fixture
+  filename/vector digest is absent from the Release app. No live endpoint,
+  Android device, upload, server acceptance, database write, ACK, release archive,
+  TestFlight upload or real sync was used.
+
 ## 2026-09-05 canonical team payload and multi-recipient JWE parity (inactive)
 
 - Implemented exact independent iOS parity with frozen Android/server checkpoint

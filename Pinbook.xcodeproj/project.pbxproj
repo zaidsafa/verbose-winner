@@ -31,6 +31,8 @@
 		C80000000000000000000004 /* TeamDeliveryJWETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000003 /* TeamDeliveryJWETests.swift */; };
 		C80000000000000000000006 /* TeamDeliveryPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000005 /* TeamDeliveryPayload.swift */; };
 		C80000000000000000000008 /* TeamDeliveryPayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000007 /* TeamDeliveryPayloadTests.swift */; };
+		C8000000000000000000000A /* TeamDeliverySubmitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80000000000000000000009 /* TeamDeliverySubmitIntent.swift */; };
+		C8000000000000000000000C /* TeamDeliverySubmitIntentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8000000000000000000000B /* TeamDeliverySubmitIntentTests.swift */; };
 		B10000000000000000000015 /* TeamMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* TeamMembershipView.swift */; };
 		B10000000000000000000016 /* TeamInvitationAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* TeamInvitationAccountView.swift */; };
 		B2000000000000000000001B /* TeamMembershipScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TeamMembershipScreen.swift */; };
@@ -174,6 +176,8 @@
 		C80000000000000000000003 /* TeamDeliveryJWETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliveryJWETests.swift; sourceTree = "<group>"; };
 		C80000000000000000000005 /* TeamDeliveryPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeliveryPayload.swift; sourceTree = "<group>"; };
 		C80000000000000000000007 /* TeamDeliveryPayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliveryPayloadTests.swift; sourceTree = "<group>"; };
+		C80000000000000000000009 /* TeamDeliverySubmitIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeliverySubmitIntent.swift; sourceTree = "<group>"; };
+		C8000000000000000000000B /* TeamDeliverySubmitIntentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliverySubmitIntentTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* TeamMembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipView.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* TeamInvitationAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationAccountView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TeamMembershipScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipScreen.swift; sourceTree = "<group>"; };
@@ -376,6 +380,7 @@
 				C7000000000000000000001B /* TeamAgreementPossession.swift */,
 				C80000000000000000000001 /* TeamDeliveryJWE.swift */,
 				C80000000000000000000005 /* TeamDeliveryPayload.swift */,
+				C80000000000000000000009 /* TeamDeliverySubmitIntent.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -413,6 +418,7 @@
 				C70000000000000000000015 /* TeamAgreementEnrollmentTests.swift */,
 				C80000000000000000000003 /* TeamDeliveryJWETests.swift */,
 				C80000000000000000000007 /* TeamDeliveryPayloadTests.swift */,
+				C8000000000000000000000B /* TeamDeliverySubmitIntentTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -678,6 +684,7 @@
 				C7000000000000000000001C /* TeamAgreementPossession.swift in Sources */,
 				C80000000000000000000002 /* TeamDeliveryJWE.swift in Sources */,
 				C80000000000000000000006 /* TeamDeliveryPayload.swift in Sources */,
+				C8000000000000000000000A /* TeamDeliverySubmitIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -715,6 +722,7 @@
 				C7000000000000000000001E /* TeamAgreementPossessionTests.swift in Sources */,
 				C80000000000000000000004 /* TeamDeliveryJWETests.swift in Sources */,
 				C80000000000000000000008 /* TeamDeliveryPayloadTests.swift in Sources */,
+				C8000000000000000000000C /* TeamDeliverySubmitIntentTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

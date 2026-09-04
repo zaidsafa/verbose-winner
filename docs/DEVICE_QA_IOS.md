@@ -5,6 +5,15 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest delivery submit-intent checkpoint
+
+The byte-identical canonical submit-intent vector and complete app-host suite pass
+on the separate physical QA app: **357/357 PASS**,29 suites,3.949s. Signed QA and
+ordinary unsigned Release build, and QA returned to a normal launch. This validates
+local metadata byte/hash/binding logic only; it performs no upload, server
+acceptance, Android-device operation or TestFlight change. See
+`TEAM_DELIVERY_SUBMIT_INTENT_IOS.md` and `VALIDATION.md`.
+
 ## Latest canonical payload and multi-recipient JWE checkpoint
 
 The separate QA app now encrypts one canonical team-note payload for two recipients

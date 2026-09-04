@@ -45,6 +45,19 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Frozen submit-intent checkpoint
+  `a158bf8f1c83bb2813009d835d0b079999d25187` now has exact inactive iOS parity.
+  Exact compact metadata pins JWE bytes/hash, delivery ID, audience digest and
+  membership revision; caller-supplied expected bindings and exact re-encoding
+  fail closed. Focused **3/3**, core **328/328**, signed Simulator **357/357**,
+  physical QA iPhone **357/357**, normal QA relaunch and ordinary Release pass.
+  No upload/acceptance/network/UI/TestFlight action. Server-only checkpoint
+  `5d6bbf3b6cfb1178e0e6dd96e4ad560e1b44e568` adds durable acceptance fields; do
+  not port or activate it without an explicit reviewed iOS contract. Preserve
+  sender device/enrollment, revision, audience, intent/JWE hashes, server times,
+  ACCEPTED-only visibility and archive-before-ACK. See
+  `TEAM_DELIVERY_SUBMIT_INTENT_IOS.md` and `VALIDATION.md`.
+
 - Frozen Android/server payload/JWE checkpoint
   `b2a33120a1b96c117ebb6cac12a45e72db88c56f` now has exact inactive iOS parity.
   The canonical multilingual note tuple binds team/delivery/author/body hash;
