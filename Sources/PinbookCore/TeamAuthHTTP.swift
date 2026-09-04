@@ -450,7 +450,7 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
             bearer = nil
         }
         let data = try await sendPath(route.rawValue, fields: fields, bearer: bearer, expectedStatus: 200,
-            maximumResponseBytes: route == .listInvitations ? 32 * 1024 : 4096)
+            maximumResponseBytes: [.listInvitations, .deviceRequestExecute].contains(route) ? 32 * 1024 : 4096)
         let end = clock()
         guard end >= start, end <= TeamAuthWire.maximumSafeTime else { throw TeamAuthHTTPError.invalidResponse }
         if let ticket { _ = try ticket.usableToken(now: end) }

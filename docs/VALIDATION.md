@@ -1,5 +1,34 @@
 # Validation plan
 
+## 2026-09-05 typed device-request challenge/execute transport (inactive)
+
+- Added two literal authenticated routes to the existing bounded client. Challenge
+  accepts only the exact nested `team-audience` binding; execute accepts only the
+  prepared challenge, a locally verified raw64 signature, and canonical encoded
+  membership-revision body. Response parsing binds team/revision, caps targets at
+  nine, excludes the caller, requires unique account/device/enrollment IDs, and
+  validates exact P-256 JWK plus matching RFC7638 thumbprint. No generic callback,
+  live listener, signer/custody owner, delivery handler, provider, or activation.
+- Initial focused **17/17 PASS**,0.072s. Self-review then required local signature
+  verification before execute and added a wrong-raw64/no-dispatch case. Final
+  focused **17/17 PASS**:
+  `/private/tmp/pinbook-ios-device-request-http-focused-final-20260905.log`.
+  Complete core **287/287 PASS**,14.639s:
+  `/private/tmp/pinbook-ios-device-request-http-full-core-20260905.log`.
+- Signed isolated QA build-for-testing and ordinary unsigned Release PASS:
+  `/private/tmp/pinbook-qa-device-request-http-build-20260905.log` and
+  `/private/tmp/pinbook-ios-device-request-http-release-20260905.log`.
+- Physical iPhone intercepted-transport **17/17 PASS**,0.061s; complete app-host
+  **314/314 PASS**,8.680s, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Device-Request-HTTP-20260905.xcresult`,
+  `/private/tmp/Pinbook-QA-Physical-Device-Request-HTTP-Full-20260905.xcresult`, and
+  `/private/tmp/pinbook-qa-physical-device-request-http-full-20260905.log`.
+  QA launched normally afterward. Prior complete UI **29/29** remains applicable
+  because this adds no UI/runtime route.
+- Evidence is strict local/stubbed/on-device transport behavior, not deployed TLS,
+  Secure Enclave request signing, current-session orchestration, recipient trust,
+  Android/iPhone note sync, release archive, or TestFlight readiness.
+
 ## 2026-09-05 device-authorized request public wire (inactive)
 
 - Added `TeamDeviceRequestWire`: strict local challenge/binding validation,

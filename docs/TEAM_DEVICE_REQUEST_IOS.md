@@ -1,10 +1,10 @@
 # Device-authorized request wire for iOS — inactive
 
 Updated September 5, 2026 from the corrected shared checkpoint
-`dbeba7df0d64a637ea89fa2614cbe0b4fbeae97b`. This is a bounded wire primitive
-and public interoperability fixture only. It adds no HTTP route, request signer,
-Secure Enclave transaction, generic callback, listener, provider, delivery
-handler, stored request, or runtime activation.
+`dbeba7df0d64a637ea89fa2614cbe0b4fbeae97b`. This contains a bounded wire
+primitive, public interoperability fixture, and two typed inactive client routes.
+It adds no request signer, Secure Enclave transaction, generic callback, listener,
+provider, delivery handler, stored request, or runtime activation.
 
 ## Exact local checks
 
@@ -27,6 +27,19 @@ All four protocol operation names are reserved in the message grammar. The
 corrected backend currently issues challenges only for `team-audience`; delivery
 submit/fetch/ACK must remain inactive until each fixed coordinator exists.
 
+Two typed HTTP methods use the existing authenticated onboarding client and its
+shared unresolved-operation slot. Challenge sends exactly `enrollmentId` and the
+nested `operation,teamId,requestId,bodySha256`. Execute sends exactly
+`challengeId,signature,body`, where body is canonical unpadded base64url for
+`{"membershipRevision":N}`. Before dispatch it revalidates the ticket, binding,
+body, and deadline and verifies the signature against the exact prepared message
+and reviewed enrollment public key.
+
+The audience response accepts only the requested team/revision and at most nine
+other-account targets. Account, device, and enrollment IDs must each be unique;
+every exact public JWK must match its RFC7638 thumbprint. Recipient discovery is
+not completed note delivery or authorization to ACK anything.
+
 ## Evidence and next boundary
 
 The copied fixture is byte-for-byte identical to
@@ -36,9 +49,9 @@ CryptoKit, rejects a changed message, and rejects every binding/body/public-key
 substitution. It also tests body, shape, access, and one-minute deadline bounds.
 Exact local and physical-iPhone counts are in `VALIDATION.md`.
 
-The next narrow layer may add the two typed inactive HTTP routes from the corrected
-contract: challenge and execute. Execute body decoding is a separate strict schema;
-there must be no generic transaction callback or raw PostgreSQL client. Signing
-must later use the exact REGISTERED device generation, with pinned account session
-checks before and after the device transaction. Those integrations are not part of
-this checkpoint and cannot be inferred from successful public-vector verification.
+The next narrow layer is a one-flight audience owner that composes current account
+generation, exact REGISTERED device generation, server enrollment and membership
+revision around these routes. Signing must use that exact retained device and
+recheck the pinned account session before and after the device transaction. There
+is still no generic transaction callback or raw PostgreSQL client. Submit/fetch,
+encrypted delivery and archive-before-ACK remain separate gates.

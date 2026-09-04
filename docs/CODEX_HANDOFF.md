@@ -45,15 +45,27 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Two exact inactive device-request HTTP routes now compose the existing bounded,
+  shared-slot authenticated client. Only `team-audience` challenge is allowed;
+  execute rechecks the prepared proof and verifies the raw64 signature locally.
+  Audience output is strict, requested-team/revision-bound, max nine, other-account,
+  unique across account/device/enrollment, and exact-JWK/thumbprint checked. Focused
+  **17/17**, full core **287/287**, physical focused **17/17**, and app-host
+  **314/314 PASS**; signed QA/unsigned Release pass. All network tests were
+  intercepted; no endpoint/runtime activated. NEXT: one-flight current account +
+  exact REGISTERED device + membership-revision audience owner, following Android
+  `f954b56`, then separate submit/fetch/archive-before-ACK gates. See
+  TEAM_DEVICE_REQUEST_IOS.md and VALIDATION.md.
+
 - Corrected shared device-request checkpoint
   `dbeba7df0d64a637ea89fa2614cbe0b4fbeae97b` is now represented by an inactive
   Swift wire primitive and byte-identical public fixture. Exact binding/body/deadline
   checks rebuild the canonical message; CryptoKit verifies the shared raw P-256
   signature. Focused **3/3**, full core **284/284**, physical focused **3/3** and
-  full app-host **311/311 PASS**; QA and Release builds pass. No signer, HTTP,
-  callback, provider, persistence or runtime route was added. NEXT: the two exact
-  typed inactive challenge/execute schemas from TEAM_DEVICE_REQUEST_V1.md, never a
-  generic transaction callback; then separate registered-custody/session ownership.
+  full app-host **311/311 PASS**; QA and Release builds pass. No signer, provider,
+  persistence or runtime route was added at that checkpoint; the exact inactive
+  typed transport is now the separate checkpoint above. Registered custody/session
+  ownership remains separate.
   See TEAM_DEVICE_REQUEST_IOS.md and VALIDATION.md.
 
 - Native invitation workflow UI now retains account → device → membership and

@@ -134,6 +134,24 @@ struct TeamOnboardingHTTPTests {
     private func membership(role: String = "MEMBER") -> [String: Any] {
         ["teamId": "public-team", "accountId": "public-account", "enrollmentId": "public-enrollment", "role": role, "membershipRevision": 1]
     }
+    private func requestContext(host: String, session: TeamAccountSessionSnapshot,
+                                key: TeamDeviceEnrollmentWire.PublicKey,
+                                operation: TeamDeviceRequestWire.Operation = .teamAudience) throws
+        -> (TeamDeviceRequestWire.Binding, TeamAudienceRevisionRequest, [String: Any]) {
+        let request = try TeamAudienceRevisionRequest(membershipRevision: 7)
+        let binding = TeamDeviceRequestWire.Binding(audience: "https://\(host)", authorityEpoch: "public-epoch",
+            accountID: session.accountID, sessionID: session.sessionID, deviceID: "public-device",
+            enrollmentID: "public-enrollment", keyThumbprint: key.thumbprint, operation: operation,
+            teamID: "public-team", requestID: "public-request", accessExpiresAt: 10_000)
+        let body = Data(#"{"membershipRevision":7}"#.utf8)
+        let challenge: [String: Any] = ["audience": binding.audience, "authorityEpoch": binding.authorityEpoch,
+            "accountId": binding.accountID, "sessionId": binding.sessionID, "deviceId": binding.deviceID,
+            "enrollmentId": binding.enrollmentID, "keyThumbprint": binding.keyThumbprint,
+            "operation": binding.operation.rawValue, "teamId": binding.teamID, "requestId": binding.requestID,
+            "bodySha256": try TeamDeviceRequestWire.bodySHA256(body), "challengeId": tokenB,
+            "nonce": tokenC, "expiresAt": 9_000]
+        return (binding, request, challenge)
+    }
     private func check(_ host: String, paths: [String], fields: [Set<String>], publicCount: Int = 0) throws {
         let requests = AuthStubProtocol.state.requests(host)
         #expect(requests.map(\.path) == paths.map { "/api/v1/\($0)" })
@@ -313,6 +331,116 @@ struct TeamOnboardingHTTPTests {
         }
         AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(["enrollmentId": "public-enrollment", "active": 0])])])
         await #expect(throws: TeamAuthHTTPError.invalidResponse) { try await client.revokeDevice(enrollmentID: "public-enrollment", session: session) }
+    }
+    @Test func deviceRequestRoutesUseExactNestedSchemaAndReturnBoundAudience() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        let signer = P256.Signing.PrivateKey()
+        let key = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
+        let (binding, request, challengeWire) = try requestContext(host: host, session: session, key: key)
+        let targetKey = try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
+        let target: [String: Any] = ["accountId": "other-account", "deviceId": "other-device",
+            "enrollmentId": "other-enrollment", "keyThumbprint": targetKey.thumbprint, "publicKey": targetKey.jwk]
+        let audience: [String: Any] = ["teamId": binding.teamID, "membershipRevision": request.membershipRevision,
+            "targets": [target]]
+        AuthStubProtocol.state.configure(host, try [challengeWire, audience].map { StubResponse(chunks: [try json($0)]) })
+        let ticket = try TeamAccountAccessTicket(snapshot: session)
+        let prepared = try await client.deviceRequestChallenge(expected: binding, publicKey: key, request: request, ticket: ticket)
+        let raw = try signer.signature(for: prepared.message(expected: binding, publicKey: key,
+            request: request, now: 1_000)).rawRepresentation
+        let result = try await client.executeDeviceRequest(challenge: prepared, signature: raw,
+            expected: binding, publicKey: key, request: request, ticket: ticket)
+        #expect(result.teamID == binding.teamID && result.membershipRevision == 7 && result.targets.count == 1)
+        #expect(result.targets[0].accountID == "other-account" && result.targets[0].keyThumbprint == targetKey.thumbprint)
+        #expect(!String(reflecting: result).contains("other-account"))
+        try check(host, paths: ["device-requests/challenge", "device-requests/execute"],
+            fields: [["enrollmentId", "binding"], ["challengeId", "signature", "body"]])
+        let sent = AuthStubProtocol.state.requests(host)
+        let begin = try TeamStrictJSON.object(sent[0].body)
+        let nested = try #require(begin["binding"] as? [String: Any])
+        #expect(Set(nested.keys) == ["operation", "teamId", "requestId", "bodySha256"])
+        #expect(begin["enrollmentId"] as? String == binding.enrollmentID)
+        let execute = try TeamStrictJSON.object(sent[1].body)
+        let encodedBody = try #require(execute["body"] as? String)
+        #expect(TeamDeviceEnrollmentWire.decode(encodedBody) == Data(#"{"membershipRevision":7}"#.utf8))
+    }
+    @Test func deviceRequestAudienceRejectsConfusionDuplicatesAndBadKeys() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        let signer = P256.Signing.PrivateKey()
+        let key = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
+        let (binding, request, challengeWire) = try requestContext(host: host, session: session, key: key)
+        let targetKey = try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
+        let base: [String: Any] = ["accountId": "other-account", "deviceId": "other-device",
+            "enrollmentId": "other-enrollment", "keyThumbprint": targetKey.thumbprint, "publicKey": targetKey.jwk]
+        let ticket = try TeamAccountAccessTicket(snapshot: session)
+        let preparedData = try json(challengeWire)
+        let prepared = try TeamPreparedDeviceRequestChallenge(validating: preparedData, expected: binding,
+            publicKey: key, request: request, now: 1_000)
+        let raw = try signer.signature(for: prepared.message(expected: binding, publicKey: key,
+            request: request, now: 1_000)).rawRepresentation
+        var bad = [[String: Any]]()
+        bad.append(["teamId": "other-team", "membershipRevision": 7, "targets": [base]])
+        bad.append(["teamId": binding.teamID, "membershipRevision": 8, "targets": [base]])
+        bad.append(["teamId": binding.teamID, "membershipRevision": 7, "targets": Array(repeating: base, count: 10)])
+        for field in ["accountId", "deviceId", "enrollmentId"] {
+            var duplicate = base; duplicate[field] = base[field]
+            var other = base; other["accountId"] = "third-account"; other["deviceId"] = "third-device"; other["enrollmentId"] = "third-enrollment"
+            other[field] = base[field]
+            bad.append(["teamId": binding.teamID, "membershipRevision": 7, "targets": [duplicate, other]])
+        }
+        var selfTarget = base; selfTarget["accountId"] = binding.accountID
+        bad.append(["teamId": binding.teamID, "membershipRevision": 7, "targets": [selfTarget]])
+        var wrongThumbprint = base; wrongThumbprint["keyThumbprint"] = tokenA
+        bad.append(["teamId": binding.teamID, "membershipRevision": 7, "targets": [wrongThumbprint]])
+        var privateKey = targetKey.jwk; privateKey["d"] = tokenA
+        var privateTarget = base; privateTarget["publicKey"] = privateKey
+        bad.append(["teamId": binding.teamID, "membershipRevision": 7, "targets": [privateTarget]])
+        for value in bad {
+            AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(value)])])
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) {
+                try await client.executeDeviceRequest(challenge: prepared, signature: raw,
+                    expected: binding, publicKey: key, request: request, ticket: ticket)
+            }
+        }
+    }
+    @Test func deviceRequestInputsAndPreparedProofRevalidateBeforeDispatch() async throws {
+        let clock = OnboardingClock()
+        let (client, host, session) = try fixture([], clock: { clock.now() })
+        defer { AuthStubProtocol.state.clear(host) }
+        let signer = P256.Signing.PrivateKey()
+        let key = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
+        let ticket = try TeamAccountAccessTicket(snapshot: session)
+        let (binding, request, challengeWire) = try requestContext(host: host, session: session, key: key)
+        let prepared = try TeamPreparedDeviceRequestChallenge(validating: json(challengeWire), expected: binding,
+            publicKey: key, request: request, now: 1_000)
+        for size in [0, 63, 65] {
+            await #expect(throws: TeamAuthHTTPError.invalidRequest) {
+                try await client.executeDeviceRequest(challenge: prepared, signature: Data(repeating: 1, count: size),
+                    expected: binding, publicKey: key, request: request, ticket: ticket)
+            }
+        }
+        await #expect(throws: TeamAuthHTTPError.invalidRequest) {
+            try await client.executeDeviceRequest(challenge: prepared, signature: Data(repeating: 1, count: 64),
+                expected: binding, publicKey: key, request: request, ticket: ticket)
+        }
+        let (_, _, reservedChallenge) = try requestContext(host: host, session: session, key: key, operation: .deliverySubmit)
+        let reserved = TeamDeviceRequestWire.Binding(audience: binding.audience, authorityEpoch: binding.authorityEpoch,
+            accountID: binding.accountID, sessionID: binding.sessionID, deviceID: binding.deviceID,
+            enrollmentID: binding.enrollmentID, keyThumbprint: binding.keyThumbprint, operation: .deliverySubmit,
+            teamID: binding.teamID, requestID: binding.requestID, accessExpiresAt: binding.accessExpiresAt)
+        AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(reservedChallenge)])])
+        await #expect(throws: TeamAuthHTTPError.invalidRequest) {
+            try await client.deviceRequestChallenge(expected: reserved, publicKey: key, request: request, ticket: ticket)
+        }
+        clock.set(9_000)
+        let validRaw = try signer.signature(for: prepared.message(expected: binding, publicKey: key,
+            request: request, now: 1_000)).rawRepresentation
+        await #expect(throws: TeamAuthHTTPError.invalidRequest) {
+            try await client.executeDeviceRequest(challenge: prepared, signature: validRaw,
+                expected: binding, publicKey: key, request: request, ticket: ticket)
+        }
+        #expect(AuthStubProtocol.state.requests(host).isEmpty)
     }
     @Test func membershipConfusionAndDecodedDuplicateFieldsReject() async throws {
         var wrong = membership(); wrong["accountId"] = "other-account"

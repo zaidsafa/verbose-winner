@@ -5,6 +5,17 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest typed device-request transport checkpoint
+
+The two inactive challenge/execute methods pass **17/17** intercepted transport
+tests and **314/314** complete app-host tests on the physical iPhone, with zero
+failures/skips. Signed QA and ordinary unsigned Release builds pass; QA returned
+to a normal launch afterward. Exact artifacts are in VALIDATION.md.
+
+All requests were captured by the test URL protocol; no live endpoint was contacted.
+This does not establish Secure Enclave request signing, current account/device
+ownership, recipient trust, delivery, note sync, or TestFlight readiness.
+
 ## Latest public device-request wire checkpoint
 
 The shared Android/backend public request fixture rebuilds and verifies in

@@ -59,12 +59,12 @@ checkboxes deliberately remain open until checked against the exact next candida
 ## Current local implementation checkpoint
 
 - Shared device-authorized request v1 now has an inactive Swift exact-message/body-
-  hash validator and byte-identical public fixture. Cross-platform raw P-256
-  verification passes locally and on the physical QA iPhone. It deliberately adds
-  no signer, HTTP/runtime route or generic transaction callback. Typed inactive
-  challenge/execute transport, registered-custody/session ownership, fixed server
-  coordinators, encrypted delivery and live two-device sync remain open. See
-  TEAM_DEVICE_REQUEST_IOS.md.
+  hash validator, byte-identical public fixture, and two strict authenticated typed
+  transport methods. Cross-platform raw P-256 verification and intercepted routes
+  pass locally and on the physical QA iPhone. It deliberately adds no live runtime
+  route or generic transaction callback. Registered-custody/session audience
+  ownership, fixed delivery coordinators, encrypted submit/fetch, archive-before-
+  ACK and live two-device sync remain open. See TEAM_DEVICE_REQUEST_IOS.md.
 
 - Native account transport now has bounded six-route parsing and one-use POST
   streams with synthetic and real localhost TLS failure tests. Separate protected
