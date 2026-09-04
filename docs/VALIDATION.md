@@ -1,5 +1,24 @@
 # Validation plan
 
+## 2026-09-04 TestFlight build 3 release candidate
+
+- Candidate source: `444b18d595133a6f7b291bfd45ab807fa7af3aa2`, version `0.1.0`,
+  app and widget build `3`. No signing, identifier, personal-data or runtime team
+  activation changes. The original worktree's signing edits remain untouched.
+- Final full dedicated Simulator run **TEST SUCCEEDED**: 56 app tests passed,
+  one hardware-only protection test explicitly skipped, and **10/10 XCUITests
+  passed**, zero failures. Result: `/private/tmp/Pinbook-TestFlight-3-Simulator.xcresult`;
+  log: `/private/tmp/pinbook-testflight-3-simulator.log`. This closes the earlier
+  current-source UI regression gap. No physical-device result is claimed.
+- Signed generic iPhone Release **ARCHIVE SUCCEEDED**:
+  `/private/tmp/Pinbook-0.1.0-3.xcarchive`; log:
+  `/private/tmp/pinbook-testflight-3-archive.log`. System-trust `codesign --verify
+  --deep --strict` passed. App/widget identifiers and build 3 verified. No public
+  test vectors or test bundles are embedded in the app archive.
+- Preserved archive: `build/releases/0.1.0-3/Pinbook.xcarchive` (Git-ignored).
+  Local IPA export and TestFlight upload are recorded in `CODEX_HANDOFF.md` when
+  completed; archive success alone does not prove distribution or installation.
+
 ## 2026-09-04 inactive portable encrypted archive/restore
 
 - Frozen profile: `docs/TEAM_ARCHIVE_V1.md`. Native CryptoKit JWE Compact `dir` /

@@ -16,6 +16,21 @@ Updated: 2026-09-04 (Asia/Shanghai)
   sharing and recovery UI remain disabled until the documented activation gates.
 - Publication target is TestFlight and the existing groups only, not public
   App Store release, new testers, public invitation links or Infrastructure.
+- Final source `444b18d595133a6f7b291bfd45ab807fa7af3aa2` passed the full Simulator
+  suite: 56 app tests plus 10 UI tests, one explicitly skipped hardware check.
+  Signed Release archive and signature verification passed. Evidence is in
+  `docs/VALIDATION.md`. Local IPA export succeeded, 5,505,946 bytes:
+  `build/releases/0.1.0-3/export/Pinbook.ipa`, SHA-256
+  `05c593e58cdd7a60a817c01dba7852fa141ece4bcf9ae87d8dc1cbb2dd122edb`.
+  ZIP integrity passed; distribution summary confirms arm64, app/widget build 3,
+  Cloud Managed Apple Distribution signing and get-task-allow=false.
+- Local IPA is a separate export from the same archive, not a byte-equality claim
+  about Apple's upload package. Upload succeeded on 2026-09-04 at 15:47:36
+  Asia/Shanghai (`EXPORT SUCCEEDED`); Apple processing/group assignment pending.
+  Do not duplicate the upload.
+  Log: `/private/tmp/pinbook-testflight-3-upload.log`. Beta review notes were saved
+  and explicitly disclose that team features are inactive. Existing contact and
+  no-sign-in configuration were preserved.
 
 ## Current isolated team-delivery workstream
 
