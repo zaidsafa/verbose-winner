@@ -155,10 +155,13 @@ final class TeamJoinStore: @unchecked Sendable {
     private let clock: @Sendable () -> Int64
     init() { storage = KeychainTeamJoinMetadata(); clock = { Int64(Date().timeIntervalSince1970 * 1000) } }
     init(storage: any TeamJoinMetadataStore, clock: @escaping @Sendable () -> Int64) { self.storage = storage; self.clock = clock }
-    private func now(since: Int64 = 0) throws -> Int64 {
+    private func now(since: Int64 = 0, before deadline: Int64? = nil) throws -> Int64 {
         try Task.checkCancellation()
         let value = clock()
         guard value >= since, value >= 0, value <= TeamAuthWire.maximumSafeTime else { throw TeamJoinError.invalidTime }
+        if let deadline {
+            guard value < deadline, deadline <= TeamAuthWire.maximumSafeTime else { throw TeamJoinError.invalidTime }
+        }
         return value
     }
     private func read() throws -> (Data?, TeamJoinIndex) {
@@ -212,6 +215,36 @@ final class TeamJoinStore: @unchecked Sendable {
                 checkedAt: time, membershipRevision: row.membershipRevision)
         }
     }
+    /// Read-only matching for a reopened ORIGINAL invitation. It neither proves
+    /// server eligibility nor reserves/clears the existing uncertain attempt.
+    func retryCandidate(scope: TeamDeviceScope, token: String, teamID: String, role: TeamInvitationRole) throws -> TeamJoinSnapshot {
+        guard TeamAuthWire.credential(token), TeamAuthWire.identifier(teamID) else { throw TeamJoinError.invalidInput }
+        guard let row = try load(scope: scope, teamID: teamID), row.phase == .pending,
+              row.role == role, row.invitationHash == Self.invitationHash(token) else { throw TeamJoinError.bindingMismatch }
+        return row
+    }
+    /// After one exact eligible-pending lookup and NEW user consent, the owner
+    /// commits a new generation before ONE same-identity accept. The deadline is
+    /// the owner's consent/access bound, not an invented invitation expiry. Server
+    /// expiry remains authoritative; owner must additionally check monotonic time,
+    /// exact account/device generation and current registration around this IO.
+    func beginExplicitRetry(_ expected: TeamJoinSnapshot, token: String, consentExpiresAt: Int64,
+                            registration: TeamRegisteredDevice, consent: Bool) throws -> TeamJoinSnapshot {
+        guard consent else { throw TeamJoinError.consentRequired }
+        guard expected.phase == .pending, expected.membershipRevision == nil,
+              TeamAuthWire.credential(token), expected.invitationHash == Self.invitationHash(token),
+              registration.accountID == expected.scope.accountID,
+              registration.authorityEpoch == expected.scope.authorityEpoch,
+              registration.enrollmentID == expected.enrollmentID,
+              TeamAuthWire.identifier(registration.enrollmentID), TeamAuthWire.identifier(registration.deviceID),
+              TeamAuthWire.credential(registration.keyThumbprint) else { throw TeamJoinError.bindingMismatch }
+        return try replace(expected, before: consentExpiresAt) { row, time in
+            guard consentExpiresAt - time <= 300_000 else { throw TeamJoinError.invalidTime }
+            return .init(scope: row.scope, teamID: row.teamID, enrollmentID: row.enrollmentID, role: row.role,
+                invitationHash: row.invitationHash, generation: UUID(), phase: .pending,
+                checkedAt: time, membershipRevision: nil)
+        }
+    }
     /// Only a freshly bound accept/current result can confirm; no null/error API.
     func confirm(_ expected: TeamJoinSnapshot, result: TeamMembership) throws -> TeamJoinSnapshot {
         try replace(expected) { row, time in
@@ -223,16 +256,19 @@ final class TeamJoinStore: @unchecked Sendable {
                 checkedAt: time, membershipRevision: result.revision)
         }
     }
-    private func replace(_ expected: TeamJoinSnapshot, transform: (TeamJoinSnapshot, Int64) throws -> TeamJoinSnapshot) throws -> TeamJoinSnapshot {
+    private func replace(_ expected: TeamJoinSnapshot, before deadline: Int64? = nil,
+                         transform: (TeamJoinSnapshot, Int64) throws -> TeamJoinSnapshot) throws -> TeamJoinSnapshot {
         let (raw, old) = try read(); var index = old
         guard let position = index.records.firstIndex(where: { $0.scope == expected.scope && $0.teamID == expected.teamID }),
               index.records[position] == expected else { throw TeamJoinError.staleOperation }
         let latest = index.records.filter { $0.scope == expected.scope }.map(\.checkedAt).max() ?? expected.checkedAt
-        let next = try transform(expected, now(since: latest))
+        let next = try transform(expected, now(since: latest, before: deadline))
         index.records[position] = next; index.revision = UUID()
-        let encoded = try index.encoded(); _ = try now(since: next.checkedAt)
+        let encoded = try index.encoded(); _ = try now(since: next.checkedAt, before: deadline)
         try storage.replace(expected: raw, next: encoded)
-        _ = try now(since: next.checkedAt); try requireCurrent(next); return next
+        _ = try now(since: next.checkedAt, before: deadline)
+        try requireCurrent(next)
+        _ = try now(since: next.checkedAt, before: deadline); return next
     }
     static func invitationHash(_ token: String) -> String {
         SHA256.hash(data: Data(("pinbook-team-invite-v1\0" + token).utf8)).map { String(format: "%02x", $0) }.joined()

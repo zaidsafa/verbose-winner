@@ -4,6 +4,12 @@ Updated 2026-09-04. `TeamJoinStore` records recoverable membership intent. It do
 not grant current membership, account access or permission to share existing notes.
 No normal navigation, HTTP, background work or provider is activated here.
 
+The 2026-09-05 explicit retry extension adds read-only `retryCandidate` and
+consented `beginExplicitRetry` with original identity/hash and a new CAS generation;
+it preserves PENDING on null/error/uncertain write. Its consent deadline is checked
+around native commit/reread, with current session/device/monotonic checks retained
+by the membership owner. See TEAM_MEMBERSHIP_RETRY_IOS.md for contract and evidence.
+
 ## Exact pending intent and recovery
 
 After separate explicit membership consent and current account/device/epoch checks,

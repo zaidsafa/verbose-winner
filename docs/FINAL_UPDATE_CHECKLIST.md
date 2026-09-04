@@ -91,9 +91,10 @@ checkboxes deliberately remain open until checked against the exact next candida
   unchecked consent and tokenless recovery; synthetic core tests pass, native UI
   tests compile but have not run. No normal navigation/activation yet. See
   TEAM_MEMBERSHIP_UI_IOS.md. Invitation/account screens, host wiring and explicit
-  eligible-pending acceptance retry remain open;
-  the backend's source-only teams/acceptance route now has bounded iOS transport
-  and localTLS tests, but no retry owner/UI integration. Null must not become
+  eligible-pending retry UI remain open;
+  the backend's source-only teams/acceptance route now has bounded iOS transport,
+  durable same-identity explicit retry owner and localTLS tests; retry screen/host
+  entry is not integrated. See TEAM_MEMBERSHIP_RETRY_IOS.md. Null must not become
   automatic retry or PENDING deletion. See TEAM_MEMBERSHIP_JOIN_IOS.md,
   TEAM_JOIN_RECOVERY_IOS.md and
   TEAM_INVITATION_CONSENT_IOS.md.

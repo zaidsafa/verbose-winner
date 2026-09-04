@@ -14,10 +14,14 @@ struct TeamMembershipJoinPreview: TeamOnboardingDiagnostic {
         id = UUID(); self.accountID = accountID; self.teamID = teamID; self.role = role
     }
 }
+enum TeamMembershipRetryPreparation: TeamOnboardingDiagnostic {
+    case ready(TeamMembershipJoinPreview), joined(TeamJoinSnapshot)
+}
 protocol TeamMembershipTransport: Sendable {
     func lookupDevice(key: TeamDeviceEnrollmentWire.PublicKey, expected: TeamDeviceEnrollmentWire.Binding, ticket: TeamAccountAccessTicket) async throws -> TeamRegisteredDevice?
     func acceptInvitation(token: String, teamID: String, enrollmentID: String, role: TeamInvitationRole, ticket: TeamAccountAccessTicket) async throws -> TeamMembership
     func currentTeam(teamID: String, enrollmentID: String, ticket: TeamAccountAccessTicket) async throws -> TeamMembership
+    func lookupInvitationAcceptance(token: String, teamID: String, enrollmentID: String, role: TeamInvitationRole, ticket: TeamAccountAccessTicket) async throws -> TeamMembership?
 }
 extension TeamAuthHTTPClient: TeamMembershipTransport {}
 protocol TeamMembershipDevices: Sendable {
@@ -30,6 +34,9 @@ protocol TeamMembershipMetadata: Sendable {
     func begin(scope: TeamDeviceScope, token: String, teamID: String, role: TeamInvitationRole,
                expiresAt: Int64, registration: TeamRegisteredDevice, consent: Bool) async throws -> TeamJoinSnapshot
     func beginRecovery(_ expected: TeamJoinSnapshot) async throws -> TeamJoinSnapshot
+    func retryCandidate(scope: TeamDeviceScope, token: String, teamID: String, role: TeamInvitationRole) async throws -> TeamJoinSnapshot
+    func beginExplicitRetry(_ expected: TeamJoinSnapshot, token: String, consentExpiresAt: Int64,
+                            registration: TeamRegisteredDevice, consent: Bool) async throws -> TeamJoinSnapshot
     func confirm(_ expected: TeamJoinSnapshot, result: TeamMembership) async throws -> TeamJoinSnapshot
 }
 private func membershipIO<T: Sendable>(_ action: @escaping @Sendable () throws -> T) async throws -> T {
@@ -65,6 +72,14 @@ struct TeamMembershipMetadataDriver: TeamMembershipMetadata {
     func beginRecovery(_ expected: TeamJoinSnapshot) async throws -> TeamJoinSnapshot {
         try await membershipIO { try store.beginRecovery(expected) }
     }
+    func retryCandidate(scope: TeamDeviceScope, token: String, teamID: String, role: TeamInvitationRole) async throws -> TeamJoinSnapshot {
+        try await membershipIO { try store.retryCandidate(scope: scope, token: token, teamID: teamID, role: role) }
+    }
+    func beginExplicitRetry(_ expected: TeamJoinSnapshot, token: String, consentExpiresAt: Int64,
+                            registration: TeamRegisteredDevice, consent: Bool) async throws -> TeamJoinSnapshot {
+        try await membershipIO { try store.beginExplicitRetry(expected, token: token, consentExpiresAt: consentExpiresAt,
+            registration: registration, consent: consent) }
+    }
     func confirm(_ expected: TeamJoinSnapshot, result: TeamMembership) async throws -> TeamJoinSnapshot {
         try await membershipIO { try store.confirm(expected, result: result) }
     }
@@ -80,7 +95,11 @@ actor TeamMembershipJoin {
     }
     private struct Prepared {
         let display: TeamMembershipJoinPreview
-        let intent: TeamInviteJoinIntent
+        let token: String
+        let teamID: String
+        let role: TeamInvitationRole
+        let expiresAt: Int64
+        let retry: TeamJoinSnapshot?
         let resources: Resources
         let received: TeamSignInMoment
         let deadline: ContinuousClock.Instant
@@ -124,6 +143,14 @@ actor TeamMembershipJoin {
         guard let value = prepared, value.display.id == display.id else { throw TeamMembershipJoinError.staleConsent }
         prepared = nil // Consumed before any attempt; no automatic rearming.
         return try await run { id, start in try await self.performJoin(value, id: id, start: start) }
+    }
+    /// Explicit original-link recovery, separate from a new invitation preview.
+    /// Expired/consumed links can still resolve committed membership server-side.
+    /// A successful pending snapshot only prepares NEW consent, never an accept.
+    func prepareRetry(token: String, teamID: String, role: TeamInvitationRole) async throws -> TeamMembershipRetryPreparation {
+        try available(); prepared = nil
+        guard TeamAuthWire.credential(token), TeamAuthWire.identifier(teamID) else { throw TeamMembershipJoinError.invalidIntent }
+        return try await run { id, start in try await self.performRetryPreparation(token: token, teamID: teamID, role: role, id: id, start: start) }
     }
     func recover(teamID: String) async throws -> TeamJoinSnapshot {
         try available(); prepared = nil
@@ -172,7 +199,8 @@ actor TeamMembershipJoin {
         let expiry = min(intent.expiresAt, account.accessExpiresAt, account.sessionExpiresAt)
         guard finished.wallTime < expiry else { throw TeamMembershipJoinError.expired }
         let display = TeamMembershipJoinPreview(accountID: account.accountID, teamID: intent.teamID, role: intent.role)
-        prepared = .init(display: display, intent: intent, resources: resources, received: finished,
+        prepared = .init(display: display, token: intent.token, teamID: intent.teamID, role: intent.role,
+            expiresAt: intent.expiresAt, retry: nil, resources: resources, received: finished,
             deadline: finished.instant.advanced(by: .milliseconds(min(300_000, expiry - finished.wallTime))))
         return display
     }
@@ -180,17 +208,26 @@ actor TeamMembershipJoin {
         try validate(value, now: checkpoint(id, start))
         let registration = try await lookup(value.resources, id, start)
         try validate(value, now: checkpoint(id, start))
-        let marker = try await metadata.begin(scope: deviceScope, token: value.intent.token, teamID: value.intent.teamID,
-            role: value.intent.role, expiresAt: value.intent.expiresAt, registration: registration, consent: true)
+        let marker: TeamJoinSnapshot
+        if let retry = value.retry {
+            try await metadata.requireCurrent(retry)
+            try validate(value, now: await checkpoint(id, start, value.resources))
+            marker = try await metadata.beginExplicitRetry(retry, token: value.token, consentExpiresAt: value.expiresAt,
+                registration: registration, consent: true)
+            guard marker.generation != retry.generation else { throw TeamJoinError.bindingMismatch }
+        } else {
+            marker = try await metadata.begin(scope: deviceScope, token: value.token, teamID: value.teamID,
+                role: value.role, expiresAt: value.expiresAt, registration: registration, consent: true)
+        }
         try validate(value, now: await checkpoint(id, start, value.resources))
-        try bound(marker, teamID: value.intent.teamID, resources: value.resources)
-        guard marker.phase == .pending, marker.role == value.intent.role,
-              marker.invitationHash == TeamJoinStore.invitationHash(value.intent.token) else { throw TeamJoinError.bindingMismatch }
+        try bound(marker, teamID: value.teamID, resources: value.resources)
+        guard marker.phase == .pending, marker.role == value.role,
+              marker.invitationHash == TeamJoinStore.invitationHash(value.token) else { throw TeamJoinError.bindingMismatch }
         try await metadata.requireCurrent(marker)
         try validate(value, now: await checkpoint(id, start, value.resources))
         let response: TeamMembership
         do {
-            response = try await transport.acceptInvitation(token: value.intent.token, teamID: marker.teamID,
+            response = try await transport.acceptInvitation(token: value.token, teamID: marker.teamID,
                 enrollmentID: marker.enrollmentID, role: marker.role, ticket: account)
         } catch { _ = try await checkpoint(id, start, value.resources); throw TeamMembershipJoinError.transportFailure }
         try validate(value, now: await checkpoint(id, start, value.resources))
@@ -200,6 +237,46 @@ actor TeamMembershipJoin {
         try await metadata.requireCurrent(result)
         try validate(value, now: await checkpoint(id, start, value.resources))
         return result
+    }
+    private func performRetryPreparation(token: String, teamID: String, role: TeamInvitationRole,
+                                         id: UUID, start: TeamSignInMoment) async throws -> TeamMembershipRetryPreparation {
+        _ = try checkpoint(id, start)
+        let resources = try await resources(id, start)
+        let saved = try await metadata.retryCandidate(scope: deviceScope, token: token, teamID: teamID, role: role)
+        _ = try await checkpoint(id, start, resources)
+        try bound(saved, teamID: teamID, resources: resources)
+        guard saved.phase == .pending, saved.membershipRevision == nil, saved.role == role,
+              saved.invitationHash == TeamJoinStore.invitationHash(token) else { throw TeamJoinError.bindingMismatch }
+        _ = try await lookup(resources, id, start)
+        let marker = try await metadata.beginRecovery(saved) // Durable before ONE locking status read.
+        _ = try await checkpoint(id, start, resources)
+        try bound(marker, teamID: teamID, resources: resources)
+        guard marker.phase == .pending, marker.membershipRevision == nil, marker.generation != saved.generation,
+              marker.role == role, marker.invitationHash == saved.invitationHash else { throw TeamJoinError.bindingMismatch }
+        try await metadata.requireCurrent(marker)
+        _ = try await checkpoint(id, start, resources)
+        let response: TeamMembership?
+        do { response = try await transport.lookupInvitationAcceptance(token: token, teamID: teamID,
+            enrollmentID: marker.enrollmentID, role: role, ticket: account) }
+        catch { _ = try await checkpoint(id, start, resources); throw TeamMembershipJoinError.transportFailure }
+        _ = try await checkpoint(id, start, resources)
+        if let response {
+            let result = try await metadata.confirm(marker, result: response)
+            try bound(result, teamID: teamID, resources: resources)
+            guard result.phase == .confirmed, result.role == role else { throw TeamJoinError.bindingMismatch }
+            try await metadata.requireCurrent(result)
+            _ = try await checkpoint(id, start, resources)
+            return .joined(result)
+        }
+        try await metadata.requireCurrent(marker)
+        let finished = try await checkpoint(id, start, resources)
+        let expiry = min(finished.wallTime + 300_000, account.accessExpiresAt, account.sessionExpiresAt)
+        guard expiry > finished.wallTime else { throw TeamMembershipJoinError.expired }
+        let display = TeamMembershipJoinPreview(accountID: account.accountID, teamID: teamID, role: role)
+        prepared = .init(display: display, token: token, teamID: teamID, role: role, expiresAt: expiry,
+            retry: marker, resources: resources, received: finished,
+            deadline: finished.instant.advanced(by: .milliseconds(expiry - finished.wallTime)))
+        return .ready(display)
     }
     private func performRecovery(_ teamID: String, id: UUID, start: TeamSignInMoment) async throws -> TeamJoinSnapshot {
         _ = try checkpoint(id, start)
@@ -256,7 +333,7 @@ actor TeamMembershipJoin {
         guard value.scope == deviceScope, value.teamID == teamID, value.enrollmentID == resources.device.enrollmentID else { throw TeamJoinError.bindingMismatch }
     }
     private func validate(_ value: Prepared, now: TeamSignInMoment) throws {
-        guard now.wallTime >= value.received.wallTime, now.wallTime < value.intent.expiresAt,
+        guard now.wallTime >= value.received.wallTime, now.wallTime < value.expiresAt,
               now.wallTime - value.received.wallTime < 300_000, now.instant < value.deadline else { throw TeamMembershipJoinError.expired }
     }
     private func checkpoint(_ id: UUID, _ start: TeamSignInMoment, _ resources: Resources) async throws -> TeamSignInMoment {

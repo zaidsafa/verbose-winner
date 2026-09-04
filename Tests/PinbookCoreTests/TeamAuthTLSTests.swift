@@ -245,8 +245,9 @@ struct TeamAuthTLSTests {
         }
     }
 
-    @Test func membershipOwnerUsesTLSAndRecoversUnknownAcceptWithoutInvitationReplay() async throws {
-        let fixture = try await Fixture(mode: "join-uncertain"), client = try fixture.client()
+    @Test(arguments: ["join-uncertain", "retry-pending-once"])
+    func membershipOwnerUsesTLSAndKeepsRecoverySeparateFromExplicitRetry(mode: String) async throws {
+        let fixture = try await Fixture(mode: mode), client = try fixture.client()
         let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
         let sessions = TeamAccountSessionStore(testService: "membership-tls-account", keychain: SessionMemoryKeychain())
         let account = try TeamAccountAccessTicket(snapshot: sessions.saveInitial(pair, scope: scope, now: 1_000, consent: true))
@@ -275,16 +276,37 @@ struct TeamAuthTLSTests {
         let reopened = try TeamMembershipJoin(account: account, authorityEpoch: "public-epoch", sessions: sessions,
             devices: TeamMembershipDeviceDriver(custody: custody), metadata: TeamMembershipMetadataDriver(store: joins),
             transport: client, clock: { .init(wallTime: 1_000, instant: instant) })
-        let result = try await reopened.recover(teamID: intent.teamID)
+        let result: TeamJoinSnapshot
+        if mode == "retry-pending-once" {
+            guard case .ready(let retry) = try await reopened.prepareRetry(token: code, teamID: intent.teamID, role: intent.role) else {
+                Issue.record("Expected new explicit retry consent"); return
+            }
+            #expect(joinBackend.writes == 2)
+            await #expect(throws: TeamMembershipJoinError.consentRequired) { try await reopened.join(retry, consent: false) }
+            #expect(try fixture.records("attempts").filter { $0["path"] as? String == "/api/v1/teams/accept" }.count == 1)
+            result = try await reopened.join(retry, consent: true)
+            #expect(joinBackend.writes == 4)
+        } else { result = try await reopened.recover(teamID: intent.teamID) }
         #expect(result.phase == .confirmed && result.role == .member)
-        let requests = try fixture.records("attempts").suffix(5)
-        #expect(requests.compactMap { $0["path"] as? String } == ["/api/v1/devices/lookup", "/api/v1/devices/lookup",
-            "/api/v1/teams/accept", "/api/v1/devices/lookup", "/api/v1/teams/current"])
+        let expectedPaths = mode == "retry-pending-once"
+            ? ["devices/lookup", "devices/lookup", "teams/accept", "devices/lookup", "teams/acceptance", "devices/lookup", "teams/accept"]
+            : ["devices/lookup", "devices/lookup", "teams/accept", "devices/lookup", "teams/current"]
+        let requests = try fixture.records("attempts").suffix(expectedPaths.count)
+        #expect(requests.compactMap { $0["path"] as? String } == expectedPaths.map { "/api/v1/" + $0 })
         #expect(requests.allSatisfy { $0["authorization"] as? String == "Bearer \(account.accessToken)" })
         let body = try #require(fixture.records("bodies").last?["body"] as? String)
         let fields = try TeamStrictJSON.object(Data(body.utf8))
-        #expect(Set(fields.keys) == ["teamId", "enrollmentId"])
+        #expect(Set(fields.keys) == (mode == "retry-pending-once" ? ["token", "teamId", "enrollmentId", "role"] : ["teamId", "enrollmentId"]))
         #expect(fields["teamId"] as? String == result.teamID && fields["enrollmentId"] as? String == result.enrollmentID)
+        if mode == "retry-pending-once" {
+            let originalFields: [String: String] = ["token": code, "teamId": result.teamID, "enrollmentId": result.enrollmentID, "role": "MEMBER"]
+            let allRequests = try fixture.records("attempts"), allBodies = try fixture.records("bodies")
+            #expect(allRequests.count == allBodies.count)
+            for (request, body) in zip(allRequests, allBodies) where request["path"] as? String == "/api/v1/teams/accept" {
+                let raw = try #require(body["body"] as? String)
+                #expect(try TeamStrictJSON.object(Data(raw.utf8)) as? [String: String] == originalFields)
+            }
+        }
         #expect(!String(decoding: try #require(joinBackend.bytes), as: UTF8.self).contains(code))
         try sessions.requireCurrentAccess(account, now: 1_000)
     }

@@ -90,6 +90,105 @@ private func onJoinQueue(_ operation: @escaping @Sendable () -> Bool) async -> B
 }
 
 struct TeamJoinStoreTests {
+    @Test func explicitRetryRequiresOriginalCandidateNewConsentAndPreservesExactIdentity() throws {
+        let f = try JoinFixture(), store = f.owner(), first = try f.begin(store)
+        #expect(try store.retryCandidate(scope: f.scope, token: joinCode, teamID: first.teamID, role: first.role) == first)
+        for (token, team, role) in [(String(repeating: "A", count: 43), first.teamID, first.role),
+                                    (joinCode, "another-team", first.role), (joinCode, first.teamID, .member)] {
+            #expect(throws: TeamJoinError.bindingMismatch) { try store.retryCandidate(scope: f.scope, token: token, teamID: team, role: role) }
+        }
+        #expect(f.memory.writes == 1)
+        #expect(throws: TeamJoinError.consentRequired) {
+            try store.beginExplicitRetry(first, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: false)
+        }
+        let checked = try store.beginRecovery(first) // Status lookup owner rotates before reading HTTP.
+        f.clock.set(2_000)
+        let retry = try store.beginExplicitRetry(checked, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true)
+        #expect(retry.generation != checked.generation && retry.checkedAt == 2_000)
+        #expect(retry.phase == .pending && retry.membershipRevision == nil)
+        #expect(retry.scope == first.scope && retry.teamID == first.teamID && retry.enrollmentID == first.enrollmentID)
+        #expect(retry.invitationHash == first.invitationHash && retry.role == first.role)
+        #expect(try f.owner().load(scope: f.scope, teamID: first.teamID) == retry)
+        #expect(!String(decoding: try #require(f.memory.bytes), as: UTF8.self).contains(joinCode))
+        #expect(throws: TeamJoinError.staleOperation) {
+            try store.beginExplicitRetry(checked, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true)
+        }
+        #expect(throws: TeamJoinError.staleOperation) { try store.confirm(first, result: f.membership(first)) }
+        #expect(try store.confirm(retry, result: f.membership(retry)).phase == .confirmed)
+    }
+    @Test func retryRejectsWrongTokenRegistrationConfirmedStateAndInvalidDeadlineWithoutWrite() throws {
+        let f = try JoinFixture(), store = f.owner(), first = try f.begin(store)
+        #expect(throws: TeamJoinError.bindingMismatch) {
+            try store.beginExplicitRetry(first, token: String(repeating: "A", count: 43), consentExpiresAt: 20_000, registration: f.registration(), consent: true)
+        }
+        for registration in [f.registration(enrollment: "foreign"),
+            TeamRegisteredDevice(enrollmentID: first.enrollmentID, accountID: "foreign", deviceID: "public-device", keyThumbprint: String(repeating: "A", count: 43), authorityEpoch: f.scope.authorityEpoch),
+            TeamRegisteredDevice(enrollmentID: first.enrollmentID, accountID: f.scope.accountID, deviceID: "public-device", keyThumbprint: String(repeating: "A", count: 43), authorityEpoch: "foreign")] {
+            #expect(throws: TeamJoinError.bindingMismatch) {
+                try store.beginExplicitRetry(first, token: joinCode, consentExpiresAt: 20_000, registration: registration, consent: true)
+            }
+        }
+        for deadline: Int64 in [-1, 1_000, 301_001, TeamAuthWire.maximumSafeTime + 1] {
+            #expect(throws: TeamJoinError.invalidTime) {
+                try store.beginExplicitRetry(first, token: joinCode, consentExpiresAt: deadline, registration: f.registration(), consent: true)
+            }
+        }
+        #expect(f.memory.writes == 1)
+        let confirmed = try store.confirm(first, result: f.membership(first))
+        #expect(throws: TeamJoinError.bindingMismatch) { try store.retryCandidate(scope: f.scope, token: joinCode, teamID: first.teamID, role: first.role) }
+        #expect(throws: TeamJoinError.bindingMismatch) {
+            try store.beginExplicitRetry(confirmed, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true)
+        }
+        #expect(f.memory.writes == 2)
+        #expect(try store.load(scope: f.scope, teamID: first.teamID) == confirmed)
+    }
+    @Test func uncertainRetryWritesRetainOldOrWholeNewPendingGeneration() throws {
+        for after in [false, true] {
+            let f = try JoinFixture(), store = f.owner(), first = try f.begin(store)
+            f.memory.fail(afterCommit: after)
+            #expect(throws: TeamJoinError.unavailable(errSecNotAvailable)) {
+                try store.beginExplicitRetry(first, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true)
+            }
+            let saved = try #require(try store.load(scope: f.scope, teamID: first.teamID))
+            #expect(saved.phase == .pending && saved.invitationHash == first.invitationHash)
+            #expect((saved.generation != first.generation) == after)
+            #expect(f.memory.writes == (after ? 2 : 1))
+        }
+    }
+    @Test func retryExpiryAfterWriteOrVerificationNeverReturnsDispatchPermission() throws {
+        for point in ["write", "read"] {
+            let f = try JoinFixture(), store = f.owner(), first = try f.begin(store)
+            if point == "write" { f.memory.afterWrite { f.clock.set(20_000) } }
+            else { f.memory.afterRead { if f.memory.writes == 2 { f.clock.set(20_000) } } }
+            #expect(throws: TeamJoinError.invalidTime) {
+                try store.beginExplicitRetry(first, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true)
+            }
+            let saved = try #require(try store.load(scope: f.scope, teamID: first.teamID))
+            #expect(saved.phase == .pending && saved.generation != first.generation && f.memory.writes == 2)
+        }
+    }
+    @Test func concurrentExplicitRetriesHaveOneCASWinnerAndCancellationCannotWrite() async throws {
+        let f = try JoinFixture(), firstStore = f.owner(), secondStore = f.owner(), first = try f.begin(firstStore)
+        let cancelled = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            #expect(throws: CancellationError.self) {
+                try firstStore.beginExplicitRetry(first, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true)
+            }
+        }
+        await cancelled.value
+        #expect(f.memory.writes == 1)
+        let barrier = JoinBarrier(); f.memory.beforeWrite { try barrier.enter() }
+        async let one = onJoinQueue {
+            do { _ = try firstStore.beginExplicitRetry(first, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true); return true }
+            catch { #expect(error as? TeamJoinError == .staleOperation); return false }
+        }
+        async let two = onJoinQueue {
+            do { _ = try secondStore.beginExplicitRetry(first, token: joinCode, consentExpiresAt: 20_000, registration: f.registration(), consent: true); return true }
+            catch { #expect(error as? TeamJoinError == .staleOperation); return false }
+        }
+        let results = await [one, two]
+        #expect(results.filter { $0 }.count == 1 && f.memory.writes == 2)
+    }
     @Test func previewIsReadOnlyAndReopenRecoversExpiredInvitationWithoutRawToken() throws {
         let f = try JoinFixture(), owner = f.owner()
         #expect(try owner.list(scope: f.scope).isEmpty)

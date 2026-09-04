@@ -1,6 +1,6 @@
 # Pinbook iOS Codex handoff
 
-Updated: 2026-09-04 (Asia/Shanghai)
+Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Owner release gate — no incremental TestFlight updates
 
@@ -9,8 +9,11 @@ Updated: 2026-09-04 (Asia/Shanghai)
   notes requesting Woo GUI clearance are historical, not instructions to repeat
   the rejected request. Continue Pinbook-local work and isolated tests; do not
   infer permission to disrupt another task's UI/resources. Owner also now offers
-  a physical iPhone, but both devicectl and xctrace report unavailable/offline.
-  Unlock/reconnect/Trust requested; no install or physical test yet.
+  a physical iPhone. Initial listings were unavailable/offline; latest devicectl
+  reports **available (paired)**. Owner explicitly approved a separate **Pinbook QA**
+  development identity/profiles/install to preserve the working TestFlight app and
+  records. This permits only that isolated development path, not a new TestFlight
+  upload or replacement of the working installation. No physical test yet.
 - Latest owner response was "proceed towards the goal" directly after being asked
   to approve Apple and Google sign-in. Treat that response as approval of the
   proposed Apple+Google pilot sign-in direction, rather than holding indefinitely
@@ -33,6 +36,25 @@ Updated: 2026-09-04 (Asia/Shanghai)
   gates are not complete merely because build 3 was accepted by the owner.
 
 ## Active local implementation after release hold
+
+- Original-invitation explicit retry now composes durable store and retained
+  membership owner: read-only original hash matching, exact enrollment/current
+  account/device, fresh registration, new durable generation before ONE acceptance
+  status lookup, then either exact confirmation or NEW one-use consent. Explicit
+  Join commits a new PENDING generation before one identical accept. Null/errors
+  never erase metadata or automatically resend. Consent has five-minute wall/
+  monotonic and current-access limits; server invitation eligibility is rechecked
+  on accept. Five new store+nine owner cases; full **236/236 PASS**,16.539s:
+  `/private/tmp/pinbook-ios-explicit-retry-full-core.log`. Actual privateTLS composed
+  scenario verifies pending lookup→new consent→same original accept fields and
+  durable marker counts. See TEAM_MEMBERSHIP_RETRY_IOS.md. Retry UI/bridge entry and
+  parent workspace routing remain NEXT; existing membership screen is unchanged.
+  Simulator build-for-testing PASS:
+  `/private/tmp/pinbook-ios-explicit-retry-test-build.log`; unsigned iPhone Release
+  PASS: `/private/tmp/pinbook-ios-explicit-retry-release.log`. No new runtime run.
+  All final feature/physical/provider/activation gates and no-push/TestFlight hold
+  remain. Keep tasks separate as owner requested. Phone is now available; owner
+  approved separate QA installation as noted above. Never overwrite TestFlight.
 
 - Fourteenth onboarding route `teams/acceptance` now has bounded, exact typed iOS
   lookup with original token/team/enrollment/role and current access-only ticket.

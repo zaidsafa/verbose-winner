@@ -68,7 +68,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                       "membershipRevision": 1}
         if self.path == "/api/v1/teams/acceptance":
             # Response-shape fixture, not backend eligibility/locking logic.
-            fields = {"membership": None if mode == "acceptance-pending" else {
+            fields = {"membership": None if mode in ("acceptance-pending", "retry-pending-once") else {
                 "teamId": "public-team", "accountId": "public-account",
                 "enrollmentId": "public-enrollment", "role": "MEMBER",
                 "membershipRevision": 1}}
@@ -104,6 +104,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if mode == "join-uncertain" and self.path == "/api/v1/teams/accept":
             status = 503
             fields = {"error": "uncertain"}
+        if mode == "retry-pending-once" and self.path == "/api/v1/teams/accept":
+            first_accept = root / "first-accept-observed"
+            if not first_accept.exists():
+                first_accept.write_text("public synthetic attempt")
+                status = 503
+                fields = {"error": "uncertain"}
         if mode == "redirect":
             status = 307
         payload = json.dumps(fields).encode()

@@ -56,6 +56,17 @@ private struct MembershipMetadata: TeamMembershipMetadata {
     func beginRecovery(_ expected: TeamJoinSnapshot) throws -> TeamJoinSnapshot {
         let value = try store.beginRecovery(expected); try hooks.call("afterRecovery"); return value
     }
+    func retryCandidate(scope: TeamDeviceScope, token: String, teamID: String, role: TeamInvitationRole) throws -> TeamJoinSnapshot {
+        let value = try store.retryCandidate(scope: scope, token: token, teamID: teamID, role: role)
+        try hooks.call("retryCandidate"); return value
+    }
+    func beginExplicitRetry(_ expected: TeamJoinSnapshot, token: String, consentExpiresAt: Int64,
+                            registration: TeamRegisteredDevice, consent: Bool) throws -> TeamJoinSnapshot {
+        try hooks.call("beforeRetry")
+        let value = try store.beginExplicitRetry(expected, token: token, consentExpiresAt: consentExpiresAt,
+            registration: registration, consent: consent)
+        try hooks.call("afterRetry"); return value
+    }
     func confirm(_ expected: TeamJoinSnapshot, result: TeamMembership) throws -> TeamJoinSnapshot {
         let value = try store.confirm(expected, result: result); try hooks.call("afterConfirm"); return value
     }
@@ -68,11 +79,13 @@ private actor MembershipTransport: TeamMembershipTransport {
     private var absent = false
     private var foreign = false
     private var foreignCurrent = false
+    private var accepted = false
     private var gate: String?
     private var waiter: CheckedContinuation<Void, Never>?
     init(registration: TeamRegisteredDevice, hooks: MembershipHooks) { self.registration = registration; self.hooks = hooks }
-    func configure(failure: String? = nil, absent: Bool = false, foreign: Bool = false, foreignCurrent: Bool = false, gate: String? = nil) {
+    func configure(failure: String? = nil, absent: Bool = false, foreign: Bool = false, foreignCurrent: Bool = false, accepted: Bool = false, gate: String? = nil) {
         self.failure = failure; self.absent = absent; self.foreign = foreign; self.foreignCurrent = foreignCurrent; self.gate = gate
+        self.accepted = accepted
     }
     private func step(_ stage: String) async throws {
         calls.append(stage)
@@ -96,6 +109,13 @@ private actor MembershipTransport: TeamMembershipTransport {
     }
     func currentTeam(teamID: String, enrollmentID: String, ticket: TeamAccountAccessTicket) async throws -> TeamMembership {
         try await step("current")
+        return .init(teamID: teamID, accountID: ticket.accountID, enrollmentID: enrollmentID, role: foreignCurrent ? .owner : .reviewer, revision: 1)
+    }
+    func lookupInvitationAcceptance(token: String, teamID: String, enrollmentID: String, role: TeamInvitationRole,
+                                    ticket: TeamAccountAccessTicket) async throws -> TeamMembership? {
+        try await step("acceptance")
+        #expect(token == membershipCode && role == .reviewer)
+        guard accepted else { return nil }
         return .init(teamID: teamID, accountID: ticket.accountID, enrollmentID: enrollmentID, role: foreignCurrent ? .owner : .reviewer, revision: 1)
     }
 }
@@ -168,10 +188,154 @@ private struct MembershipFixture {
         return try await flow.existingAccountIntent(display)
     }
     func saved() throws -> TeamJoinSnapshot? { try store.load(scope: deviceScope, teamID: "public-team") }
+    func seedPending() async throws -> TeamJoinSnapshot {
+        try store.begin(scope: deviceScope, token: membershipCode, teamID: "public-team", role: .reviewer,
+            expiresAt: 400_000, registration: transport.registration, consent: true)
+    }
     func signOut() throws { try sessions.removeCurrent(scope: scope, consent: true) }
 }
 
 struct TeamMembershipJoinTests {
+    private func retryPreview(_ f: MembershipFixture, _ owner: TeamMembershipJoin) async throws -> TeamMembershipJoinPreview {
+        guard case .ready(let display) = try await owner.prepareRetry(token: membershipCode, teamID: "public-team", role: .reviewer) else {
+            Issue.record("Expected synthetic eligible-pending consent"); throw TeamMembershipJoinError.invalidIntent
+        }
+        return display
+    }
+    @Test func eligiblePendingRequiresFreshConsentAndOneDurableSameIdentityRetry() async throws {
+        let f = try MembershipFixture(), owner = try f.owner(), original = try await f.seedPending()
+        let display = try await retryPreview(f, owner), checked = try #require(try f.saved())
+        #expect(checked.phase == .pending && checked.generation != original.generation && f.backend.writes == 2)
+        #expect(await f.transport.calls == ["lookup", "acceptance"])
+        await #expect(throws: TeamMembershipJoinError.consentRequired) { try await owner.join(display, consent: false) }
+        #expect(f.backend.writes == 2)
+        let result = try await owner.join(display, consent: true)
+        #expect(result.phase == .confirmed && result.invitationHash == original.invitationHash)
+        #expect(result.enrollmentID == original.enrollmentID && f.backend.writes == 4)
+        #expect(await f.transport.calls == ["lookup", "acceptance", "lookup", "accept"])
+        await #expect(throws: TeamMembershipJoinError.staleConsent) { try await owner.join(display, consent: true) }
+        #expect(!String(decoding: try #require(f.backend.bytes), as: UTF8.self).contains(membershipCode))
+    }
+    @Test func acceptedOriginalInvitationRecoversAfterExpiryWithoutAnotherAccept() async throws {
+        let f = try MembershipFixture(), original = try await f.seedPending()
+        f.clock.advance(wall: 500_000, elapsed: .seconds(500))
+        let owner = try f.owner()
+        await f.transport.configure(accepted: true)
+        guard case .joined(let result) = try await owner.prepareRetry(token: membershipCode, teamID: original.teamID, role: original.role) else {
+            Issue.record("Accepted original invitation must reconcile, not offer retry"); return
+        }
+        #expect(result.phase == .confirmed && result.enrollmentID == original.enrollmentID)
+        #expect(await f.transport.calls == ["lookup", "acceptance"])
+    }
+    @Test func retryRejectsDifferentInvitationRoleMissingRecordAndForeignRegistration() async throws {
+        for mode in ["token", "role", "missing", "registration", "account"] {
+            let f = try MembershipFixture(), owner = try f.owner()
+            if mode != "missing" { _ = try await f.seedPending() }
+            if mode == "registration" { await f.transport.configure(foreign: true) }
+            if mode == "account" { try f.signOut() }
+            do {
+                _ = try await owner.prepareRetry(token: mode == "token" ? String(repeating: "A", count: 43) : membershipCode,
+                    teamID: "public-team", role: mode == "role" ? .member : .reviewer)
+                Issue.record("Invalid retry binding accepted")
+            } catch { #expect(error is TeamJoinError || error is TeamMembershipJoinError || error is TeamAccountSessionError) }
+            #expect(!(await f.transport.calls).contains("acceptance"))
+            #expect(!(await f.transport.calls).contains("accept"))
+            #expect(f.backend.writes == (mode == "missing" ? 0 : 1))
+        }
+    }
+    @Test func uncertainStatusOrMarkerWritePreservesPendingWithoutAccept() async throws {
+        for afterWrite in [false, true] {
+            let f = try MembershipFixture(), owner = try f.owner(), original = try await f.seedPending()
+            if afterWrite { f.hooks.once("afterRecovery") { throw TeamJoinError.unavailable(errSecNotAvailable) } }
+            else { await f.transport.configure(failure: "acceptance") }
+            do { _ = try await retryPreview(f, owner); Issue.record("Unknown status cannot arm consent") }
+            catch { #expect(error is TeamJoinError || error is TeamMembershipJoinError) }
+            let saved = try #require(try f.saved())
+            #expect(saved.phase == .pending && saved.generation != original.generation)
+            #expect(!(await f.transport.calls).contains("accept"))
+            #expect((await f.transport.calls).contains("acceptance") == !afterWrite)
+        }
+    }
+    @Test func concurrentLocalRecoveryAndForeignStatusCannotArmRetryConsent() async throws {
+        for accepted in [false, true] {
+            let f = try MembershipFixture(), owner = try f.owner()
+            _ = try await f.seedPending()
+            await f.transport.configure(accepted: accepted)
+            f.hooks.once("acceptance") { _ = try f.store.beginRecovery(#require(try f.saved())) }
+            await #expect(throws: TeamJoinError.staleOperation) { try await owner.prepareRetry(token: membershipCode, teamID: "public-team", role: .reviewer) }
+            #expect(try f.saved()?.phase == .pending)
+            #expect(!(await f.transport.calls).contains("accept"))
+        }
+        let f = try MembershipFixture(), owner = try f.owner()
+        _ = try await f.seedPending()
+        await f.transport.configure(foreignCurrent: true, accepted: true)
+        await #expect(throws: TeamJoinError.bindingMismatch) { try await owner.prepareRetry(token: membershipCode, teamID: "public-team", role: .reviewer) }
+        #expect(try f.saved()?.phase == .pending)
+    }
+    @Test func retryChecksAccountAfterSlowCandidateRecoveryLookupAndCommit() async throws {
+        for stage in ["retryCandidate", "afterRecovery", "acceptance", "beforeRetry", "afterRetry", "afterConfirm"] {
+            let f = try MembershipFixture(), owner = try f.owner()
+            _ = try await f.seedPending()
+            let joining = ["beforeRetry", "afterRetry", "afterConfirm"].contains(stage)
+            let display = joining ? try await retryPreview(f, owner) : nil
+            f.hooks.once(stage) { try f.signOut() }
+            do {
+                if let display { _ = try await owner.join(display, consent: true) }
+                else { _ = try await owner.prepareRetry(token: membershipCode, teamID: "public-team", role: .reviewer) }
+                Issue.record("Retry returned current success after account change")
+            } catch { #expect(error is TeamAccountSessionError) }
+            #expect((await f.transport.calls).filter { $0 == "accept" }.count == (stage == "afterConfirm" ? 1 : 0))
+            #expect(try f.saved()?.phase == (stage == "afterConfirm" ? .confirmed : .pending))
+        }
+    }
+    @Test func retryConsentExpiresAndDeviceChangeOrSlowCommitPreventsDispatch() async throws {
+        for mode in ["wall", "monotonic", "device", "commit", "recovery"] {
+            let f = try MembershipFixture(), owner = try f.owner()
+            _ = try await f.seedPending()
+            let display = try await retryPreview(f, owner)
+            switch mode {
+            case "wall": f.clock.advance(wall: 300_000)
+            case "monotonic": f.clock.advance(elapsed: .seconds(300))
+            case "device": await f.devices.rotate()
+            case "commit": f.hooks.once("afterRetry") { f.clock.advance(elapsed: .seconds(125)) }
+            default: _ = try await owner.recover(teamID: "public-team")
+            }
+            do { _ = try await owner.join(display, consent: true); Issue.record("Stale retry was dispatched") }
+            catch { #expect(error is TeamMembershipJoinError || error is TeamDeviceCustodyError) }
+            #expect(!(await f.transport.calls).contains("accept"))
+        }
+    }
+    @Test func cancelledLateAcceptanceStatusRetainsBusyAndNeverConfirmsOrArmsRetry() async throws {
+        let f = try MembershipFixture(), owner = try f.owner()
+        _ = try await f.seedPending()
+        await f.transport.configure(accepted: true, gate: "acceptance")
+        let task = Task { try await owner.prepareRetry(token: membershipCode, teamID: "public-team", role: .reviewer) }
+        for _ in 0..<200 {
+            if await f.transport.calls.contains("acceptance") { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        #expect(await f.transport.calls.contains("acceptance"))
+        await owner.cancelPendingMembership()
+        await #expect(throws: TeamMembershipJoinError.busy) { try await owner.recover(teamID: "public-team") }
+        await f.transport.finish()
+        await #expect(throws: CancellationError.self) { try await task.value }
+        #expect(try f.saved()?.phase == .pending)
+        #expect(!(await f.transport.calls).contains("accept"))
+    }
+    @Test func lostExplicitRetryResponseKeepsUncertaintyAndSpentConsent() async throws {
+        let f = try MembershipFixture(), owner = try f.owner()
+        _ = try await f.seedPending()
+        let display = try await retryPreview(f, owner)
+        await f.transport.configure(failure: "accept")
+        await #expect(throws: TeamMembershipJoinError.transportFailure) { try await owner.join(display, consent: true) }
+        #expect(try f.saved()?.phase == .pending)
+        await #expect(throws: TeamMembershipJoinError.staleConsent) { try await owner.join(display, consent: true) }
+        await f.transport.configure(accepted: true)
+        guard case .joined = try await owner.prepareRetry(token: membershipCode, teamID: "public-team", role: .reviewer) else {
+            Issue.record("Later accepted status should reconcile"); return
+        }
+        #expect((await f.transport.calls).filter { $0 == "accept" }.count == 1)
+    }
     @MainActor @Test func screenBridgeComposesRealOwnerStoreAndReadOnlyRecovery() async throws {
         let f = try MembershipFixture(), owner = try f.owner(), intent = try await f.intent()
         let bridge = TeamMembershipScreenBridge(owner: owner, invitation: intent)

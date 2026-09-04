@@ -1,5 +1,43 @@
 # Validation plan
 
+## 2026-09-05 explicit same-identity retry store and membership owner (inactive)
+
+- Initial store test compilation **FAILED** on missing inner `try` in two require
+  assertions and one throwing boolean assertion:
+  `/private/tmp/pinbook-ios-explicit-retry-store-focused.log`.
+  Corrected test expressions; store **17/17 PASS**,1.069s:
+  `/private/tmp/pinbook-ios-explicit-retry-store-focused-fixed.log`.
+- Five new store cases cover read-only exact original matching, fresh consent,
+  unchanged identity/hash/PENDING, new CAS generation, wrong registration/phase/
+  deadlines, uncertain writes, expiry during commit/reread, competing retry and
+  cancellation. No raw token persistence or schema change.
+- Existing owner compatibility **16/16 PASS**,0.039s:
+  `/private/tmp/pinbook-ios-explicit-retry-owner-compile.log`.
+  Nine new owner cases; focused **25/25 PASS**,0.075s:
+  `/private/tmp/pinbook-ios-explicit-retry-owner-focused.log`.
+  Includes accepted-link recovery after expiry without another accept, nil→NEW
+  consent→one explicit accept, invalid binding, unknown status/marker writes,
+  concurrent recovery/foreign status, sign-out after slow stages, wall/monotonic
+  expiry/device replacement, canceled late status and lost explicit-retry response.
+- Existing actualTLS membership composition now has tokenless-recovery AND explicit
+  retry scenarios. The retry fixture returns uncertain first accept and eligible
+  pending status, then success only after a new explicit Join. Assertions verify
+  durable write counts, ONE pre-consent accept, identical original accept bodies,
+  exact bearer and unchanged account/no saved code. Synthetic transport fixture,
+  not deployed backend admission/locking/idempotency acceptance evidence.
+- Full **236/236 PASS**,16.539s:
+  `/private/tmp/pinbook-ios-explicit-retry-full-core.log`.
+- Simulator build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-explicit-retry-test-build.log`.
+  Unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-explicit-retry-release.log`.
+  No new UIKit/app-host/UI/physical runtime acceptance.
+- Latest read-only devicectl check reports iPhone **available (paired)**. Owner
+  explicitly approved separate Pinbook QA identity/profiles/install, preserving
+  the working TestFlight app/data. Development signing/install is next, not done.
+- No retry UI/host activation, provider, physical installation, shared service,
+  source push or TestFlight change. Earlier intermittentTLS caveats remain open.
+
 ## 2026-09-04 read-only original-invitation acceptance lookup (inactive)
 
 - Six new intercepted HTTP tests cover exact protected request and nullable schema,
