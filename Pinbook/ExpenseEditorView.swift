@@ -101,23 +101,23 @@ struct ExpenseEditorView: View {
         let cleanPurpose = purpose.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanCounterparty = counterparty.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanPurpose.isEmpty, !cleanCounterparty.isEmpty else {
-            validationMessage = String(localized: "Purpose and person are required.")
+            validationMessage = String(localized: "Purpose and person are required.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             return
         }
 
         let money: MoneyAmount
         do {
-            money = try MoneyAmount.parse(amount, currencyCode: currency)
+            money = try MoneyAmount.parse(amount, currencyCode: currency, locale: PinbookLanguage.currentLocale)
         } catch {
-            validationMessage = String(localized: "Enter a valid amount for this currency.")
+            validationMessage = String(localized: "Enter a valid amount for this currency.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             return
         }
         guard money.minorUnits > 0 else {
-            validationMessage = String(localized: "Amount must be greater than zero.")
+            validationMessage = String(localized: "Amount must be greater than zero.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             return
         }
         if reminderEnabled, reminderAt <= Date() {
-            validationMessage = String(localized: "Reminder must be in the future.")
+            validationMessage = String(localized: "Reminder must be in the future.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             return
         }
 
@@ -137,13 +137,13 @@ struct ExpenseEditorView: View {
             do {
                 let authorized = try await LocalReminderScheduler.shared.requestAuthorization()
                 guard authorized else {
-                    validationMessage = String(localized: "Notifications are disabled. Turn off the reminder or enable notifications in Settings.")
+                    validationMessage = String(localized: "Notifications are disabled. Turn off the reminder or enable notifications in Settings.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
                     return
                 }
                 try await LocalReminderScheduler.shared.schedule(
                     expenseID: expense.id,
                     at: reminderAt,
-                    title: String(localized: "Expense reminder")
+                    title: String(localized: "Expense reminder", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
                 )
                 notificationScheduled = true
             } catch {
@@ -161,7 +161,7 @@ struct ExpenseEditorView: View {
                 await LocalReminderScheduler.shared.cancel(expenseID: expense.id)
             }
             modelContext.rollback()
-            validationMessage = String(localized: "Unable to save this expense.")
+            validationMessage = String(localized: "Unable to save this expense.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
         }
     }
 }

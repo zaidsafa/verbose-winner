@@ -23,6 +23,8 @@ enum PinbookOnboardingPolicy {
 struct PinbookOnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(PinbookLanguage.preferenceKey, store: PinbookLanguage.preferenceStore) private var languagePreference = PinbookLanguage.system.rawValue
+    @State private var showingLanguagePicker = false
     @State private var pageIndex = 0
     @State private var symbolIsFloating = false
     let completion: () -> Void
@@ -36,12 +38,20 @@ struct PinbookOnboardingView: View {
                 .animation(reduceMotion ? nil : .smooth(duration: 0.5), value: pageIndex)
 
             VStack(spacing: 0) {
-                HStack {
-                    Text("Welcome to Pinbook")
-                        .font(.headline)
-                    Spacer()
-                    Button("Skip") { finish() }
-                        .buttonStyle(.glass)
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Welcome to Pinbook")
+                            .font(.headline)
+                        Spacer()
+                    }
+
+                    HStack {
+                        languageMenu
+                        Spacer()
+                        Button("Skip") { finish() }
+                            .buttonStyle(.glass)
+                            .accessibilityIdentifier("onboarding-skip")
+                    }
                 }
                 .padding(.horizontal, 22)
                 .padding(.top, 12)
@@ -104,6 +114,32 @@ struct PinbookOnboardingView: View {
         .interactiveDismissDisabled()
         .onAppear { startFloatingAnimation() }
         .onChange(of: reduceMotion) { _, _ in startFloatingAnimation() }
+        .sheet(isPresented: $showingLanguagePicker) {
+            LanguageOptionsSheet()
+        }
+        .modifier(PinbookLanguageEnvironment())
+    }
+
+    private var selectedLanguage: PinbookLanguage {
+        PinbookLanguage(rawValue: languagePreference) ?? .system
+    }
+
+    private var languageMenu: some View {
+        Button {
+            showingLanguagePicker = true
+        } label: {
+            Label {
+                if selectedLanguage == .system {
+                    Text("System Default")
+                } else {
+                    Text(verbatim: selectedLanguage.nativeName)
+                }
+            } icon: {
+                Image(systemName: "globe")
+            }
+        }
+        .buttonStyle(.glass)
+        .accessibilityIdentifier("onboarding-language-menu")
     }
 
     private func move(to index: Int) {

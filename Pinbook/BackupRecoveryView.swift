@@ -34,8 +34,8 @@ struct BackupRecoveryView: View {
     }
     private var healthStatus: String {
         latestSuccessfulExport == nil
-            ? String(localized: "Not exported yet")
-            : String(localized: "Healthy local export")
+            ? String(localized: "Not exported yet", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+            : String(localized: "Healthy local export", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
     }
 
     var body: some View {
@@ -63,7 +63,7 @@ struct BackupRecoveryView: View {
             do {
                 _ = try result.get()
                 try service.recordExportCompletion(preparedExport, succeeded: true)
-                completionMessage = String(localized: "Backup exported")
+                completionMessage = String(localized: "Backup exported", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             } catch {
                 if (error as NSError).code != NSUserCancelledError {
                     try? service.recordExportCompletion(preparedExport, succeeded: false)
@@ -225,7 +225,7 @@ struct BackupRecoveryView: View {
         do {
             _ = try await service.applyRestore(prepared)
             showingPreview = false
-            completionMessage = String(localized: "Restore applied. A recovery snapshot was saved.")
+            completionMessage = String(localized: "Restore applied. A recovery snapshot was saved.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             return true
         } catch {
             operationError = error.localizedDescription
@@ -240,7 +240,7 @@ struct BackupRecoveryView: View {
         defer { isWorking = false }
         do {
             try await service.recover(snapshot)
-            completionMessage = String(localized: "Recovery completed")
+            completionMessage = String(localized: "Recovery completed", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
         } catch {
             operationError = error.localizedDescription
         }
@@ -410,13 +410,13 @@ private extension BackupActivityKind {
 }
 
 private func formattedBackupTimestamp(_ milliseconds: Int64) -> String {
-    milliseconds.pinbookDate.formatted(date: .abbreviated, time: .shortened)
+    milliseconds.pinbookDate.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened, locale: PinbookLanguage.currentLocale))
 }
 
 private func backupSnapshotSummary(_ snapshot: BackupSnapshotItem) -> String {
-    String(localized: "v\(snapshot.formatVersion) · \(snapshot.recordCount) records")
+    String(localized: "v\(snapshot.formatVersion) · \(snapshot.recordCount) records", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
 }
 
 private func backupActivitySummary(_ activity: BackupActivityItem) -> String {
-    String(localized: "v\(activity.formatVersion) · \(activity.recordCount) records · \(activity.changedCount) changes · \(activity.conflictCount) conflicts")
+    String(localized: "v\(activity.formatVersion) · \(activity.recordCount) records · \(activity.changedCount) changes · \(activity.conflictCount) conflicts", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
 }

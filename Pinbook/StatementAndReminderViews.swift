@@ -167,7 +167,7 @@ struct ReminderOverviewView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(expense.purpose).font(.headline)
                                 if let reminderAt = expense.reminderAt {
-                                    Text(reminderAt.pinbookDate.formatted(date: .abbreviated, time: .shortened))
+                                    Text(reminderAt.pinbookDate.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened, locale: PinbookLanguage.currentLocale)))
                                         .font(.subheadline)
                                         .foregroundStyle(.secondary)
                                 }

@@ -27,12 +27,12 @@ enum BackupRecoveryError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .invalidBackup: String(localized: "This backup is corrupt or contains invalid data.")
-        case .unsupportedBackupVersion: String(localized: "This backup version is not supported.")
-        case .invalidReferences: String(localized: "This backup contains broken record references.")
-        case .previewExpired: String(localized: "Local data changed after the preview. Preview the backup again.")
-        case .invalidSnapshot: String(localized: "This recovery snapshot is invalid.")
-        case .fileAccessFailed: String(localized: "The selected backup file could not be read.")
+        case .invalidBackup: String(localized: "This backup is corrupt or contains invalid data.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+        case .unsupportedBackupVersion: String(localized: "This backup version is not supported.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+        case .invalidReferences: String(localized: "This backup contains broken record references.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+        case .previewExpired: String(localized: "Local data changed after the preview. Preview the backup again.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+        case .invalidSnapshot: String(localized: "This recovery snapshot is invalid.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
+        case .fileAccessFailed: String(localized: "The selected backup file could not be read.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
         }
     }
 }

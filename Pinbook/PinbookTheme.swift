@@ -159,7 +159,7 @@ extension EnvironmentValues {
 }
 
 extension Int64 {
-    func formattedMoney(currency: String, locale: Locale = .current) -> String {
+    func formattedMoney(currency: String, locale: Locale = PinbookLanguage.currentLocale) -> String {
         let formatted = (try? MoneyAmount(minorUnits: self, currencyCode: currency).formatted(locale: locale))
             ?? "\(currency) \(self)"
         return "\u{2066}\(formatted)\u{2069}"

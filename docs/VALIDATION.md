@@ -1,5 +1,17 @@
 # Validation plan
 
+## 2026-09-04 language-control milestone
+
+- Passed 9/9 Swift package tests and 37/37 full simulator tests (28 app, 9 UI).
+- Passed unsigned generic iPhone Release build; no archive/upload/publication.
+- Verified 256 English-source keys and complete Arabic/Simplified Chinese values
+  with intact format tokens. The other 13 target catalogs remain pending.
+- Verified live language changes on onboarding, Arabic RTL, persistence, System
+  Default reset, localized service errors, and Unicode decimal-digit parsing.
+- Result bundle: `/private/tmp/Pinbook-Language-Final.xcresult`.
+- Visually checked `docs/evidence/pinbook-language-switch-ar.png`.
+- No new physical-device or TestFlight acceptance; no claim of complete 16-language parity.
+
 ## Automated on every coherent milestone
 
 - Run `swift test` for backup compatibility, merge behavior, and currency-safe money.

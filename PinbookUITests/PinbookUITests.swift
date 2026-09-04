@@ -2,6 +2,57 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testFirstRunLanguageSelectionUpdatesIntroductionAndRTLImmediately() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-PinbookFixture", "empty", "-PinbookOnboarding", "show",
+        ]
+        app.launch()
+        let languageControl = app.buttons["onboarding-language-menu"]
+        XCTAssertTrue(languageControl.waitForExistence(timeout: 5))
+        languageControl.tap()
+        app.buttons["language-ar"].tap()
+        XCTAssertTrue(app.navigationBars["اللغة"].waitForExistence(timeout: 5))
+        app.buttons["language-done"].tap()
+        XCTAssertTrue(app.staticTexts["مرحبًا بك في Pinbook"].waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(languageControl.frame.midX, app.buttons["onboarding-skip"].frame.midX)
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook live first-run Arabic selection and RTL"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+
+        languageControl.tap()
+        app.buttons["language-zh-Hans"].tap()
+        XCTAssertTrue(app.navigationBars["语言"].waitForExistence(timeout: 5))
+        app.buttons["language-done"].tap()
+        XCTAssertTrue(app.staticTexts["欢迎使用 Pinbook"].waitForExistence(timeout: 5))
+        XCTAssertLessThan(languageControl.frame.midX, app.buttons["onboarding-skip"].frame.midX)
+    }
+
+    @MainActor
+    func testSettingsLanguagePersistsAndSystemDefaultRestoresPhoneLanguage() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-PinbookFixture", "empty", "-PinbookTab", "options",
+        ]
+        app.launch()
+        app.buttons["options-language"].tap()
+        app.buttons["language-zh-Hans"].tap()
+        XCTAssertTrue(app.navigationBars["语言"].waitForExistence(timeout: 5))
+        app.terminate()
+        app.launchArguments += ["-PinbookPreserveLanguage"]
+        app.launch()
+        XCTAssertTrue(app.buttons["options-language"].waitForExistence(timeout: 5))
+        app.buttons["options-language"].tap()
+        XCTAssertTrue(app.navigationBars["语言"].waitForExistence(timeout: 5))
+        app.buttons["language-system"].tap()
+        XCTAssertTrue(app.navigationBars["Language"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["language-system"].isSelected)
+    }
+
+    @MainActor
     func testWorldCurrencyPickerIsSearchableAndShowsSymbols() throws {
         let app = XCUIApplication()
         app.launchArguments = [

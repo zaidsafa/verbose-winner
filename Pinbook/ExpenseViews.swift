@@ -225,7 +225,7 @@ private struct ExpenseCard: View {
     @ViewBuilder
     private var expenseMetadata: some View {
         Label(
-            expense.occurredAt.pinbookDate.formatted(date: .abbreviated, time: .omitted),
+            expense.occurredAt.pinbookDate.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted, locale: PinbookLanguage.currentLocale)),
             systemImage: "calendar"
         )
         if !expense.category.isEmpty {
@@ -324,9 +324,9 @@ private struct SettlementEditorView: View {
 
     private func save() {
         do {
-            let money = try MoneyAmount.parse(amount, currencyCode: expense.currency)
+            let money = try MoneyAmount.parse(amount, currencyCode: expense.currency, locale: PinbookLanguage.currentLocale)
             guard money.minorUnits > 0, money.minorUnits <= remainingMinor else {
-                validationMessage = String(localized: "Enter an amount up to the remaining balance.")
+                validationMessage = String(localized: "Enter an amount up to the remaining balance.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
                 return
             }
             modelContext.insert(SettlementItem(
@@ -338,7 +338,7 @@ private struct SettlementEditorView: View {
             try modelContext.save()
             dismiss()
         } catch {
-            validationMessage = String(localized: "Enter a valid amount for this currency.")
+            validationMessage = String(localized: "Enter a valid amount for this currency.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
         }
     }
 }

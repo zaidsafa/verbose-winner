@@ -8,6 +8,19 @@ struct PinbookApp: App {
 
     init() {
         launchConfiguration = .current
+#if DEBUG
+        if launchConfiguration.usesEphemeralStore {
+            let arguments = ProcessInfo.processInfo.arguments
+            if !arguments.contains("-PinbookPreserveLanguage") {
+                PinbookLanguage.preferenceStore.removeObject(forKey: PinbookLanguage.preferenceKey)
+            }
+            if let index = arguments.firstIndex(of: "-PinbookLanguage"),
+               arguments.indices.contains(index + 1),
+               let language = PinbookLanguage(rawValue: arguments[index + 1]) {
+                PinbookLanguage.preferenceStore.set(language.rawValue, forKey: PinbookLanguage.preferenceKey)
+            }
+        }
+#endif
         let schema = Schema(PinbookSchema.models)
         let configuration: ModelConfiguration
 #if DEBUG

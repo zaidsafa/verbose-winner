@@ -1,17 +1,19 @@
 # Pinbook iOS Codex handoff
 
-Updated: 2026-09-02 (Asia/Shanghai)
+Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Ownership and source
 
 - iOS repository: `zaidsafa/verbose-winner`
 - Android read-only product reference: `zaidsafa/studious-potato`
-- Android release reference: Pinbook 0.4.2, `versionCode 8`, source `442ae6a5bd2dc8ee26d6a1006dd9dda9fe4c0985`
-- Android workstream update: the reported 0.5.0 candidate from run `33617739851` is rejected and unpublished. Draft PR #29 (`f395120`) adds first-run/Settings language selection and a 16-locale contract, but publication remains blocked until every catalog has human-quality native review.
+- Initial Android compatibility baseline: Pinbook 0.4.2, `versionCode 8`, source `442ae6a5bd2dc8ee26d6a1006dd9dda9fe4c0985`
+- Android workstream update superseding the rejected candidate: 0.5.0 is reported published from behavior source `9ad28646f3ddb5ebfa874421b44e40b4cfda8a74`. Its contract is system-default language, first-run and Options language controls, 16 languages including distinct Chinese scripts and Brazilian Portuguese, and Arabic/Urdu RTL. Generated initial drafts were explicitly authorized with feedback-driven corrections; native review is no longer a publication prerequisite, and the drafts must not be described as native-reviewed or professionally translated.
 - Initial iOS `main` bootstrap: `7b7fb061e22539632a13b9b5aa5c378235c83684`
 - Active feature branch: `codex/pinbook-ios-foundation`
 
 ## Implemented scope
+
+- Localization resumption is in progress: local language controls, preference persistence, explicit locale/bundle routing for views and service messages, and Arabic/Urdu direction handling have been added. Complete 16-language catalog coverage and exact-candidate iPhone acceptance remain pending; this work is not a new iOS release.
 
 - Swift package foundation with Android backup-v8-compatible records.
 - ISO currency-aware minor-unit money parsing and formatting.
@@ -50,6 +52,8 @@ Updated: 2026-09-02 (Asia/Shanghai)
 
 ## Validation
 
+- Language-control milestone (2026-09-04): 9/9 Swift package tests and 37/37 complete-scheme simulator tests passed (28 app tests, 9 XCUITests) on the dedicated iPhone 17 Pro. The final result bundle is `/private/tmp/Pinbook-Language-Final.xcresult`. An unsigned generic iPhone Release build passed. Existing English/Arabic/Simplified Chinese coverage is 256 keys, with no missing values or format-token mismatches. New tests verify live English → Arabic → Simplified Chinese introduction changes, mirrored Arabic controls, saved choice across relaunch, System Default reset, independently localized service messages, and exact Arabic/Urdu/Hindi decimal-digit parsing. Visual evidence: `docs/evidence/pinbook-language-switch-ar.png`. This does not validate the pending 13 catalogs, Urdu UI, widget override sharing, TestFlight delivery, or exact-build physical acceptance.
+
 - `swift test --disable-sandbox --scratch-path /private/tmp/pinbook-ios-swift-build` passed all 5 tests on Xcode 26.6 / Swift 6.3.3.
 - The alternate scratch path was required because the managed environment denied SwiftPM's user cache and nested sandbox; this is an environment boundary, not a source failure.
 - Unsigned generic iOS Simulator build passed against SDK 26.5 with deployment target 26.1.
@@ -78,19 +82,20 @@ Updated: 2026-09-02 (Asia/Shanghai)
 - iCloud/CloudKit is not implemented. The planned provider design treats it as an optional alternative to Google Drive, not a simultaneous second sync authority.
 - Statements are generated locally, but successful transfer through a chosen share extension was not exercised. Reminder request construction is implemented, but authorization and real notification delivery were deliberately not triggered during simulator acceptance.
 - English, Arabic, and Simplified Chinese cover the current iOS shell, forms, grouped options, onboarding, validation copy, accessibility labels, and widgets. Full parity with Android's other locales remains unfinished, and user-authored content is not translated.
-- Android's reported target locale set is English, Arabic, Turkish, Simplified Chinese, Traditional Chinese, Spanish, French, German, Portuguese, Hindi, Indonesian, Japanese, Korean, Russian, Italian, and Urdu, with Arabic/Urdu RTL behavior. This is a parity requirement only: iOS must not advertise or ship unsupported locales, and AI-generated text must not be represented as human-authored or native-reviewed translation.
+- Android's reported target locale set is English, Arabic, Turkish, Simplified Chinese, Traditional Chinese, Spanish, French, German, Brazilian Portuguese, Hindi, Indonesian, Japanese, Korean, Russian, Italian, and Urdu, with Arabic/Urdu RTL behavior. iOS must not advertise incomplete locale catalogs. Generated drafts are allowed with a feedback correction loop, but must not be represented as human-authored, professional, or native-reviewed translation.
 - Widgets currently provide privacy-safe navigation only. Live counts or balances require an explicitly approved App Group entitlement, a versioned shared-snapshot format, signing/profile changes, and new privacy/physical-device acceptance; none is enabled here.
 - The universal target declares all four standard interface orientations, but the complete iPhone/iPad rotation and multitasking layout matrix has not yet received visual acceptance.
 - The current milestone has no new physical-device acceptance. Simulator build/tests do not prove widget gallery installation, TestFlight, Drive transfer, iCloud, a completed external Files-provider transfer, real notification delivery, or App Store acceptance. The UI tests opened both system document pickers but did not save or select a file.
 - Existing Apple development signing was used for the device build. No new signing credentials/profiles, OAuth credentials, external account settings, TestFlight state, or App Store state were created or changed.
-- The current Mac reported no valid code-signing identities during the TestFlight audit. The release archive check was deliberately unsigned. A signed distribution archive, provisioning-profile creation, upload, App Store Connect processing, TestFlight installation, and exact-build physical acceptance remain pending explicit authorization and Apple account access.
-- App Store Connect has not been changed. Before external testing, the owner must replace the support/review contact placeholders and publish `docs/PRIVACY_POLICY.md` at an HTTPS URL. The current **No Data Collected** answer applies only while records, receipts, and manual backups stay local; any future Google Drive or iCloud integration requires a fresh privacy audit.
+- The initial TestFlight audit reported no valid code-signing identities, so its archive was deliberately unsigned. The owner later supplied evidence of a processed build (below). This does not prove current signing availability or physical acceptance; localization resumption uses unsigned builds and does not mutate signing or upload a replacement.
+- The owner subsequently supplied an App Store Connect screenshot showing `Pinbook: Expense Ledger`, processed TestFlight build `0.1.0 (1)`, the colorful icon, and `Ready to Submit`. This is screenshot evidence, not a live account audit or proof of tester installation/review approval. No App Store Connect mutation was performed during localization resumption. Before external testing, confirm final contact/privacy-policy details. The current **No Data Collected** answer applies only while records, receipts, and manual backups stay local; future cloud integration requires a fresh privacy audit.
 
 ## Exact next actions
 
-1. Replace the contact/URL placeholders in `docs/TESTFLIGHT_SUBMISSION.md`, publish `docs/PRIVACY_POLICY.md` at the final HTTPS privacy-policy URL, and create the App Store Connect app record.
-2. With explicit release authorization, let Xcode create or download the required signing assets, archive `Pinbook`, upload through Organizer, wait for App Store Connect processing, and attach build `0.1.0 (1)` to an internal TestFlight group.
+1. Confirm final contact/URL values in the owner's existing App Store Connect record, replace any remaining documentation placeholders, and publish `docs/PRIVACY_POLICY.md` at the final HTTPS privacy-policy URL.
+2. If not already done, attach processed build `0.1.0 (1)` to an internal TestFlight group. Do not upload the incomplete localization work. Once its catalogs and acceptance are complete, increment the app and widget build numbers together before creating and uploading a new signed archive under explicit release authorization.
 3. Install the exact processed TestFlight build on a physical iPhone and run disposable-data acceptance: onboarding/locales, five-theme contrast, two widgets, receipt selection, local notification delivery, statement sharing, and a completed Files backup/export/import/recovery round trip.
 4. Complete the remaining physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, and Increase Contrast before App Store release.
 5. Implement Google Drive `drive.appdata` only after explicit OAuth/provider approval, routing remote bytes through the existing validation, preview, snapshot, history, and deterministic conflict-recovery boundary. Re-audit App Privacy and update the privacy policy before shipping it.
-6. Add the remaining Android-parity locales to iOS only after native-reviewed catalogs are available, then validate first-run and Settings language selection, System-default behavior, layout, and Arabic/Urdu RTL independently on iOS before publication.
+6. Finish the generated draft catalogs, verify complete key/format-token coverage, and validate first-run and Settings selection, System-default behavior, Chinese script distinction, and Arabic/Urdu RTL independently on iOS. Native review is not a blocker under the updated authorization; record and correct feedback without overstating translation quality. Bulk third-party translation remains separately blocked by the approval safeguard until the owner approves sending the 256 interface strings to Google's translation service; no user data would be sent.
+7. The tested language-control source and handoff are committed locally. The 2026-09-04 push was blocked by auto-review pending explicit owner approval to export those commits to `https://github.com/zaidsafa/verbose-winner.git`, branch `codex/pinbook-ios-foundation`. Do not retry through another route without that authorization. The owner's pre-existing Xcode project/signing edits remain uncommitted and untouched.

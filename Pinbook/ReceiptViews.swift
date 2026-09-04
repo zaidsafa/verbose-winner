@@ -51,7 +51,7 @@ struct ReceiptSheetView: View {
                             Label {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(receipt.displayName)
-                                    Text(receipt.createdAt.pinbookDate.formatted(date: .abbreviated, time: .shortened))
+                                    Text(receipt.createdAt.pinbookDate.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened, locale: PinbookLanguage.currentLocale)))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -120,12 +120,12 @@ struct ReceiptSheetView: View {
 
         do {
             guard let data = try await item.loadTransferable(type: Data.self), !data.isEmpty else {
-                operationError = String(localized: "The selected photo could not be read.")
+                operationError = String(localized: "The selected photo could not be read.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
                 return
             }
             let contentType = item.supportedContentTypes.first ?? .image
             let fileExtension = contentType.preferredFilenameExtension ?? "img"
-            let displayName = String(localized: "Receipt photo")
+            let displayName = String(localized: "Receipt photo", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             try await ReceiptLifecycle.attach(
                 data: data,
                 preferredFileName: "receipt.\(fileExtension)",

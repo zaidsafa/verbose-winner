@@ -6,7 +6,7 @@ enum StatementGenerationError: LocalizedError, Equatable {
     case arithmeticOverflow
 
     var errorDescription: String? {
-        String(localized: "Statement values exceed the supported range.")
+        String(localized: "Statement values exceed the supported range.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
     }
 }
 
@@ -69,7 +69,7 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
             }
 
             beginPage()
-            draw(String(localized: "Pinbook statement"), font: .systemFont(ofSize: 26, weight: .bold), spacing: 4)
+            draw(String(localized: "Pinbook statement", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale), font: .systemFont(ofSize: 26, weight: .bold), spacing: 4)
             if let first = expenses.first {
                 draw(first.counterparty, font: .systemFont(ofSize: 17, weight: .semibold), color: .darkGray, spacing: 2)
                 draw(first.currency, font: .monospacedSystemFont(ofSize: 14, weight: .medium), color: .darkGray, spacing: 20)
@@ -79,7 +79,7 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
                 let expense = line.expense
                 draw(expense.purpose, font: .systemFont(ofSize: 16, weight: .semibold), spacing: 3)
                 draw(
-                    expense.occurredAt.pinbookDate.formatted(date: .abbreviated, time: .omitted),
+                    expense.occurredAt.pinbookDate.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted, locale: PinbookLanguage.currentLocale)),
                     font: .systemFont(ofSize: 11),
                     color: .darkGray,
                     spacing: 5
@@ -88,7 +88,7 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
                 let settled = line.paidMinor.formattedMoney(currency: expense.currency)
                 let balance = line.remainingMinor.formattedMoney(currency: expense.currency)
                 draw(
-                    String(localized: "Original: \(original) · Paid: \(settled) · Remaining: \(balance)"),
+                    String(localized: "Original: \(original) · Paid: \(settled) · Remaining: \(balance)", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale),
                     font: .monospacedSystemFont(ofSize: 12, weight: .regular),
                     spacing: 14
                 )
@@ -96,13 +96,13 @@ struct LocalStatementGenerator: StatementGenerating, Sendable {
 
             if let currency = expenses.first?.currency {
                 draw(
-                    String(localized: "Total remaining: \(totalRemaining.formattedMoney(currency: currency))"),
+                    String(localized: "Total remaining: \(totalRemaining.formattedMoney(currency: currency))", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale),
                     font: .systemFont(ofSize: 17, weight: .bold),
                     spacing: 4
                 )
             }
             draw(
-                String(localized: "Generated locally by Pinbook. No exchange rate was applied."),
+                String(localized: "Generated locally by Pinbook. No exchange rate was applied.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale),
                 font: .systemFont(ofSize: 10),
                 color: .darkGray
             )
@@ -178,7 +178,7 @@ enum ReminderRequestFactory {
         ReminderRequestSpec(
             identifier: "pinbook-expense-\(expenseID)",
             title: title,
-            body: String(localized: "Open Pinbook to review a scheduled expense."),
+            body: String(localized: "Open Pinbook to review a scheduled expense.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale),
             dateComponents: calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
         )
     }

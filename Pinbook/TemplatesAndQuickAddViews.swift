@@ -333,14 +333,14 @@ private struct TemplateEditorView: View {
         let cleanPurpose = purpose.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanCounterparty = counterparty.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanName.isEmpty, !cleanPurpose.isEmpty, !cleanCounterparty.isEmpty else {
-            validationMessage = String(localized: "Name, purpose, and person are required.")
+            validationMessage = String(localized: "Name, purpose, and person are required.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
             return
         }
 
         do {
-            let money = try MoneyAmount.parse(amount, currencyCode: currency)
+            let money = try MoneyAmount.parse(amount, currencyCode: currency, locale: PinbookLanguage.currentLocale)
             guard money.minorUnits > 0 else {
-                validationMessage = String(localized: "Amount must be greater than zero.")
+                validationMessage = String(localized: "Amount must be greater than zero.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
                 return
             }
             let cleanTags = tags.split(separator: ",").map(String.init)
@@ -370,7 +370,7 @@ private struct TemplateEditorView: View {
             try modelContext.save()
             dismiss()
         } catch {
-            validationMessage = String(localized: "Enter a valid amount for this currency.")
+            validationMessage = String(localized: "Enter a valid amount for this currency.", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
         }
     }
 
@@ -381,6 +381,12 @@ private struct TemplateEditorView: View {
         case 3: 1_000
         default: 100
         }
-        return NSDecimalNumber(decimal: Decimal(template.amountMinor) / scale).stringValue
+        let formatter = NumberFormatter()
+        formatter.locale = PinbookLanguage.currentLocale
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = false
+        formatter.minimumFractionDigits = digits
+        formatter.maximumFractionDigits = digits
+        return formatter.string(from: NSDecimalNumber(decimal: Decimal(template.amountMinor) / scale)) ?? ""
     }
 }

@@ -52,6 +52,31 @@ import UIKit
     ))
 }
 
+@Test func languageContractIncludesAndroidParityAndCorrectDirection() {
+    #expect(PinbookLanguage.allCases.map(\.rawValue) == [
+        "system", "en", "ar", "tr", "zh-Hans", "zh-Hant", "es", "fr", "de",
+        "pt-BR", "hi", "id", "ja", "ko", "ru", "it", "ur",
+    ])
+    #expect(PinbookLanguage.system.effectiveLocale(systemLocale: Locale(identifier: "tr_TR")).identifier == "tr_TR")
+    #expect(PinbookLanguage.arabic.layoutDirection() == .rightToLeft)
+    #expect(PinbookLanguage.urdu.layoutDirection() == .rightToLeft)
+    #expect(PinbookLanguage.traditionalChinese.layoutDirection() == .leftToRight)
+    #expect(PinbookLanguage.system.layoutDirection(systemLocale: Locale(identifier: "ur_PK")) == .rightToLeft)
+    #expect(PinbookLanguage.system.resolved(preferredLanguages: ["zh-TW"]) == .traditionalChinese)
+    #expect(PinbookLanguage.system.resolved(preferredLanguages: ["zh-CN"]) == .simplifiedChinese)
+    #expect(PinbookLanguage.system.resolved(preferredLanguages: ["pt-PT"]) == .brazilianPortuguese)
+    #expect(PinbookLanguage.system.resolved(preferredLanguages: ["nl-NL", "de-DE"]) == .german)
+    #expect(PinbookLanguage.system.resolved(preferredLanguages: ["nl-NL"]) == .english)
+    #expect(PinbookLanguage.system.layoutDirection(systemLocale: Locale(identifier: "fa_IR")) == .leftToRight)
+}
+
+@Test func chosenLanguageBundlesLocalizeServiceErrorsIndependentlyOfSystemLanguage() {
+    let arabic = String(localized: "Purpose and person are required.", bundle: PinbookLanguage.arabic.bundle(), locale: Locale(identifier: "ar"))
+    let chinese = String(localized: "Purpose and person are required.", bundle: PinbookLanguage.simplifiedChinese.bundle(), locale: Locale(identifier: "zh-Hans"))
+    #expect(arabic == "الغرض والشخص مطلوبان.")
+    #expect(chinese == "用途和人员为必填项。")
+}
+
 @Test func widgetDeepLinksRouteWithoutExposingFinancialData() throws {
     let add = try #require(PinbookDeepLink(url: URL(string: "pinbook://expense/new")!))
     #expect(add == .newExpense)

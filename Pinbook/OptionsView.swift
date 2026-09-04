@@ -10,7 +10,7 @@ struct PinbookCurrencyOption: Identifiable, Equatable {
 }
 
 enum PinbookCurrencyCatalog {
-    static func options(locale: Locale = .current) -> [PinbookCurrencyOption] {
+    static func options(locale: Locale = PinbookLanguage.currentLocale) -> [PinbookCurrencyOption] {
         Locale.commonISOCurrencyCodes
             .map { code in
                 let formatter = NumberFormatter()
@@ -31,6 +31,7 @@ enum PinbookCurrencyCatalog {
 struct OptionsView: View {
     @Environment(\.pinbookSkin) private var skin
     @AppStorage(PinbookOnboardingState.completionKey) private var hasCompletedOnboarding = false
+    @AppStorage(PinbookLanguage.preferenceKey, store: PinbookLanguage.preferenceStore) private var languagePreference = PinbookLanguage.system.rawValue
     @Query private var appearances: [AppearanceSettingsItem]
     @Query private var allTemplates: [ExpenseTemplateItem]
 
@@ -53,6 +54,17 @@ struct OptionsView: View {
                 } label: {
                     OptionsRow(title: "Appearance", subtitle: skin.title, symbol: "circle.lefthalf.filled")
                 }
+
+                NavigationLink {
+                    LanguageOptionsView()
+                } label: {
+                    OptionsRow(
+                        title: "Language",
+                        subtitle: languageSubtitle,
+                        symbol: "globe"
+                    )
+                }
+                .accessibilityIdentifier("options-language")
 
                 NavigationLink {
                     BooksAndCurrenciesView()
@@ -124,6 +136,76 @@ struct OptionsView: View {
         .background(skin.backdrop.ignoresSafeArea())
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Options")
+    }
+
+    private var languageSubtitle: Text {
+        let language = PinbookLanguage(rawValue: languagePreference) ?? .system
+        return language == .system ? Text("System Default") : Text(verbatim: language.nativeName)
+    }
+}
+
+struct LanguageOptionsView: View {
+    @AppStorage(PinbookLanguage.preferenceKey, store: PinbookLanguage.preferenceStore) private var languagePreference = PinbookLanguage.system.rawValue
+
+    var body: some View {
+        List {
+            Section {
+                ForEach(PinbookLanguage.availableCases) { language in
+                    Button {
+                        languagePreference = language.rawValue
+                    } label: {
+                        HStack {
+                            languageLabel(language)
+                            Spacer()
+                            if languagePreference == language.rawValue {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.tint)
+                                    .accessibilityHidden(true)
+                            }
+                        }
+                        .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("language-\(language.rawValue)")
+                    .accessibilityAddTraits(languagePreference == language.rawValue ? .isSelected : [])
+                }
+            } footer: {
+                Text("Pinbook follows your iPhone language by default. You can change this at any time.")
+            }
+        }
+        .navigationTitle("Language")
+        .navigationBarTitleDisplayMode(.inline)
+        .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
+    }
+
+    @ViewBuilder
+    private func languageLabel(_ language: PinbookLanguage) -> some View {
+        if language == .system {
+            Text("System Default")
+        } else {
+            Text(verbatim: language.nativeName)
+        }
+    }
+}
+
+struct LanguageOptionsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage(PinbookLanguage.preferenceKey, store: PinbookLanguage.preferenceStore) private var preference = "system"
+
+    var body: some View {
+        NavigationStack {
+            LanguageOptionsView()
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }
+                            .accessibilityIdentifier("language-done")
+                    }
+                }
+        }
+        // UIKit's presented navigation host caches its title locale. Recreate
+        // only this stateless selector host, not the underlying app or records.
+        .id(preference)
+        .modifier(PinbookLanguageEnvironment())
     }
 }
 
@@ -462,6 +544,7 @@ private struct BooksAndCurrenciesView: View {
 
 private struct CurrencySelectionView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.locale) private var locale
     @Bindable var settings: AppearanceSettingsItem
     @State private var searchText = ""
     @State private var allCurrencies = PinbookCurrencyCatalog.options()
@@ -517,6 +600,9 @@ private struct CurrencySelectionView: View {
         )
         .navigationTitle("Favorite currencies")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: locale.identifier) {
+            allCurrencies = PinbookCurrencyCatalog.options(locale: locale)
+        }
     }
 
     private func currencyBinding(_ currency: String) -> Binding<Bool> {

@@ -178,6 +178,24 @@ import Testing
     }
 }
 
+@Test func moneyParsesLocalizedDigitsWithoutChangingMinorUnits() throws {
+    for (locale, text) in [("de_DE", "12,34"), ("ar_SA", "١٢٫٣٤"), ("ur_PK", "۱۲٫۳۴"), ("hi_IN", "१२.३४")] {
+        #expect(try MoneyAmount.parse(text, currencyCode: "USD", locale: Locale(identifier: locale)).minorUnits == 1234)
+    }
+    #expect(try MoneyAmount.parse("١٢٫٣٤٥", currencyCode: "KWD", locale: Locale(identifier: "ar_KW")).minorUnits == 12345)
+}
+
+@Test func moneyRejectsPartialAndAmbiguousLocalizedInput() {
+    for input in ["12oops", "1,234", "12.3.4", "١٢٬٣٤", "1e2", "Ⅻ"] {
+        #expect(throws: MoneyError.invalidAmount(input)) {
+            try MoneyAmount.parse(input, currencyCode: "USD", locale: Locale(identifier: "en_US"))
+        }
+    }
+    #expect(throws: MoneyError.invalidAmount("1.234")) {
+        try MoneyAmount.parse("1.234", currencyCode: "USD", locale: Locale(identifier: "de_DE"))
+    }
+}
+
 private func expense(purpose: String, updatedAt: Int64) -> ExpenseRecord {
     ExpenseRecord(
         id: "same",

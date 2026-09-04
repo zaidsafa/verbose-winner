@@ -34,8 +34,27 @@ public struct MoneyAmount: Codable, Equatable, Hashable, Sendable {
         locale: Locale = .current
     ) throws -> MoneyAmount {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty,
-              let decimal = Decimal(string: trimmed, locale: locale)
+        // Decimal's locale initializer does not consume Arabic/Urdu digits and
+        // accepts numeric prefixes such as "12oops". Normalize decimal digits,
+        // then validate the entire input before doing exact decimal arithmetic.
+        let digits = trimmed.map { character -> String in
+            if character.unicodeScalars.count == 1,
+               let scalar = character.unicodeScalars.first,
+               CharacterSet.decimalDigits.contains(scalar),
+               let value = character.wholeNumberValue {
+                return String(value)
+            }
+            return String(character)
+        }.joined()
+        let separator = locale.decimalSeparator ?? "."
+        // A dot can be a thousands separator (for example in German). Never
+        // silently interpret it as decimal input under a different convention.
+        guard separator == "." || !digits.contains(".") else { throw MoneyError.invalidAmount(input) }
+        let normalized = digits
+            .replacingOccurrences(of: separator, with: ".")
+            .replacingOccurrences(of: "\u{066B}", with: ".")
+        guard normalized.range(of: "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)$", options: .regularExpression) != nil,
+              let decimal = Decimal(string: normalized, locale: Locale(identifier: "en_US_POSIX"))
         else { throw MoneyError.invalidAmount(input) }
 
         let code = currencyCode.uppercased()
