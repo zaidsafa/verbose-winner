@@ -1,5 +1,51 @@
 # Validation plan
 
+## 2026-09-05 exact-account device registration and invitation connector
+
+- Regression before fix **FAILED six assertions across two account replacements**:
+  old retained owner incorrectly returned success, created/signed a key and sent
+  requests after same-ID re-login or a different-account switch.
+  `/private/tmp/pinbook-ios-registration-account-pin-before-20260905.log`.
+- Registration initializer now requires the exact reviewed access ticket. Removed
+  its scope-only entry and dispatch-time account substitution; current-generation
+  checks run before the first custody prepare and continue around subsequent work.
+  Initial focused17 run caught an invalid test refresh fixture (reused credentials)
+  and correctly rejected it. Corrected fixture rotates tokens as required; no
+  production refresh rule was relaxed.
+  `/private/tmp/pinbook-ios-registration-account-pin-focused-20260905.log`.
+  Subsequent focused registration/TLS **18/18 PASS**,0.387s:
+  `/private/tmp/pinbook-ios-registration-account-pin-composition-20260905.log`.
+- Added TeamInvitationDeviceFlow: exact one-use account receipt → private device
+  step → explicit consent → confirmed registration → one-use membership bridge.
+  Actual TLS composition now traverses these retained owners/bridges and preserves
+  separate membership consent, uncertain acceptance and recovery/retry boundaries.
+  Seven flow cases plus four registration cases cover stale accounts, fresh consent,
+  mid-prepare old-scope preservation, wait/recovered-null, closure/caller cancellation,
+  changed-account transfer and invitation expiry after durable device commit.
+- Focused **24/24 PASS**,0.486s before the final post-commit expiry case:
+  `/private/tmp/pinbook-ios-invitation-device-flow-focused-20260905.log`.
+  Complete final **272/272 core PASS**,14.851s:
+  `/private/tmp/pinbook-ios-invitation-device-flow-full-core-20260905.log`.
+- Signed QA build-for-testing PASS:
+  `/private/tmp/pinbook-qa-invitation-device-flow-build-20260905.log`.
+  Unchanged323-key catalogs exactly match compiled QA app/widget resources.
+  No new native device-registration screen or normal-navigation activation here;
+  native host UI remains next. See TEAM_INVITATION_DEVICE_FLOW_IOS.md.
+- Physical iPhone QA app-host **299/299 PASS**,8.459s, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Invitation-Device-Flow-20260905.xcresult`;
+  `/private/tmp/pinbook-qa-physical-invitation-device-flow-20260905.log`.
+  Includes the exact-account/connector cases with synthetic account/key/transport
+  adapters on-device. This is not live registration or shared-note delivery.
+  No UI tests rerun for this core-only change; prior full24 UI and rebuilt affected4
+  are recorded in the account-screen checkpoint below.
+- Ordinary unsigned Release PASS:
+  `/private/tmp/pinbook-ios-invitation-device-flow-release-20260905.log`.
+  Final QA/Release app/widget compiled catalogs match all323 source entries.
+  Normal QA launch succeeded afterward:
+  `/private/tmp/pinbook-qa-post-invitation-device-flow-normal-launch-20260905.json`.
+  No source push, distribution archive, TestFlight upload, production identity/
+  version/capability, real provider or shared Infrastructure activation.
+
 ## 2026-09-05 invitation account screen and one-use handoff
 
 - New native preflight, observable model and real invitation-owner bridge. No

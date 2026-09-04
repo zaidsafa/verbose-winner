@@ -5,6 +5,18 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest exact-account device-flow checkpoint
+
+Core-only registration and invitation/device/membership connector changes passed
+**299/299 physical app-host tests**,8.459s, zero skips/failures:
+`/private/tmp/Pinbook-QA-Physical-Invitation-Device-Flow-20260905.xcresult`.
+Tests on the phone use synthetic account/key/transport adapters for the new flow;
+they do not enroll a live account or synchronize notes. No native UI code changed
+and no UI suite was rerun for this checkpoint. Signed QA and ordinary unsigned
+Release PASS,323 compiled app/widget translations match source, and QA launched
+normally after testing. See VALIDATION.md and TEAM_INVITATION_DEVICE_FLOW_IOS.md.
+Normal device-consent/parent navigation is still the next implementation step.
+
 ## Latest invitation account screen checkpoint
 
 September5 isolated account preflight now supports read-only review, explicit

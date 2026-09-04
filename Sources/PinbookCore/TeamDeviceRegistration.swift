@@ -54,7 +54,8 @@ struct TeamRegistrationCustodyDriver: TeamRegistrationCustody {
     }
 }
 
-/// Inactive, retained account-bound owner. Use the SAME retained HTTP client as
+/// Retained for ONE exact reviewed account generation. A new account/session
+/// requires a new owner and new UI consent. Use the SAME retained HTTP client as
 /// ordinary auth. No automatic sign-in, refresh, team join, key rotation or retry.
 actor TeamDeviceRegistration {
     private struct Pending {
@@ -62,6 +63,7 @@ actor TeamDeviceRegistration {
         let task: Task<TeamDeviceRegistrationResult, Error>
         var invalidated = false
     }
+    private let account: TeamAccountAccessTicket
     private let scope: TeamAccountSessionScope
     private let audience: String
     private let authorityEpoch: String
@@ -72,13 +74,13 @@ actor TeamDeviceRegistration {
     private var pending: Pending?
     private var lastMoment: TeamSignInMoment?
 
-    init(scope: TeamAccountSessionScope, authorityEpoch: String, sessions: TeamAccountSessionStore,
+    init(account: TeamAccountAccessTicket, authorityEpoch: String, sessions: TeamAccountSessionStore,
          devices: any TeamRegistrationCustody, transport: any TeamDeviceRegistering,
          clock: @escaping @Sendable () -> TeamSignInMoment = { .current() }) throws {
-        let raw = scope.origin.absoluteString
+        let raw = account.scope.origin.absoluteString
         let audience = raw.hasSuffix("/") ? String(raw.dropLast()) : raw
-        _ = try TeamDeviceScope(audience: audience, accountID: "configuration-check", authorityEpoch: authorityEpoch)
-        self.scope = scope; self.audience = audience; self.authorityEpoch = authorityEpoch
+        _ = try TeamDeviceScope(audience: audience, accountID: account.accountID, authorityEpoch: authorityEpoch)
+        self.account = account; self.scope = account.scope; self.audience = audience; self.authorityEpoch = authorityEpoch
         self.sessions = sessions; self.devices = devices; self.transport = transport; self.clock = clock
     }
     func register(consent: Bool) async throws -> TeamDeviceRegistrationResult {
@@ -99,7 +101,7 @@ actor TeamDeviceRegistration {
     }
     private func perform(_ id: UUID, start: TeamSignInMoment) async throws -> TeamDeviceRegistrationResult {
         _ = try checkpoint(id, start: start)
-        let ticket = try sessions.accessTicket(scope: scope, now: moment().wallTime)
+        let ticket = account // Never substitute whichever account is current now.
         _ = try checkpoint(id, start: start, ticket: ticket)
         let deviceScope = try TeamDeviceScope(audience: audience, accountID: ticket.accountID, authorityEpoch: authorityEpoch)
         let device = try await devices.prepare(scope: deviceScope, consent: true)

@@ -271,33 +271,45 @@ struct TeamAuthTLSTests {
         let sessions = TeamAccountSessionStore(testService: "membership-tls-account", keychain: SessionMemoryKeychain())
         let account = try TeamAccountAccessTicket(snapshot: sessions.saveInitial(pair, scope: scope, now: 1_000, consent: true))
         let instant = ContinuousClock.now
-        let deviceMetadata = try KeychainTeamDeviceMetadata(testService: "pinbook.device-test.membership-tls", keychain: SessionMemoryKeychain())
-        let custody = TeamDeviceCustody(storage: deviceMetadata, keys: DeviceFixtureKeys(), clock: { 1_000 })
-        let registration = try TeamDeviceRegistration(scope: scope, authorityEpoch: "public-epoch", sessions: sessions,
-            devices: TeamRegistrationCustodyDriver(custody: custody), transport: client,
-            clock: { .init(wallTime: 1_000, instant: instant) })
-        guard case .registered = try await registration.register(consent: true) else { throw FixtureError.setup }
         let invitation = TeamInvitedSignIn(provider: .apple, scope: scope, sessions: sessions, identity: SyntheticAppleIdentity(),
             transport: client, clock: { .init(wallTime: 1_000, instant: instant) })
         let code = String(repeating: "E", count: 42) + "A"
-        let preview = try await invitation.preview(code: code), intent = try await invitation.existingAccountIntent(preview)
+        let accountScreen = try TeamInvitationAccountScreenBridge(owner: invitation, code: code)
+        #expect(try fixture.records("attempts").isEmpty)
+        let preview = try await accountScreen.review()
+        let receipt = try await accountScreen.access(preview, consent: false)
+        #expect(try fixture.records("attempts").compactMap { $0["path"] as? String } == ["/api/v1/invitations/preview"])
+        let deviceBackend = SessionMemoryKeychain(), keys = DeviceFixtureKeys()
+        let deviceMetadata = try KeychainTeamDeviceMetadata(testService: "pinbook.device-test.membership-tls", keychain: deviceBackend)
+        let custody = TeamDeviceCustody(storage: deviceMetadata, keys: keys, clock: { 1_000 })
         let joinBackend = SessionMemoryKeychain()
         let joins = TeamJoinStore(storage: try KeychainTeamJoinMetadata(testService: "pinbook.join-test.membership-tls", keychain: joinBackend), clock: { 1_000 })
-        let owner = try TeamMembershipJoin(account: account, authorityEpoch: "public-epoch", sessions: sessions,
-            devices: TeamMembershipDeviceDriver(custody: custody), metadata: TeamMembershipMetadataDriver(store: joins),
+        let flow = try await TeamInvitationDeviceFlow.begin(accountScreen: accountScreen, receipt: receipt,
+            authorityEpoch: "public-epoch", sessions: sessions, custody: custody, joins: joins,
             transport: client, clock: { .init(wallTime: 1_000, instant: instant) })
-        let display = try await owner.prepare(intent)
+        #expect(flow.context.accountID == account.accountID)
+        await #expect(throws: TeamDeviceRegistrationError.registrationUnavailable) { try await flow.takeMembershipScreen() }
+        await #expect(throws: TeamDeviceCustodyError.consentRequired) { try await flow.register(consent: false) }
+        #expect(deviceBackend.writes == 0 && keys.generationCount == 0 && joinBackend.writes == 0)
+        #expect(try fixture.records("attempts").count == 1)
+        guard case .registered = try await flow.register(consent: true) else { throw FixtureError.setup }
+        let screen = try await flow.takeMembershipScreen()
+        await #expect(throws: TeamDeviceRegistrationError.invalidated) { try await flow.takeMembershipScreen() }
+        await flow.close()
+        #expect(try fixture.records("attempts").count == 4 && joinBackend.writes == 0)
+        guard case .ready(let display) = try await screen.review() else { throw FixtureError.setup }
         #expect(joinBackend.writes == 0)
-        await #expect(throws: TeamMembershipJoinError.transportFailure) { try await owner.join(display, consent: true) }
+        await #expect(throws: TeamMembershipJoinError.staleConsent) { try await screen.join(display, consent: false) }
+        await #expect(throws: TeamMembershipJoinError.transportFailure) { try await screen.join(display, consent: true) }
         let deviceScope = try TeamDeviceScope(audience: fixture.origin.absoluteString, accountID: account.accountID, authorityEpoch: "public-epoch")
-        #expect(try joins.load(scope: deviceScope, teamID: intent.teamID)?.phase == .pending)
-        await owner.close()
+        #expect(try joins.load(scope: deviceScope, teamID: flow.context.teamID)?.phase == .pending)
+        await screen.close()
         let reopened = try TeamMembershipJoin(account: account, authorityEpoch: "public-epoch", sessions: sessions,
             devices: TeamMembershipDeviceDriver(custody: custody), metadata: TeamMembershipMetadataDriver(store: joins),
             transport: client, clock: { .init(wallTime: 1_000, instant: instant) })
         let result: TeamJoinSnapshot
         if mode == "retry-pending-once" {
-            guard case .ready(let retry) = try await reopened.prepareRetry(token: code, teamID: intent.teamID, role: intent.role) else {
+            guard case .ready(let retry) = try await reopened.prepareRetry(token: code, teamID: flow.context.teamID, role: flow.context.role) else {
                 Issue.record("Expected new explicit retry consent"); return
             }
             #expect(joinBackend.writes == 2)
@@ -305,7 +317,7 @@ struct TeamAuthTLSTests {
             #expect(try fixture.records("attempts").filter { $0["path"] as? String == "/api/v1/teams/accept" }.count == 1)
             result = try await reopened.join(retry, consent: true)
             #expect(joinBackend.writes == 4)
-        } else { result = try await reopened.recover(teamID: intent.teamID) }
+        } else { result = try await reopened.recover(teamID: flow.context.teamID) }
         #expect(result.phase == .confirmed && result.role == .member)
         let expectedPaths = mode == "retry-pending-once"
             ? ["devices/lookup", "devices/lookup", "teams/accept", "devices/lookup", "teams/acceptance", "devices/lookup", "teams/accept"]
@@ -360,10 +372,10 @@ struct TeamAuthTLSTests {
         let fixture = try await Fixture(mode: "success"), client = try fixture.client()
         let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
         let sessions = TeamAccountSessionStore(testService: "registration-owner-tls", keychain: SessionMemoryKeychain())
-        _ = try sessions.saveInitial(pair, scope: scope, now: 1_000, consent: true)
+        let account = try TeamAccountAccessTicket(snapshot: sessions.saveInitial(pair, scope: scope, now: 1_000, consent: true))
         let metadata = try KeychainTeamDeviceMetadata(testService: "pinbook.device-test.owner-tls", keychain: SessionMemoryKeychain())
         let custody = TeamDeviceCustody(storage: metadata, keys: DeviceFixtureKeys(), clock: { 1_000 })
-        let owner = try TeamDeviceRegistration(scope: scope, authorityEpoch: "public-epoch", sessions: sessions,
+        let owner = try TeamDeviceRegistration(account: account, authorityEpoch: "public-epoch", sessions: sessions,
             devices: TeamRegistrationCustodyDriver(custody: custody), transport: client,
             clock: { .init(wallTime: 1_000, instant: .now) })
         guard case .registered(let saved) = try await owner.register(consent: true),

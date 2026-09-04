@@ -1,10 +1,18 @@
 # iOS account-bound device registration — inactive
 
-Updated 2026-09-04. `TeamDeviceRegistration` composes protected account custody,
+Updated 2026-09-05. `TeamDeviceRegistration` composes protected account custody,
 device custody and the retained typed onboarding HTTP client. There is no normal-
 navigation entry point, real provider/origin/epoch configuration or automatic work.
 
 ## Current session and cancellation
+
+The owner now REQUIRES the exact reviewed `TeamAccountAccessTicket` at initialization;
+the old scope-only initializer is removed. It never captures a different current
+account at Register time. Re-login/refresh invalidates that owner before the first
+device prepare/write, even when identifiers and credentials are reused. Construct
+a new owner and obtain new consent after account/session replacement. The retained
+invitation/device connector passes the account bridge's exact ticket by construction.
+See TEAM_INVITATION_DEVICE_FLOW_IOS.md and the latest VALIDATION.md checkpoint.
 
 `TeamAccountAccessTicket` carries only the access credential, exact account/session,
 scope, expiry, observed time and local generation. It contains no refresh token.
@@ -34,7 +42,7 @@ are followed by fresh account-custody checks, then time/cancellation are sampled
 
 ## Flow and recovery
 
-1. Capture current access before any device-key creation. Explicit registration
+1. Revalidate the retained exact access ticket before any device-key creation. Explicit registration
    consent is required. Construct device scope only from trusted origin/epoch and
    that account, then prepare/reopen the same protected identity.
 2. Always perform a fresh exact-key lookup, including for local REGISTERED metadata.
@@ -84,9 +92,10 @@ Final Simulator build-for-testing **PASS**:
 Unsigned iPhone Release **PASS**:
 `/private/tmp/pinbook-ios-registration-owner-release.log`.
 
-Next: invitation account preview/one-use consent and exact committed-account handoff;
-then separate membership consent plus durable team/enrollment/role/invite-hash intent
-BEFORE accept. Read Android TEAM_ANDROID_INVITATION_CONSENT.md and TEAM_ANDROID_JOIN_RECOVERY.md:
+The older evidence above predates the account screen and connected device flow.
+Next: device-registration consent UI and full retained native parent navigation.
+Separate membership consent plus durable team/enrollment/role/invite-hash intent
+before accept now exists. Read Android TEAM_ANDROID_INVITATION_CONSENT.md and TEAM_ANDROID_JOIN_RECOVERY.md:
 unknown acceptance/process death must recover through persisted IDs and teams/current,
 not re-previewing a consumed invitation. No raw invitation token should be persisted.
 Actual membership authority, retired-device/epoch cleanup, UI/lifecycle, provider setup,

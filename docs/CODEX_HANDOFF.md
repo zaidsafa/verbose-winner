@@ -45,6 +45,35 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Registration now requires an exact reviewed account ticket at initialization;
+  the old scope-only initializer is removed. A regression reproduced wrong-account
+  key creation after both same-ID re-login and a different account switch. The fix
+  rejects those before any key/metadata/network write; refresh and mid-prepare
+  scope-isolation tests also pass. TeamInvitationDeviceFlow now consumes the account
+  bridge receipt, closes its source, and retains the secret intent while explicit
+  device consent/registration runs. Only confirmed registration enables one-use
+  membership-screen transfer; the child still requires review/new join consent.
+  Wait/retry-ready/unknown cannot advance. Close drains the real pending task.
+  Invitation expiry after a device commit refuses advancement without deleting
+  the committed identity. Real localhostTLS composition traverses this connector
+  and the actual screen bridges, then tokenless recovery or explicit original-link
+  retry. Focused24/24 PASS before final extra expiry case; full272/272 PASS14.851s.
+  Physical QA app-host299/299 PASS8.459s (zero failures/skips), including synthetic
+  device-flow cases. Signed QA and unsigned Release builds PASS; all323 compiled
+  app/widget translations match source. Normal QA launch afterward succeeded.
+  UI unchanged/not rerun; previous full24 and affected4 evidence remains separate.
+  See TEAM_INVITATION_DEVICE_FLOW_IOS.md and VALIDATION.md for exact evidence.
+  NEXT: localized device-registration model/view and retained native parent
+  navigation. The connector is core-only; normal UI activation is still absent.
+  Parent must retain/cancel/drain its begin task, reject late generation results,
+  and close any discarded flow. Consume the account receipt BEFORE source view
+  dismissal. After takeMembershipScreen, the parent owns that child; closing the
+  completed device step intentionally does not close the transferred child.
+  No source push, production identity/version/capability or TestFlight change.
+  Infrastructure reconfirmed source review/local synthetic support only; consolidate
+  common runtime requirements through Android. No distinct iOS Infrastructure
+  question was identified by this local work, and no acknowledgment-only reply sent.
+
 - Invitation account screen now has a real retained owner bridge, display-only
   review/receipt, explicit shown-account continuation or new unchecked sign-in
   consent, one-use private intent handoff and permanent close with pending-work
@@ -60,12 +89,9 @@ Updated: 2026-09-05 (Asia/Shanghai)
   builds PASS;323 compiled app/widget entries match source. QA normal launch after
   tests succeeded. See TEAM_INVITATION_CONSENT_IOS.md/VALIDATION.md. Do not infer
   real provider issuance or that all24 UI were rerun after the core-only fix.
-  Next: parent account/device/membership flow and registration screen. Concrete
-  prerequisite: TeamDeviceRegistration.register(consent:) currently captures the
-  account at dispatch, not the account shown in the invitation UI. Add an exact
-  expected-ticket path checked BEFORE custody.prepare/key writes, preserving all
-  existing post-await/current-generation checks. Do not rely on a final UI account
-  comparison to undo wrong-account key creation. Parent must retain the bridge,
+  The previously identified registration account-at-dispatch gap is now fixed by
+  the mandatory exact-ticket initializer and connector described above. Native
+  parent flow and registration screen remain next. Parent must retain the bridge,
   consume its receipt before source dismissal, then close/drain it; keep the raw
   intent private in workspace ownership. Teardown/recreate on session replacement.
   No normal team activation, production identity/version change or TestFlight push.

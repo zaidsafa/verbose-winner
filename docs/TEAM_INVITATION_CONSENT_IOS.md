@@ -51,13 +51,12 @@ The handoff samples time/cancellation again after protected account reads, rejec
 access expiry, invitation expiry and rollback during that read. See VALIDATION.md
 for the red/green regression and native build/test evidence.
 
-Next: parent account/device/membership workspace and explicit device-registration
-screen, account-generation teardown, then owner invitations. Before UI wiring,
-registration must accept the exact displayed handoff ticket: its current
-`register(consent:)` loads whichever account is current at dispatch. Checking a
-returned result only afterward cannot prevent key creation for a switched account.
-Pin/check the expected ticket BEFORE the first custody prepare/write, then retain
-the existing before/after-operation checks. Android's owner-side
+The core account/device/membership connector now exists and registration requires
+the exact reviewed account ticket at initialization, before first custody prepare.
+See TEAM_INVITATION_DEVICE_FLOW_IOS.md. Next: native parent navigation and explicit
+device-registration screen, account-generation teardown, then owner invitations.
+These native UI transitions are not implemented by the core connector alone.
+Android's owner-side
 contract is `docs/TEAM_ANDROID_INVITATION_UI.md` at a3af32e (partner report): keep
 fresh unchecked issuance consent and explicit bounded one-use native sharing;
 it is not a recipient-account contract or proof of actual server delivery.
