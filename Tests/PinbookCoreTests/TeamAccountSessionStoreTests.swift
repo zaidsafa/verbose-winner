@@ -7,7 +7,7 @@ import Testing
 @testable import Pinbook
 #endif
 
-private final class SessionMemoryKeychain: TeamAccountSessionKeychain, @unchecked Sendable {
+final class SessionMemoryKeychain: TeamAccountSessionKeychain, @unchecked Sendable {
     private let lock = NSLock()
     private var item: [String: Any]?
     private var updateFailure = 0 // 1 before commit, 2 after commit.

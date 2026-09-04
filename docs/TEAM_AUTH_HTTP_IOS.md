@@ -36,6 +36,9 @@ navigation does not instantiate it. This is not a user-facing sign-in/session fl
   resume once; cancellation after a remote commit does not imply rollback. No claim
   of exactly-once delivery by URLSession or the network. Context/pair public diagnostic
   descriptions/reflection are redacted; Swift copies are not securely erasable.
+- Completion now waits for the session's final invalidation callback, including
+  early errors/cancellation. Merely requesting cancellation must not release a
+  refresh coordinator's occupied slot before native callback work has settled.
 - POST uses one initial InputStream and refuses both replacement-body-stream
   delegate callbacks. This prevents furnishing a fresh credential body for a
   recoverable retry. [Apple describes when replacement streams are requested](https://developer.apple.com/documentation/foundation/urlsessiontaskdelegate/urlsession(_:task:neednewbodystream:)).
@@ -44,7 +47,9 @@ navigation does not instantiate it. This is not a user-facing sign-in/session fl
 
 ## Mandatory next integration
 
-This is a low-level transport, not safe session orchestration by itself. Before
+This is a low-level transport. `TeamAccountRefreshManager` now supplies one-owner
+refresh orchestration with `TeamAccountSessionStore`; neither is in normal navigation.
+Before
 calling refresh, the session coordinator must serialize it and durably store a
 non-backup in-flight/uncertain marker. Atomically replace both returned credentials
 and clear the marker before releasing waiting work. Process death, unknown outcome

@@ -27,6 +27,22 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Session custody checkpoint `e0ff1c3` is committed locally. New follow-up actor
+  connects custody to one-dispatch refresh: durable marker first, busy until actual
+  transport settlement, cancellation/late-result rejection, generation-bound commit,
+  explicit local sign-out and no auto-retry. HTTP completion now waits for the final
+  URLSession invalidation callback. Six coordinator tests plus actual localhost TLS
+  integration passed; full core95/95, app-host117 passes plus one hardware skip,
+  and unsigned Release/Simulator compilation pass.
+  Provider/challenge/exchange/controller ownership and configuration remain next;
+  no normal-navigation activation. See TEAM_SESSION_CUSTODY_IOS.md and VALIDATION.md.
+- Before selecting the Google iOS dependency, resolve SDK sharedInstance/saved-
+  credential isolation from future personal Drive authorization. Tagged9.2.0 has
+  raw nonce support but replaces SDK saved sign-in state. Maintained AppAuth system
+  session with explicit selection and volatile provider results is an alternative
+  under review. This is not permission to weaken OAuth/nonce checks, invent native
+  client configuration or globally sign out a personal Drive connection.
+
 - HTTP/TLS checkpoint is now committed locally at `c9b5912` (no push/upload).
   Subsequent session-only Keychain custody is implemented with passcode-required
   non-backup protection, explicit add-only consent, scope validation and generation
@@ -36,7 +52,7 @@ Updated: 2026-09-04 (Asia/Shanghai)
   mixed pair or automatic old-token replay. Full core88/88 passes; app-host111
   passes plus one hardware skip, including actual isolated Simulator SecItem
   generation matching. Unsigned Release passes. See TEAM_SESSION_CUSTODY_IOS.md.
-  This low-level custody is not the pending one-owner refresh/provider coordinator.
+  Low-level custody alone is not a complete user-facing sign-in/session feature.
 
 - New inactive native account transport implements all six agreed routes, bounded
   response validation, scoped authorization, default TLS trust and one-use POST

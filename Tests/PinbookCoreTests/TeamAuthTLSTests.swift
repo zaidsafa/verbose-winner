@@ -130,5 +130,31 @@ struct TeamAuthTLSTests {
         #expect(start.duration(to: .now) < .seconds(18))
         #expect(try deadlineFixture.records("attempts").count == 1)
     }
+
+    @Test func refreshManagerPersistsActualTLSResultOrKeepsReauthenticationBarrier() async throws {
+        for mode in ["success", "503", "drop"] {
+            let fixture = try await Fixture(mode: mode)
+            let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
+            let backend = SessionMemoryKeychain()
+            let store = TeamAccountSessionStore(testService: "local-tls-manager", keychain: backend)
+            _ = try store.saveInitial(pair, scope: scope, now: 1_000, consent: true)
+            let manager = TeamAccountRefreshManager(scope: scope, store: store,
+                transport: try fixture.client(), clock: { 2_000 })
+            if mode == "success" {
+                let next = try await manager.refresh()
+                #expect(next != pair)
+                #expect(try store.load(scope: scope)?.usablePair(now: 2_001) == next)
+            } else {
+                await #expect(throws: TeamAccountRefreshError.transportFailure) { try await manager.refresh() }
+                #expect(try store.load(scope: scope)?.phase == .refreshPending)
+                // A newly constructed owner after restart must not recover old tokens.
+                let reopened = TeamAccountRefreshManager(scope: scope, store: store,
+                    transport: try fixture.client(), clock: { 2_001 })
+                await #expect(throws: TeamAccountSessionError.reauthenticationRequired) { try await reopened.refresh() }
+            }
+            #expect(try fixture.records("attempts").count == 1)
+            #expect(try fixture.records("bodies").count == 1)
+        }
+    }
 }
 #endif

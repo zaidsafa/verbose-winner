@@ -42,6 +42,18 @@ The release list now shows 10.0.0, with dependency/deployment changes; this revi
 does not approve upgrading blindly or claim local Xcode integration compatibility.
 [Release history](https://github.com/google/GoogleSignIn-iOS/releases).
 
+Fresh tagged-source review during refresh integration confirms an isolation issue
+to resolve before adoption: GoogleSignIn uses sharedInstance, and its interactive
+method replaces saved sign-in state/currentUser in the SDK's Keychain. A future
+personal Drive account must not be accidentally replaced or globally signed out by
+team identity cleanup. This is a source-level integration concern, not an observed
+user-data failure. A maintained AppAuth system-session flow with explicit account
+selection/nonce and only volatile provider results is being compared; no SDK has
+yet been installed and no provider is contacted. The9.2.0 package declares Swift6,
+iOS12 minimum and dependencies including AppAuth2.1+, AppCheck11+ and GTMAppAuth5+.
+Dependency/privacy/pinning/build acceptance remains required before adoption.
+[Tagged package](https://raw.githubusercontent.com/google/GoogleSignIn-iOS/9.2.0/Package.swift).
+
 Google's native authorization-code flow supports S256 PKCE. An external system
 authentication session through maintained AppAuth is another feasible approach;
 do not use an embedded WKWebView. Register the correct native client and redirect.

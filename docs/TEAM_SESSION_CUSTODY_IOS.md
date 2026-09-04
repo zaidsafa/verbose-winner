@@ -2,7 +2,8 @@
 
 `TeamAccountSessionStore` is deliberately separate from archive recovery keys,
 SwiftData, Files exports, user defaults and portable backups. It is not yet wired
-to provider UI, a refresh coordinator or normal navigation. Construction reads or
+to provider UI or normal navigation. A separate refresh coordinator now connects
+the store to the fixed HTTP transport, as described below. Construction reads or
 writes nothing. No account/provider/endpoint is invented.
 
 ## Storage and consent
@@ -38,7 +39,7 @@ writes nothing. No account/provider/endpoint is invented.
    generation with `refreshPending`. The persisted marker contains scope, account,
    family and expiry, but neither old access nor refresh token. A volatile lease with
    the old pair is returned only after this write reports success.
-3. The future coordinator may dispatch that lease once. A pending record cannot
+3. The refresh coordinator dispatches that lease once. A pending record cannot
    produce credentials or another lease. Competing handles using the old generation
    lose. Cancellation, process death, unknown remote result or interrupted provider
    work must not reconstruct/replay the previous refresh.
@@ -63,7 +64,36 @@ See [Apple DTS guidance on generic-password matching](https://developer.apple.co
   pair is storage reconciliation, not confirmation that an old HTTP retry is safe.
 - No post-write cancellation is presented as rollback. Pre-cancelled calls do not
   mutate. Swift copies and old encrypted Keychain pages are not claimed physically
-  erased. Current low-level APIs still require one-owner flow/orchestration.
+  erased. Provider sign-in/account-switch ownership remains a separate integration.
+
+## One-owner refresh coordinator
+
+`TeamAccountRefreshManager` is an actor with one pending operation. Its public
+initializer constructs the HTTPS client from the SAME trusted scope as custody;
+test transports/clocks are internal injection only. It does not connect on init.
+
+- Reject pre-cancelled callers before reads/writes. Recheck cancellation after the
+  synchronous marker write and before allocating network work. No dispatch on a
+  failed/ambiguous marker call.
+- Concurrent refresh returns busy. Caller cancellation cancels the transport task;
+  lifecycle invalidation also invalidates its operation ID. Keep the slot occupied
+  until that task actually settles, including cancellation-ignoring implementations.
+- Check cancellation/operation identity/clock after the response and before atomic
+  replacement. Discard late replies after invalidation. Failed transport leaves
+  the durable barrier; errors are sanitized and there is no automatic retry.
+- Return a new pair only after protected replacement succeeds. No await or
+  cancellation-as-rollback check follows the commit. Ambiguous storage remains the
+  explicit-read reconciliation described above.
+- Explicit local sign-out requires consent, invalidates pending work, and removes
+  only the generation just read. A newer login cannot be replaced by the old
+  callback. This is not remote logout or all-device revocation.
+
+The HTTP adapter now waits for `didBecomeInvalidWithError` before resuming its
+caller, rather than resuming immediately when requesting cancellation. The SDK
+documents this as the session's final message; `invalidateAndCancel` requests task
+cancellation before invalidation. This avoids releasing the actor's slot while
+native callback work remains. It does not imply server-side rollback or universal
+exactly-once delivery. [Apple session invalidation](https://developer.apple.com/documentation/foundation/urlsession/invalidateandcancel()).
 
 ## Evidence and open gates
 
@@ -80,7 +110,12 @@ SecItem generation query/update and stale-operation rejection passed in0.006s an
 the test entry was removed. Full core88/88 and iPhone app-host111 passes plus one
 hardware file-protection skip; unsigned Release passed. See `VALIDATION.md`.
 
-Still required: serialized refresh manager with cancellation/late-result ownership,
-provider/challenge/exchange integration, explicit account switching and revocation,
+Six coordinator tests cover marker-before-dispatch, serialized work, cancellation-
+ignoring transport, late/new-login callbacks, ambiguous replacement and clock/expiry
+failures. An additional real localhost TLS test exercises manager→HTTP→custody for
+success,503 and dropped response; reconstructing the manager cannot replay a pending
+token. Full core95/95 passed; this is local fixture acceptance, not a live provider.
+
+Still required: provider/challenge/exchange integration, explicit account switching and revocation,
 current restore authority, enrollment/roles, locked/background UX, physical Keychain
 acceptance and approved staging. No normal navigation activation or TestFlight update.

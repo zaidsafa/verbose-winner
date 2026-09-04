@@ -39,6 +39,8 @@
 		B2000000000000000000000A /* TeamNativeSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* TeamNativeSignIn.swift */; };
 		B2000000000000000000000B /* TeamAuthHTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* TeamAuthHTTP.swift */; };
 		B2000000000000000000000C /* TeamAccountSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* TeamAccountSessionStore.swift */; };
+		B2000000000000000000000D /* TeamAccountRefreshManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* TeamAccountRefreshManager.swift */; };
+		B30000000000000000000008 /* TeamAccountRefreshManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000008 /* TeamAccountRefreshManagerTests.swift */; };
 		B30000000000000000000007 /* TeamAccountSessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000007 /* TeamAccountSessionStoreTests.swift */; };
 		B30000000000000000000006 /* TeamAuthHTTPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000006 /* TeamAuthHTTPTests.swift */; };
 		B30000000000000000000005 /* TeamNativeSignInTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000005 /* TeamNativeSignInTests.swift */; };
@@ -123,6 +125,8 @@
 		A2000000000000000000000A /* TeamNativeSignIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamNativeSignIn.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* TeamAuthHTTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAuthHTTP.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* TeamAccountSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAccountSessionStore.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* TeamAccountRefreshManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAccountRefreshManager.swift; sourceTree = "<group>"; };
+		A30000000000000000000008 /* TeamAccountRefreshManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAccountRefreshManagerTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000007 /* TeamAccountSessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAccountSessionStoreTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000006 /* TeamAuthHTTPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAuthHTTPTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000005 /* TeamNativeSignInTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamNativeSignInTests.swift; sourceTree = "<group>"; };
@@ -225,6 +229,7 @@
 				A2000000000000000000000A /* TeamNativeSignIn.swift */,
 				A2000000000000000000000B /* TeamAuthHTTP.swift */,
 				A2000000000000000000000C /* TeamAccountSessionStore.swift */,
+				A2000000000000000000000D /* TeamAccountRefreshManager.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -238,6 +243,7 @@
 				A30000000000000000000005 /* TeamNativeSignInTests.swift */,
 				A30000000000000000000006 /* TeamAuthHTTPTests.swift */,
 				A30000000000000000000007 /* TeamAccountSessionStoreTests.swift */,
+				A30000000000000000000008 /* TeamAccountRefreshManagerTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -467,6 +473,7 @@
 				B2000000000000000000000A /* TeamNativeSignIn.swift in Sources */,
 				B2000000000000000000000B /* TeamAuthHTTP.swift in Sources */,
 				B2000000000000000000000C /* TeamAccountSessionStore.swift in Sources */,
+				B2000000000000000000000D /* TeamAccountRefreshManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -480,6 +487,7 @@
 				B30000000000000000000005 /* TeamNativeSignInTests.swift in Sources */,
 				B30000000000000000000006 /* TeamAuthHTTPTests.swift in Sources */,
 				B30000000000000000000007 /* TeamAccountSessionStoreTests.swift in Sources */,
+				B30000000000000000000008 /* TeamAccountRefreshManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

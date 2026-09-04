@@ -137,6 +137,7 @@ private final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unch
     private var response: HTTPURLResponse?
     private var bytes = Data()
     private var finished = false
+    private var terminalResult: Result<TeamAuthResponse, Error>?
     private let request: URLRequest
     private let configuration: URLSessionConfiguration
     private let localTestAnchor: Data?
@@ -171,11 +172,26 @@ private final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unch
         guard !finished else { lock.unlock(); return }
         finished = true
         let continuation = self.continuation, task = self.task, session = self.session
-        self.continuation = nil; self.task = nil; self.session = nil
+        terminalResult = result
+        if session == nil { self.continuation = nil; terminalResult = nil }
         bytes.resetBytes(in: bytes.startIndex..<bytes.endIndex)
         bytes = Data(); response = nil
         lock.unlock()
         task?.cancel(); session?.invalidateAndCancel()
+        // Do not release the caller's single-flight slot while CFNetwork still
+        // owns a cancelled request. Invalidation follows all task callbacks.
+        if session == nil { continuation?.resume(with: result) }
+    }
+
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?) {
+        lock.lock()
+        finished = true
+        let continuation = self.continuation
+        let result = terminalResult ?? .failure(TeamAuthHTTPError.transport)
+        self.continuation = nil; self.task = nil; self.session = nil; terminalResult = nil
+        bytes.resetBytes(in: bytes.startIndex..<bytes.endIndex)
+        bytes = Data(); response = nil
+        lock.unlock()
         continuation?.resume(with: result)
     }
 

@@ -1,5 +1,28 @@
 # Validation plan
 
+## 2026-09-04 one-owner rotating-refresh integration (inactive)
+
+- Six coordinator tests pass for durable marker before dispatch, busy serialization,
+  cancellation-ignoring transport, late response/new-login preservation, failed marker
+  writes, lost response, ambiguous replacement, clock rollback/expiry and pre-cancelled
+  callers. `/private/tmp/pinbook-ios-refresh-manager-tests.log`:6/6 in0.016s.
+- Real localhost TLS integration now connects manager→HTTP→custody. Success saves
+  the entire new pair;503/drop leave the pending barrier; a newly constructed owner
+  cannot replay the old token. Each case has exactly one recorded request/body.
+- HTTP completion waits for the final native session invalidation callback after
+  cancellation, not just the request to cancel. All prior actual TLS cancellation,
+  timeout, redirect, bounds and no-repeat cases remain green.
+- Full core **95/95 passed** in12.963s:
+  `/private/tmp/pinbook-ios-refresh-manager-full-core.log`. Unsigned iPhone Release
+  **PASSED**: `/private/tmp/pinbook-ios-refresh-manager-release.log`. Simulator
+  build-for-testing **PASSED**: `/private/tmp/pinbook-ios-refresh-manager-test-build.log`.
+- iPhone app-host **117 passed, one hardware file-protection skip, zero failures**:
+  `/private/tmp/Pinbook-Refresh-Manager-App.xcresult`, finish Unix1788522599.562;
+  `/private/tmp/pinbook-ios-refresh-manager-app.log`. All six new coordinator
+  tests and the prior actual isolated Keychain tests pass in the app host.
+- No UI changes or provider/service activation. Physical-only acceptance remains
+  open. No source push, signing/capability mutation, infrastructure change or upload.
+
 ## 2026-09-04 separate account-session Keychain custody (inactive)
 
 - Seven new synthetic custody tests pass. Full core **88/88 passed** in12.243s:
