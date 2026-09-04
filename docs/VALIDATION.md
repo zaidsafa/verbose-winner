@@ -1,5 +1,38 @@
 # Validation plan
 
+## 2026-09-05 device-authorized request public wire (inactive)
+
+- Added `TeamDeviceRequestWire`: strict local challenge/binding validation,
+  1...65,536-byte body hash, one-minute/access deadline, and exact canonical
+  `pinbook-device-request-v1` bytes. It contains no signer, custody mutation,
+  transport, generic callback, provider, persistence, or runtime activation. See
+  TEAM_DEVICE_REQUEST_IOS.md and corrected shared checkpoint
+  `dbeba7df0d64a637ea89fa2614cbe0b4fbeae97b`.
+- Local fixture is byte-for-byte identical to the shared public fixture. First
+  compile failed only because three nested Swift Testing `#require` macros are not
+  supported; split them. The next run exposed a noncanonical synthetic base64url
+  replacement in one test; replaced it with the fixture's other canonical public
+  credential. No production rule was relaxed. Logs:
+  `/private/tmp/pinbook-ios-device-request-wire-focused-20260905.log` and
+  `/private/tmp/pinbook-ios-device-request-wire-focused-fixed-20260905.log`.
+- Final focused public-vector/bounds **3/3 PASS**,0.009s:
+  `/private/tmp/pinbook-ios-device-request-wire-focused-final-20260905.log`.
+  Complete core **284/284 PASS**,15.106s:
+  `/private/tmp/pinbook-ios-device-request-wire-full-core-20260905.log`.
+- Signed isolated QA build-for-testing PASS and ordinary unsigned Release PASS:
+  `/private/tmp/pinbook-qa-device-request-wire-build-20260905.log` and
+  `/private/tmp/pinbook-ios-device-request-wire-release-20260905.log`.
+- Physical iPhone focused CryptoKit vector **3/3 PASS**,0.005s; complete app-host
+  **311/311 PASS**,8.677s, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Device-Request-Wire-20260905.xcresult`,
+  `/private/tmp/Pinbook-QA-Physical-Device-Request-Wire-Full-20260905.xcresult`, and
+  `/private/tmp/pinbook-qa-physical-device-request-wire-full-20260905.log`.
+  Normal QA launch succeeded afterward. The preceding complete UI **29/29 PASS**
+  remains applicable because this checkpoint adds no UI/runtime path.
+- This verifies public bytes and signature interoperability, not live Android/iOS
+  sync, server deployment, device request signing, authenticated HTTP, delivery,
+  production state, archive, or TestFlight readiness.
+
 ## 2026-09-05 retained invitation workflow and device-consent UI
 
 - Added a native device-registration model/view and retained account → device →

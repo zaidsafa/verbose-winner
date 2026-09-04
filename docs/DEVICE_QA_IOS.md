@@ -5,6 +5,19 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest public device-request wire checkpoint
+
+The shared Android/backend public request fixture rebuilds and verifies in
+CryptoKit on the physical iPhone: focused **3/3 PASS**,0.005s; complete app-host
+**311/311 PASS**,8.677s, zero failures/skips. Signed QA and ordinary unsigned
+Release builds pass, and QA launched normally afterward. See
+TEAM_DEVICE_REQUEST_IOS.md and VALIDATION.md for exact artifacts.
+
+This verifies only public canonical bytes, body hashing, strict bindings/bounds,
+and the raw P-256 signature. It does not sign with the phone's retained device key,
+call the new inactive routes, enroll a live account, or synchronize notes. The
+ordinary app and TestFlight build were not targeted.
+
 ## Latest retained invitation workflow checkpoint
 
 The isolated QA presentation now traverses account access, device registration,

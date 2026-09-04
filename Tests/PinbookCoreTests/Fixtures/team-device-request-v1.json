@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "publicKey": {
+    "kty": "EC",
+    "x": "9w4UcolDLLmksR6-syCTWK_KqU6JMlDnnWnHCNB31u4",
+    "y": "AZULLyea-GZdDc7ouxBT0DZS8ueG_emyRMiu-8wVpB0",
+    "crv": "P-256"
+  },
+  "challenge": {
+    "audience": "https://pinbook.example.test",
+    "authorityEpoch": "epoch_fixture",
+    "accountId": "account_fixture",
+    "sessionId": "session_fixture",
+    "deviceId": "device_fixture",
+    "enrollmentId": "enrollment_fixture",
+    "keyThumbprint": "Xu68k1x6xnyCG9Jwk-3aY42P3SHQKyICD6TC-wpi3ss",
+    "operation": "delivery-submit",
+    "teamId": "team_fixture",
+    "requestId": "request_fixture",
+    "bodySha256": "a9004ae2c5ca7fecab8f06561b3efbfdc81eae058198af7b7b61d673156efca2",
+    "challengeId": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    "nonce": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
+    "expiresAt": 1800000060000
+  },
+  "bodyBase64url": "eyJjaXBoZXJ0ZXh0IjoiQVFJREJBIn0",
+  "messageUtf8": "[\"pinbook-device-request-v1\",\"https://pinbook.example.test\",\"epoch_fixture\",\"account_fixture\",\"session_fixture\",\"device_fixture\",\"enrollment_fixture\",\"Xu68k1x6xnyCG9Jwk-3aY42P3SHQKyICD6TC-wpi3ss\",\"delivery-submit\",\"team_fixture\",\"request_fixture\",\"a9004ae2c5ca7fecab8f06561b3efbfdc81eae058198af7b7b61d673156efca2\",\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI\",1800000060000]",
+  "messageSha256": "6c910f2227083bbdc4a7086d5253e04dbd54baafabf35b6cedc4de0b4b32672e",
+  "signature": "RTRrKOKUZtBrl_qpfiaWlOuzlNxZo-yuNCuOESTUWF1A6ihzj2tWW0Jyd_R_D-hz3lS1OSFbyP-G06b2q1ukWw"
+}

@@ -12,6 +12,8 @@
 		D20000000000000000000001 /* TeamDeviceRegistrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* TeamDeviceRegistrationScreen.swift */; };
 		D20000000000000000000002 /* TeamInvitationWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000002 /* TeamInvitationWorkflow.swift */; };
 		Z30000000000000000000001 /* TeamInvitationWorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000000000000000000001 /* TeamInvitationWorkflowTests.swift */; };
+		C70000000000000000000002 /* TeamDeviceRequestWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000001 /* TeamDeviceRequestWire.swift */; };
+		C70000000000000000000004 /* TeamDeviceRequestWireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000003 /* TeamDeviceRequestWireTests.swift */; };
 		B10000000000000000000015 /* TeamMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* TeamMembershipView.swift */; };
 		B10000000000000000000016 /* TeamInvitationAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* TeamInvitationAccountView.swift */; };
 		B2000000000000000000001B /* TeamMembershipScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TeamMembershipScreen.swift */; };
@@ -136,6 +138,8 @@
 		E20000000000000000000001 /* TeamDeviceRegistrationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceRegistrationScreen.swift; sourceTree = "<group>"; };
 		E20000000000000000000002 /* TeamInvitationWorkflow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationWorkflow.swift; sourceTree = "<group>"; };
 		E30000000000000000000001 /* TeamInvitationWorkflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamInvitationWorkflowTests.swift; sourceTree = "<group>"; };
+		C70000000000000000000001 /* TeamDeviceRequestWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceRequestWire.swift; sourceTree = "<group>"; };
+		C70000000000000000000003 /* TeamDeviceRequestWireTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeviceRequestWireTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* TeamMembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipView.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* TeamInvitationAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationAccountView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TeamMembershipScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipScreen.swift; sourceTree = "<group>"; };
@@ -328,6 +332,7 @@
 				A2000000000000000000001D /* TeamInvitationDeviceFlow.swift */,
 				E20000000000000000000001 /* TeamDeviceRegistrationScreen.swift */,
 				E20000000000000000000002 /* TeamInvitationWorkflow.swift */,
+				C70000000000000000000001 /* TeamDeviceRequestWire.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -356,6 +361,7 @@
 				A30000000000000000000014 /* TeamMembershipScreenTests.swift */,
 				A30000000000000000000015 /* TeamInvitationAccountScreenTests.swift */,
 				E30000000000000000000001 /* TeamInvitationWorkflowTests.swift */,
+				C70000000000000000000003 /* TeamDeviceRequestWireTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -611,6 +617,7 @@
 				B2000000000000000000001D /* TeamInvitationDeviceFlow.swift in Sources */,
 				D20000000000000000000001 /* TeamDeviceRegistrationScreen.swift in Sources */,
 				D20000000000000000000002 /* TeamInvitationWorkflow.swift in Sources */,
+				C70000000000000000000002 /* TeamDeviceRequestWire.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -639,6 +646,7 @@
 				B30000000000000000000014 /* TeamMembershipScreenTests.swift in Sources */,
 				B30000000000000000000015 /* TeamInvitationAccountScreenTests.swift in Sources */,
 				Z30000000000000000000001 /* TeamInvitationWorkflowTests.swift in Sources */,
+				C70000000000000000000004 /* TeamDeviceRequestWireTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

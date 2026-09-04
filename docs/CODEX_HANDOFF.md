@@ -45,6 +45,17 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Corrected shared device-request checkpoint
+  `dbeba7df0d64a637ea89fa2614cbe0b4fbeae97b` is now represented by an inactive
+  Swift wire primitive and byte-identical public fixture. Exact binding/body/deadline
+  checks rebuild the canonical message; CryptoKit verifies the shared raw P-256
+  signature. Focused **3/3**, full core **284/284**, physical focused **3/3** and
+  full app-host **311/311 PASS**; QA and Release builds pass. No signer, HTTP,
+  callback, provider, persistence or runtime route was added. NEXT: the two exact
+  typed inactive challenge/execute schemas from TEAM_DEVICE_REQUEST_V1.md, never a
+  generic transaction callback; then separate registered-custody/session ownership.
+  See TEAM_DEVICE_REQUEST_IOS.md and VALIDATION.md.
+
 - Native invitation workflow UI now retains account → device → membership and
   requires three separate user actions. Device wait/retry-ready/uncertain outcomes
   never advance or replay; each explicit registration attempt starts unchecked.
