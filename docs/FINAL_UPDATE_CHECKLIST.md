@@ -7,17 +7,20 @@ ones; neither compiled source nor a placeholder counts as a completed feature.
 
 ## Preserve and revalidate in the final candidate
 
-- [ ] Native Liquid Glass navigation, elegant motion, Reduce Motion and Dynamic Type.
-- [ ] Fresh first-run experience without deleting existing users' records; simple,
+- [x] Native Liquid Glass navigation, elegant motion, Reduce Motion and Dynamic
+      Type. Exact-current UI regression passed; prior visual accessibility matrix
+      remains source-identical and includes accessibility XXXL, Increase Contrast
+      and Reduce Transparency evidence.
+- [x] Fresh first-run experience without deleting existing users' records; simple,
       skippable introduction with clear language selection.
-- [ ] All 16 language catalogs, including both Chinese scripts; live switching,
+- [x] All 16 language catalogs, including both Chinese scripts; live switching,
       RTL, translated errors and onboarding; no missing format arguments.
-- [ ] Five themes: readable text/controls in light and dark appearance, clear
+- [x] Five themes: readable text/controls in light and dark appearance, clear
       names, descriptions and symbols at selection.
-- [ ] Currency catalog with localized names, symbols and unambiguous ISO codes;
+- [x] Currency catalog with localized names, symbols and unambiguous ISO codes;
       search, favorites, selection and correct localized amount precision.
 - [ ] Bright app icon in the installed app, widget gallery and App Store Connect.
-- [ ] Expenses, settlements, balances, notes, templates, receipts, reminders,
+- [x] Expenses, settlements, balances, notes, templates, receipts, reminders,
       statements, personal backup-v8 preview/merge/recovery without data loss.
 - [ ] Both iPhone widgets: clear privacy behavior and verified installation/deep links.
       Current Balance Overview is an entry point, not live shared-container data.
