@@ -1,24 +1,24 @@
 # Pinbook TestFlight submission sheet
 
-Prepared: September 1, 2026
+Updated: September 4, 2026
 
-This sheet is ready to copy into App Store Connect. Replace every value in angle brackets before submitting an external beta or App Store version.
+Build `0.1.0 (2)` has been uploaded, both existing test groups assigned, and external Submit for Review clicked with automatic tester notification checked. Final review status could not be refreshed because the Mac locked. Do not duplicate the upload/submission. The remaining angle-bracket values below are future-publication placeholders, not values to submit.
 
 ## App record
 
 - Platform: iOS
-- Name: `Pinbook`
+- Name: `Pinbook: Expense Ledger`
 - Primary language: English (U.S.)
 - Bundle ID: `com.zaidsafa.pinbook.ios`
 - Widget bundle ID: `com.zaidsafa.pinbook.ios.widgets`
 - SKU: `PINBOOK-IOS-001`
 - Version: `0.1.0`
-- Build: `1`
+- Build: `2` (16-language candidate)
 - Primary category: Finance
 - Secondary category: Productivity
 - User access: Full Access
 
-The SKU is an internal permanent identifier and is not shown to customers. Every uploaded build must have a unique build number; keep version `0.1.0` and increment build `1` to `2`, `3`, and so on for replacements.
+The existing app record is `6807481054`; do not create a duplicate. The SKU is an internal permanent identifier and is not shown to customers. Every uploaded build must have a unique build number; keep version `0.1.0` and increment the app and widget build numbers together for replacements.
 
 ## TestFlight information
 
@@ -28,15 +28,17 @@ Pinbook is a private, offline-first notebook for periodic expenses. Organize exp
 
 ### What to test
 
-Please test first-run onboarding in English, Arabic, and Simplified Chinese; create a book; select favorite currencies; add an expense; record a partial payment; verify Summary remains separated by currency; mark and recover an expense from Noted; switch all five skins in Light and Dark; add both Home Screen widgets and confirm Quick Expense and Balance Overview open the correct screen. Use only disposable test data. For Backup & Recovery, save to a test Files location, preview the import before applying, then verify recovery. Report any clipped text, low contrast, wrong currency formatting, data loss, or crash.
+New in build 2: 16 interface languages, a language picker in the introduction and Options, and improved Chinese archive wording.
+
+Please switch languages during the introduction and in Options, restart the app to check your choice is saved, and try System Default. Check Simplified and Traditional Chinese separately and the right-to-left layout in Arabic and Urdu. Report awkward translations, clipped text, or incorrect number/currency formatting with the language and screen name.
+
+Using disposable test data, create a book, choose currencies, add an expense, record a partial payment, and confirm balances remain separate by currency. Archive and restore an expense, try all five themes in Light/Dark, and check both Home Screen widgets. Test receipts, PDF/CSV sharing, reminders, and a Files backup/import/recovery round trip. Do not overwrite your only backup. Report crashes or unexpected data changes.
 
 ### Beta review contact
 
-- First name: `<FIRST NAME>`
-- Last name: `<LAST NAME>`
-- Phone: `<PHONE INCLUDING COUNTRY CODE>`
-- Email: `<YOUR SUPPORT EMAIL>`
-- Feedback email: `<YOUR SUPPORT EMAIL>`
+The owner's supplied name, international phone number, email, and feedback email
+were saved directly in App Store Connect. Personal contact values are not repeated
+in the repository. No sign-in or demo account is required.
 
 ### Beta review notes
 
@@ -86,7 +88,7 @@ Highlights:
 - Local PDF and CSV statements
 - Local reminders with generic notification text
 - Manual backup, restore preview, and recovery snapshot
-- English, Arabic, and Simplified Chinese
+- 16 languages, including English, Arabic, Turkish, Simplified and Traditional Chinese, Spanish, French, German, Brazilian Portuguese, Hindi, Indonesian, Japanese, Korean, Russian, Italian, and Urdu
 - Five adaptive themes and two privacy-safe widgets
 
 ### Keywords
@@ -103,13 +105,13 @@ Highlights:
 ## Upload checklist
 
 1. In Xcode, open **Pinbook.xcodeproj**. Under **Signing & Capabilities**, confirm team `Zaid Alsheikh (F98S3VN5NL)` and **Automatically manage signing** for both `Pinbook` and `PinbookWidgets`.
-2. In App Store Connect, choose **Apps → + → New App** and create the app record using the values above. The app record must exist before the first upload.
+2. In App Store Connect, open the existing **Pinbook: Expense Ledger** app (`6807481054`). Do not create another app or bundle ID.
 3. Add the privacy-policy URL and publish the **No Data Collected** answers under **App Privacy**.
 4. Add the TestFlight beta description, feedback email, review contact, and review notes.
 5. In Xcode select the `Pinbook` scheme and **Any iOS Device (arm64)**, then choose **Product → Archive**.
 6. In Organizer select the archive, choose **Distribute App → TestFlight & App Store → Upload**, and let Xcode manage distribution signing. Use **TestFlight Internal Only** only if the build will never be sent to external testers.
 7. Wait for App Store Connect to finish processing the build and answer any export-compliance prompt consistently with the declaration above.
-8. Under **TestFlight**, create an internal group, attach build `0.1.0 (1)`, and add App Store Connect users. For external testing, create an external group, provide the review information, and submit the first build for TestFlight App Review.
+8. Under **TestFlight**, use the existing internal and external **Zaid testing** groups and attach build `0.1.0 (2)`. Submit for TestFlight App Review if Apple requests it. Do not add new testers or create a public link unless separately requested.
 9. Install Apple's TestFlight app on the iPhone, accept the invitation, and validate the exact processed build. TestFlight builds expire after 90 days.
 
 Internal TestFlight supports up to 100 App Store Connect users. External TestFlight supports up to 10,000 testers and the first external build normally requires TestFlight App Review.

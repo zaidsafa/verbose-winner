@@ -1,5 +1,34 @@
 # Validation plan
 
+## 2026-09-04 TestFlight build 2 physical validation
+
+- App Store Connect upload succeeded and processing completed for `0.1.0 (2)`.
+  Both existing internal/external groups were confirmed on the build. External
+  Submit for Review was clicked with automatic notification checked; the final
+  status refresh was blocked by the locked Mac, so approval is not claimed.
+- Preserved archive: `build/releases/0.1.0-2/Pinbook.xcarchive`.
+  Separately exported IPA: `build/releases/0.1.0-2/export/Pinbook.ipa`, 5,404,007 bytes.
+  ZIP integrity and both embedded bundle versions/identifiers passed verification.
+  SHA-256: `dbcdf50deacfdd8fd85c84968df61bcde21c04f7e07b0b06a34766b98ce5e881`.
+- Set both app and widget to version `0.1.0`, build `2`; kept existing signing settings.
+- Signed Release archive succeeded at `/private/tmp/Pinbook-0.1.0-2.xcarchive`.
+  Verified the app bundle ID, team, arm64 architecture, build number, embedded
+  widget, signature (using the system trust store), and all compiled language values.
+- Connected iPhone 16 Pro: iOS 26.6.1. Developer services became available after
+  unlock; no security setting was disabled. Initial test-runner signing failed
+  because test targets had no team; supplying the existing team as a command-line
+  setting resolved it without changing project signing configuration.
+- Passed 39/39 signed Debug physical tests (29 app, 10 UI), including all existing
+  backup/Files presentation tests and live Chinese/Arabic/Urdu language behavior.
+  Result: `/private/tmp/Pinbook-TestFlight-2-Physical-Retry.xcresult`.
+  Log: `/private/tmp/pinbook-testflight-2-device-retry.log`.
+- Visually inspected `docs/evidence/pinbook-language-ur-physical-build2.png` for
+  readable text, mirrored controls, and no clipping on the final introduction page.
+- Physical tests use isolated fixtures and do not reset production financial data.
+  This is a signed Debug test build, not proof of installation of Apple's processed
+  Release binary. TestFlight installation, external provider transfers, notification
+  delivery, widget-gallery installation, and spoken VoiceOver remain separate checks.
+
 ## 2026-09-04 complete translation draft milestone
 
 - Directly authored the 13 remaining locales without Google or another translation service.

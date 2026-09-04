@@ -2,6 +2,38 @@
 
 Updated: 2026-09-04 (Asia/Shanghai)
 
+## Current TestFlight publication
+
+- Owner authorized publishing build 2 to all existing internal and external test groups.
+- `Pinbook: Expense Ledger`, app ID `6807481054`, version `0.1.0 (2)` uploaded
+  successfully to App Store Connect on 2026-09-04 at 11:59 Asia/Shanghai.
+  Apple build ID: `f620a966-03b9-45ba-a056-ba850878c97c`.
+- Processing completed. Build details confirmed both existing `Zaid testing`
+  groups assigned: internal `6178030b-38c6-4016-868a-5ee48376d920` and external
+  `efe63df8-e238-4717-9921-a37d9a715993`, each with three testers.
+- Clicked Submit for Review for external testing with Automatically notify testers
+  checked. The dialog closed and Groups (2) appeared. A final refresh of the
+  external review status and internal availability was blocked because the Mac
+  locked. Do not resubmit or claim Apple approval/tester installation without checking.
+- Beta description, review notes, feedback email, and review contact information
+  were saved. Contact values came directly from the owner and remain in App Store
+  Connect, not in this repository. No sign-in is required. Cloud sync remains absent.
+- Signed Release archive: `/private/tmp/Pinbook-0.1.0-2.xcarchive`.
+  Upload log: `/private/tmp/pinbook-testflight-2-upload.log` (`EXPORT SUCCEEDED`).
+- Preserved archive: `build/releases/0.1.0-2/Pinbook.xcarchive`.
+  Local IPA: `build/releases/0.1.0-2/export/Pinbook.ipa` (5,404,007 bytes).
+  SHA-256: `dbcdf50deacfdd8fd85c84968df61bcde21c04f7e07b0b06a34766b98ce5e881`.
+  ZIP integrity and app/widget identifiers/version/build were verified. This is a
+  separate export from the same archive, not proof of byte equality with Apple's
+  uploaded package. No manual re-upload is needed. Release artifacts are Git-ignored.
+- All 39 signed Debug tests passed on the physical iPhone 16 Pro, iOS 26.6.1.
+  Result: `/private/tmp/Pinbook-TestFlight-2-Physical-Retry.xcresult`.
+  This does not claim acceptance of Apple's processed Release binary. The owner
+  subsequently disconnected the phone; any further automated UI checks should
+  use the dedicated Pinbook simulator, not ask for the phone again unnecessarily.
+- No public App Store submission, new testers, public invitation link, or GitHub
+  push was authorized by this TestFlight publication request or performed.
+
 ## Ownership and source
 
 - iOS repository: `zaidsafa/verbose-winner`
@@ -13,7 +45,7 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Implemented scope
 
-- Localization now includes 256 source keys with complete values for all 15 non-English locales (16 languages including English). The owner requested direct assistant translation, so the 13 new catalogs were authored without a translation service. First-run/Options controls persist choices and update view/service localization and Arabic/Urdu direction. Exact-candidate iPhone acceptance remains pending; this is not a new iOS release.
+- Localization now includes 256 source keys with complete values for all 15 non-English locales (16 languages including English). The owner requested direct assistant translation, so the 13 new catalogs were authored without a translation service. First-run/Options controls persist choices and update view/service localization and Arabic/Urdu direction. Build 2 passed signed Debug iPhone tests and was uploaded to TestFlight; installation of Apple's processed Release build remains unverified. This is not a public App Store release.
 
 - Swift package foundation with Android backup-v8-compatible records.
 - ISO currency-aware minor-unit money parsing and formatting.
@@ -87,17 +119,17 @@ Updated: 2026-09-04 (Asia/Shanghai)
 - Android's reported target locale set is English, Arabic, Turkish, Simplified Chinese, Traditional Chinese, Spanish, French, German, Brazilian Portuguese, Hindi, Indonesian, Japanese, Korean, Russian, Italian, and Urdu, with Arabic/Urdu RTL behavior. iOS must not advertise incomplete locale catalogs. Generated drafts are allowed with a feedback correction loop, but must not be represented as human-authored, professional, or native-reviewed translation.
 - Widgets currently provide privacy-safe navigation only. Live counts or balances require an explicitly approved App Group entitlement, a versioned shared-snapshot format, signing/profile changes, and new privacy/physical-device acceptance; none is enabled here.
 - The universal target declares all four standard interface orientations, but the complete iPhone/iPad rotation and multitasking layout matrix has not yet received visual acceptance.
-- The current milestone has no new physical-device acceptance. Simulator build/tests do not prove widget gallery installation, TestFlight, Drive transfer, iCloud, a completed external Files-provider transfer, real notification delivery, or App Store acceptance. The UI tests opened both system document pickers but did not save or select a file.
-- Existing Apple development signing was used for the device build. No new signing credentials/profiles, OAuth credentials, external account settings, TestFlight state, or App Store state were created or changed.
+- The current build passed 39 signed Debug physical-device tests. These do not prove widget gallery installation, installation of Apple's TestFlight Release binary, a completed external Files-provider transfer, real notification delivery, or App Store acceptance. The UI tests opened both system document pickers but did not save or select a file. Further automated checks should use the simulator while the owner's iPhone is disconnected.
+- Existing Apple signing with automatic provisioning was used for device tests, archive, export, and upload. TestFlight metadata, group assignment, and external review submission were changed under owner authorization. No OAuth credentials or public App Store submission were created.
 - The initial TestFlight audit reported no valid code-signing identities, so its archive was deliberately unsigned. The owner later supplied evidence of a processed build (below). This does not prove current signing availability or physical acceptance; localization resumption uses unsigned builds and does not mutate signing or upload a replacement.
 - The owner subsequently supplied an App Store Connect screenshot showing `Pinbook: Expense Ledger`, processed TestFlight build `0.1.0 (1)`, the colorful icon, and `Ready to Submit`. This is screenshot evidence, not a live account audit or proof of tester installation/review approval. No App Store Connect mutation was performed during localization resumption. Before external testing, confirm final contact/privacy-policy details. The current **No Data Collected** answer applies only while records, receipts, and manual backups stay local; future cloud integration requires a fresh privacy audit.
 
 ## Exact next actions
 
-1. Confirm final contact/URL values in the owner's existing App Store Connect record, replace any remaining documentation placeholders, and publish `docs/PRIVACY_POLICY.md` at the final HTTPS privacy-policy URL.
-2. If not already done, attach processed build `0.1.0 (1)` to an internal TestFlight group. The localization candidate has not been uploaded or physically accepted. After exact-candidate acceptance, increment app and widget build numbers together before creating and uploading a new signed archive under explicit release authorization.
-3. Install the exact processed TestFlight build on a physical iPhone and run disposable-data acceptance: onboarding/locales, five-theme contrast, two widgets, receipt selection, local notification delivery, statement sharing, and a completed Files backup/export/import/recovery round trip.
+1. When browser access resumes, read the external review status and internal availability for build `0.1.0 (2)`. Both groups are already assigned and Submit for Review was clicked; do not duplicate submission. Contact and feedback details are saved in App Store Connect. Apple approval is not yet verified.
+2. Before a future public App Store submission, confirm the final public policy/support URLs and publish `docs/PRIVACY_POLICY.md` at the chosen HTTPS privacy-policy URL. Do not invent URLs or copy contact placeholders into Apple.
+3. Use the simulator for further work while the iPhone is disconnected. When the owner chooses to resume physical acceptance, install the exact processed TestFlight build and run disposable-data checks: onboarding/locales, five-theme contrast, two widgets, receipt selection, local notification delivery, statement sharing, and a completed Files backup/export/import/recovery round trip.
 4. Complete the remaining physical-iPhone accessibility pass for spoken VoiceOver, rotor behavior, focus order, Reduce Transparency, and Increase Contrast before App Store release.
 5. Implement Google Drive `drive.appdata` only after explicit OAuth/provider approval, routing remote bytes through the existing validation, preview, snapshot, history, and deterministic conflict-recovery boundary. Re-audit App Privacy and update the privacy policy before shipping it.
 6. Collect locale-specific wording/layout feedback from the exact candidate on iPhone. All catalogs are now directly assistant-authored drafts; no Google approval or external translation request is needed. The offline checker validates all 256 keys and placeholders and can compare compiled app/widget catalogs to source. Native review is not a blocker under the owner's authorization, but do not claim professional or native-reviewed quality.
-7. The language controls and completed translation catalogs are local-only work. The earlier 2026-09-04 push was blocked by auto-review pending explicit owner approval to export commits to `https://github.com/zaidsafa/verbose-winner.git`, branch `codex/pinbook-ios-foundation`. No push was retried. Do not retry through another route without that authorization. Only the 13 added `knownRegions` lines are included from the Xcode project; the owner's pre-existing project/signing edits remain uncommitted and preserved.
+7. Source commits remain local-only; the binary was uploaded to TestFlight. The earlier 2026-09-04 push was blocked by auto-review pending explicit owner approval to export commits to `https://github.com/zaidsafa/verbose-winner.git`, branch `codex/pinbook-ios-foundation`. No push was retried. Do not retry through another route without that authorization. Project changes committed for these milestones are the 13 added `knownRegions` lines and four build-number increments; the owner's pre-existing project/signing edits remain uncommitted and preserved.
