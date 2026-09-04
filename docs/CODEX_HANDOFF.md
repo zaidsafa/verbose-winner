@@ -4,16 +4,24 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Owner release gate — no incremental TestFlight updates
 
-- Latest owner coordination answer: **No, keep the tasks separate**. Do not send
-  further cross-task coordination/status messages or route them indirectly. Earlier
-  notes requesting Woo GUI clearance are historical, not instructions to repeat
-  the rejected request. Continue Pinbook-local work and isolated tests; do not
+- Owner declined WooOrders coordination: **No, keep the tasks separate**. Do not
+  send WooOrders coordination/status messages or route them indirectly. Earlier
+  Woo GUI requests are historical, not instructions to repeat rejected messages.
+  Owner subsequently explicitly authorized Pinbook Android coordination for actual
+  two-physical-device notes-sync testing and reported Android connected. A scoped
+  QA/testing message to the verified Pinbook Android task now succeeded. This
+  supersedes the older Android outbound-status permission hold for that testing
+  scope, not for unrelated tasks/data. Use synthetic notes/separate QA installs;
+  real notes delivery is NOT working yet and fixture/backup transfer is not live
+  sync acceptance. Preserve Infrastructure activation and release gates. Do not
   infer permission to disrupt another task's UI/resources. Owner also now offers
   a physical iPhone. Initial listings were unavailable/offline; latest devicectl
   reports **available (paired)**. Owner explicitly approved a separate **Pinbook QA**
   development identity/profiles/install to preserve the working TestFlight app and
   records. This permits only that isolated development path, not a new TestFlight
-  upload or replacement of the working installation. No physical test yet.
+  upload or replacement of the working installation. Separate QA install and
+  physical tests now completed as recorded in DEVICE_QA_IOS.md; historical
+  offline/compiled-only notes below are superseded by that evidence.
 - Latest owner response was "proceed towards the goal" directly after being asked
   to approve Apple and Google sign-in. Treat that response as approval of the
   proposed Apple+Google pilot sign-in direction, rather than holding indefinitely
@@ -36,6 +44,16 @@ Updated: 2026-09-05 (Asia/Shanghai)
   gates are not complete merely because build 3 was accepted by the owner.
 
 ## Active local implementation after release hold
+
+- Separate signed Pinbook QA app/widget now installed on iPhone16Pro/iOS26.6.1:
+  distinct `.qa` app identity, `pinbook-qa` links, default Keychain/container
+  isolation, no App Group/sharing entitlement. Production defaults remain
+  unchanged; ordinary unsigned Release PASS. Physical app-host **263/263 PASS**,
+  membership UI **3/3 PASS**, including real file-protection attribute check and
+  Chinese/consent/background behavior. See DEVICE_QA_IOS.md for exact evidence and
+  installation inventory caveat. Remaining13 baseline UI tests running. Visual
+  screenshot exposed faint white-on-jade button text; fix/revalidate next. These
+  tests do not enable real providers, shared notes, or lift final TestFlight hold.
 
 - Original-invitation explicit retry now composes durable store and retained
   membership owner: read-only original hash matching, exact enrollment/current

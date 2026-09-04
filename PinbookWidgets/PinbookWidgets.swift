@@ -1,6 +1,13 @@
 import SwiftUI
 import WidgetKit
 
+// A QA widget must never launch the working TestFlight app's URL scheme.
+private func pinbookWidgetDestination(_ route: String) -> URL? {
+    guard let scheme = Bundle.main.object(forInfoDictionaryKey: "PinbookURLScheme") as? String,
+          ["pinbook", "pinbook-qa"].contains(scheme) else { return nil }
+    return URL(string: "\(scheme)://\(route)")
+}
+
 private struct PinbookWidgetEntry: TimelineEntry {
     let date: Date
 }
@@ -38,7 +45,7 @@ private struct QuickExpenseWidget: Widget {
                 detail: "Open a clean expense form",
                 symbol: "plus",
                 colors: [Color(red: 0.08, green: 0.43, blue: 0.33), Color(red: 0.12, green: 0.20, blue: 0.17)],
-                destination: URL(string: "pinbook://expense/new")!
+                destination: pinbookWidgetDestination("expense/new")
             )
         }
         .configurationDisplayName("Quick Expense")
@@ -58,7 +65,7 @@ private struct BalanceOverviewWidget: Widget {
                 detail: "Review balances safely by currency",
                 symbol: "chart.bar.xaxis",
                 colors: [Color(red: 0.16, green: 0.30, blue: 0.67), Color(red: 0.08, green: 0.12, blue: 0.24)],
-                destination: URL(string: "pinbook://summary")!
+                destination: pinbookWidgetDestination("summary")
             )
         }
         .configurationDisplayName("Balance Overview")
@@ -76,7 +83,7 @@ private struct PinbookWidgetCard: View {
     let detail: LocalizedStringKey
     let symbol: String
     let colors: [Color]
-    let destination: URL
+    let destination: URL?
 
     private var foreground: Color {
         renderingMode == .fullColor && showsBackground ? .white : .primary

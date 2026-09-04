@@ -203,6 +203,16 @@ import Darwin
     #expect(PinbookDeepLink(url: URL(string: "pinbook://unknown")!) == nil)
 }
 
+@Test func qaLinksAreIsolatedFromTheWorkingApp() {
+    let production = URL(string: "pinbook://expense/new")!
+    let qa = URL(string: "pinbook-qa://expense/new")!
+    #expect(PinbookDeepLink(url: qa, expectedScheme: "pinbook-qa") == .newExpense)
+    #expect(PinbookDeepLink(url: production, expectedScheme: "pinbook-qa") == nil)
+    #expect(PinbookDeepLink(url: qa, expectedScheme: "pinbook") == nil)
+    #expect(PinbookDeepLink(url: production, expectedScheme: "") == nil)
+    #expect(PinbookDeepLink(url: URL(string: "other://summary")!, expectedScheme: "other") == nil)
+}
+
 @Test func currencyCatalogIncludesEveryFoundationCommonISOCodeAndASymbol() {
     let options = PinbookCurrencyCatalog.options(locale: Locale(identifier: "en_US"))
     #expect(options.count >= 150)

@@ -1,0 +1,11 @@
+// Owner-approved separate physical-device installation. Never use for TestFlight.
+// Production settings stay unchanged when this file is not supplied to xcodebuild.
+PINBOOK_BUNDLE_ROOT = com.zaidsafa.pinbook.ios.qa
+PINBOOK_APP_DISPLAY_NAME = Pinbook QA
+PINBOOK_URL_SCHEME = pinbook-qa
+DEVELOPMENT_TEAM = F98S3VN5NL
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development
+SWIFT_EMIT_LOC_STRINGS = NO
+// Keep this development-only product out of distributable archives.
+SKIP_INSTALL = YES

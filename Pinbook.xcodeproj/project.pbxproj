@@ -655,6 +655,9 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				ONLY_ACTIVE_ARCH = YES;
+				PINBOOK_BUNDLE_ROOT = com.zaidsafa.pinbook.ios;
+				PINBOOK_APP_DISPLAY_NAME = Pinbook;
+				PINBOOK_URL_SCHEME = pinbook;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -670,6 +673,9 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				PINBOOK_BUNDLE_ROOT = com.zaidsafa.pinbook.ios;
+				PINBOOK_APP_DISPLAY_NAME = Pinbook;
+				PINBOOK_URL_SCHEME = pinbook;
 			};
 			name = Release;
 		};
@@ -685,7 +691,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Pinbook/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Pinbook;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PINBOOK_APP_DISPLAY_NAME)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -693,7 +699,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -715,7 +721,7 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Pinbook/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Pinbook;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PINBOOK_APP_DISPLAY_NAME)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -723,7 +729,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -740,7 +746,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT).tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -754,7 +760,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT).tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -767,7 +773,7 @@
 			buildSettings = {
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT).uitests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -781,7 +787,7 @@
 			buildSettings = {
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT).uitests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -802,7 +808,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT).widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -825,7 +831,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zaidsafa.pinbook.ios.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PINBOOK_BUNDLE_ROOT).widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

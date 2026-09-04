@@ -1,5 +1,16 @@
 # Validation plan
 
+## 2026-09-05 isolated physical iPhone QA
+
+Separate development QA build, signature verification and installation PASS.
+App-host **263/263 PASS**,0 skips/failures; membership UI **3/3 PASS**,33.103s.
+Exact logs/results, identity isolation, ordinary Release verification and important
+limitations are in DEVICE_QA_IOS.md. This supersedes historical compiled-only and
+phone-offline statements below. Chinese screenshot inspection found faint
+white-on-jade action text despite passing behavior tests: correction/revalidation
+remains required. Remaining baseline UI tests underway; no acceptance claimed yet.
+No source push, TestFlight update, production provider or shared service change.
+
 ## 2026-09-05 explicit same-identity retry store and membership owner (inactive)
 
 - Initial store test compilation **FAILED** on missing inner `try` in two require

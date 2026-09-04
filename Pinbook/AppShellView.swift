@@ -123,8 +123,8 @@ enum PinbookDeepLink: Equatable {
     case newExpense
     case summary
 
-    init?(url: URL) {
-        guard url.scheme?.lowercased() == "pinbook" else { return nil }
+    init?(url: URL, expectedScheme: String = "pinbook") {
+        guard ["pinbook", "pinbook-qa"].contains(expectedScheme), url.scheme?.lowercased() == expectedScheme else { return nil }
         switch (url.host?.lowercased(), url.path.lowercased()) {
         case ("expense", "/new"): self = .newExpense
         case ("summary", ""): self = .summary
@@ -253,7 +253,8 @@ struct AppShellView: View {
             }
         }
         .onOpenURL { url in
-            guard let deepLink = PinbookDeepLink(url: url) else { return }
+            guard let scheme = Bundle.main.object(forInfoDictionaryKey: "PinbookURLScheme") as? String,
+                  let deepLink = PinbookDeepLink(url: url, expectedScheme: scheme) else { return }
             selection = deepLink.destinationTab
             if deepLink.opensExpenseEditor {
                 showingAddExpense = true

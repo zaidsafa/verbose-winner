@@ -5,7 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Pinbook Widgets</string>
+	<string>$(PINBOOK_APP_DISPLAY_NAME) Widgets</string>
+	<key>PinbookURLScheme</key>
+	<string>$(PINBOOK_URL_SCHEME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

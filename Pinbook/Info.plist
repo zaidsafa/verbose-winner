@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Pinbook</string>
+	<string>$(PINBOOK_APP_DISPLAY_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,15 +26,17 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.zaidsafa.pinbook.ios</string>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>pinbook</string>
+				<string>$(PINBOOK_URL_SCHEME)</string>
 			</array>
 		</dict>
 	</array>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.finance</string>
+	<key>PinbookURLScheme</key>
+	<string>$(PINBOOK_URL_SCHEME)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
