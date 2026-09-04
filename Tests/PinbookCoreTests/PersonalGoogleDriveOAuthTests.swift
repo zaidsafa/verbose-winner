@@ -1,6 +1,24 @@
 #if canImport(AppAuthCore)
 import AppAuthCore
 #endif
+
+#if canImport(AppAuthCore)
+private final class SilentPersonalDriveOAuthUserAgent: NSObject, OIDExternalUserAgent {
+    private(set) var starts = 0
+    private(set) var dismissals = 0
+
+    func present(_ request: any OIDExternalUserAgentRequest,
+                 session: any OIDExternalUserAgentSession) -> Bool {
+        starts += 1
+        return true
+    }
+
+    func dismiss(animated: Bool, completion: @escaping () -> Void) {
+        dismissals += 1
+        completion()
+    }
+}
+#endif
 import Foundation
 import Testing
 #if SWIFT_PACKAGE
@@ -122,6 +140,32 @@ struct PersonalGoogleDriveOAuthTests {
         #expect(items.first { $0.name == "include_granted_scopes" }?.value == "false")
         #expect(items.first { $0.name == "prompt" }?.value == "consent")
         #expect(items.first { $0.name == "openid" } == nil)
+    }
+
+    @Test func actualAppAuthConsumesOnlyMatchingCallbackOnceWithoutNetwork() throws {
+        let request = try PersonalGoogleDriveOAuthRequest.make(
+            configuration: personalDriveConfiguration()
+        )
+        let browser = SilentPersonalDriveOAuthUserAgent()
+        var replies = 0
+        let flow = OIDAuthorizationService.present(
+            request, externalUserAgent: browser
+        ) { response, error in
+            replies += 1
+            #expect(error == nil && response?.request === request)
+            #expect(response?.authorizationCode == "public-code")
+        }
+        let state = try #require(request.state)
+        let redirect = try #require(request.redirectURL)
+        let callback = try #require(URL(
+            string: redirect.absoluteString + "?code=public-code&state=" + state
+        ))
+        try flow.resumeExternalUserAgentFlow(callback)
+        #expect(replies == 1 && browser.starts == 1 && browser.dismissals == 1)
+        #expect(throws: (any Error).self) {
+            try flow.resumeExternalUserAgentFlow(callback)
+        }
+        #expect(replies == 1)
     }
     #endif
 

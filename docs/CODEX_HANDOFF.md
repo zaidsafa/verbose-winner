@@ -49,6 +49,20 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Personal Drive now has an inactive AppAuth browser/callback owner. It requires
+  explicit consent, a registered reversed-client URL scheme and usable foreground
+  presenter; retains one pending request/state/verifier; routes only its exact
+  bounded callback; uses an ephemeral browser; and cancels on background, caller
+  cancellation or a monotonic ten-minute deadline. A token issued after
+  cancellation is sent to the isolated revoker before the flow settles. Clean
+  core **362/362**, exact-current signed Simulator OAuth+authorizer **11/11**,
+  physical iPhone OAuth/authorizer/Keychain/revocation **21/21**, normal QA
+  relaunch and unchanged-identity production Release pass. Both iPhone and Samsung
+  SM-S9180 are detected, but no real browser/provider/Android sync was run. The
+  allocated dedicated Google client/project, production callback routing,
+  durable connection coordinator, live Drive acceptance and UI activation remain.
+  No source push or TestFlight action occurred.
+
 - Personal Drive now has device-only Data Protection Keychain refresh-token
   custody, while access tokens remain memory-only. Exact generation-bound refresh
   and deletion prevent stale mutation. Explicit disconnect persists a durable
@@ -58,7 +72,8 @@ Updated: 2026-09-05 (Asia/Shanghai)
   signed Simulator **16/16**, physical QA **16/16**, normal QA relaunch and
   production Release pass. No real Google credential/request, Android operation,
   source push or TestFlight action occurred. Dedicated Google project/client,
-  browser/callback presentation, live Drive acceptance and production UI remain.
+  production callback wiring/connection coordination, live Drive acceptance and
+  production UI remain.
 
 - Personal Drive now has an additional disconnected OAuth/token checkpoint. A
   real allocated Google iOS client plus matching registered callback is mandatory;

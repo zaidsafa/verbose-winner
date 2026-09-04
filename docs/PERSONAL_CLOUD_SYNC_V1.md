@@ -116,13 +116,25 @@ an explicit retry. This is intentionally isolated from team Google authorization
 the real personal-Drive client should use a dedicated Google project because
 revocation can invalidate every OAuth scope granted to that project.
 
+`PersonalGoogleDriveAuthorizer` now owns the disconnected AppAuth presentation
+boundary. It requires explicit consent, the allocated reversed-client scheme in
+the installed bundle and a usable foreground presenter. One pending request keeps
+its exact state and S256 verifier; only a bounded matching callback is handed to
+AppAuth and it is consumed once. The ephemeral browser is cancelled on background,
+caller cancellation or a monotonic ten-minute deadline. If cancellation races a
+successful code exchange, the driver attempts isolated refresh-token revocation
+before settling. It returns a redacted in-memory grant only: the next connection
+coordinator must durably save it, or revoke it on any save/ownership failure,
+before reporting connection success.
+
 - Focused transport/owner/Drive tests: **15/15 PASS** on the separate physical
   iPhone QA app, including a real Keychain reopen/clear; Drive wire tests use an
   isolated synthetic executor and make no real provider call.
-- Complete personal Drive authorization/custody/revocation boundary: focused Swift
-  **15/15 PASS**; signed Simulator and separate physical iPhone QA app **16/16
-  PASS**, including real Keychain reopen/delete. No provider request was made.
-- Complete Swift core: **361/361 PASS**, 34 suites.
+- Complete personal Drive browser/authorization/custody/revocation boundary:
+  signed Simulator OAuth+authorizer **11/11 PASS** and separate physical iPhone QA
+  app **21/21 PASS**, including real Keychain reopen/delete. No provider request
+  was made.
+- Complete Swift core: **362/362 PASS**, 34 suites.
 - Signed iOS 26.5 Simulator app-host: **372 PASS + 4 expected physical-only
   SKIPS**, 376 total, 0 failures.
 - Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
@@ -130,7 +142,7 @@ revocation can invalidate every OAuth scope granted to that project.
 
 Exact paths and the initial sandbox-blocked attempt are recorded in
 `VALIDATION.md`. The Drive adapter is not connected: this source still has no
-allocated personal-Drive client configuration, browser/callback controller,
-iCloud adapter, scheduler, real remote
+allocated personal-Drive client configuration, production callback wiring,
+durable connection coordinator, iCloud adapter, scheduler, real remote
 bytes, automatic merge or production UI entry. The existing TestFlight build was
 not replaced.

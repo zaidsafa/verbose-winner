@@ -5,12 +5,14 @@ import Foundation
 
 public enum PersonalGoogleDriveOAuthError: Error, Equatable, Sendable {
     case busy
+    case cancelled
     case invalidConfiguration
     case invalidRequest
     case invalidResponse
     case expired
     case unauthorized
     case unavailable
+    case unavailablePresentation
 }
 
 /// Public Google iOS OAuth configuration. Installed applications never contain a

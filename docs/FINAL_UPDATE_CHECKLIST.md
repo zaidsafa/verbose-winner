@@ -65,8 +65,11 @@ checkboxes deliberately remain open until checked against the exact next candida
       time/expiry and a durable revocation-pending phase. Explicit disconnect
       fences refresh, performs one-use remote revocation, and deletes only its exact
       generation after authoritative success. Swift, signed Simulator and physical
-      QA tests pass. Allocated dedicated client/project configuration,
-      browser/callback controller, real Drive acceptance and UI activation remain open.
+      QA tests pass. An inactive AppAuth browser/callback owner now adds explicit
+      consent, exact one-use callback routing, ephemeral presentation, cancellation,
+      background handling and a monotonic timeout. Allocated dedicated client/project
+      configuration, production callback wiring, durable connection coordinator,
+      real Drive acceptance and UI activation remain open.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
@@ -96,9 +99,10 @@ checkboxes deliberately remain open until checked against the exact next candida
   app-host, physical iPhone focused QA and ordinary Release pass. The Drive v3
   adapter is implemented behind an ephemeral token provider with strict bounded
   appDataFolder requests and exact conflict replay checks; it remains disconnected.
-  A disconnected personal OAuth/token parser now exists and is isolated from team
-  sign-in, but no allocated client, browser callback, token custody/revocation,
-  iCloud adapter, scheduler, real remote bytes, merge or UI activation exists.
+  A disconnected personal OAuth/token parser, protected custody/revocation path and
+  AppAuth browser/callback owner now exist and remain isolated from team sign-in,
+  but no allocated client, production callback/connection coordinator, iCloud
+  adapter, scheduler, real remote bytes, merge or UI activation exists.
   See `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the

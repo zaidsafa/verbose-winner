@@ -1,5 +1,41 @@
 # Validation plan
 
+## 2026-09-05 inactive personal Drive browser and callback owner
+
+- Added a one-flight AppAuth browser/callback owner for explicit personal Drive
+  consent. Live construction requires the allocated reversed-client URL scheme
+  to be registered and a usable foreground presenter before any browser starts.
+  AppAuth supplies a fresh request, state and S256 verifier; only the exact
+  bounded callback is routed to that pending flow and consumed once.
+- The system driver uses an ephemeral browser session, exchanges only the code
+  bound to the original request/verifier, cancels on background or caller
+  cancellation, and attempts remote revocation if cancellation arrives after a
+  refresh token was issued. A monotonic ten-minute task bounds browser ownership;
+  wall-clock rollback cannot extend it. Durable credential save and rollback are
+  intentionally left to the next connection coordinator.
+- Clean complete Swift core **362/362 PASS**, 34 suites, 16.209s. The UIKit-only
+  authorizer suite is excluded by SwiftPM, while the actual AppAuth callback test
+  is included. An initial sandbox attempt failed before compilation because the
+  compiler module cache was inaccessible and is not acceptance evidence.
+- Exact-current signed iOS 26.5 Simulator OAuth+authorizer suites **11/11 PASS**,
+  zero failures/skips:
+  `/private/tmp/Pinbook-Personal-Drive-Authorizer-Sim5-20260905.xcresult`.
+  A preceding sandboxed attempt could not access CoreSimulator or GitHub and is
+  not acceptance evidence.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** ran OAuth,
+  authorizer, real Keychain custody and synthetic revocation suites: **21/21
+  PASS**, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Personal-Drive-Authorizer-Final-20260905.xcresult`.
+  QA returned to a successful normal launch afterward.
+- Exact-current ordinary unsigned production Release **BUILD SUCCEEDED** at
+  `/private/tmp/pinbook-personal-drive-authorizer-release-derived`, with unchanged
+  bundle `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- Both physical devices were detected: iPhone 16 Pro and Samsung SM-S9180. The
+  Android app was not opened or changed because no allocated Google client,
+  connection coordinator, production callback wiring, live remote bytes or sync
+  UI exists yet. Synthetic tests opened no real browser and contacted no Google
+  service. No source push, archive or TestFlight action occurred.
+
 ## 2026-09-05 inactive personal Drive credential custody and revocation
 
 - Added device-only Data Protection Keychain custody for the personal Drive
