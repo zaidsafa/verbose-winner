@@ -18,8 +18,12 @@ Updated: 2026-09-04 (Asia/Shanghai)
 - This remains inactive source-only work: no recovery-key custody/Files UI, outbound
   drafts/revisions/media recovery, group encryption, authenticated transport or
   real-user activation. Hardware protection and complete cross-platform recovery
-  remain gates. Archive source publication will follow the existing owner-approved
-  branch export; commit/remote verification is recorded in the final task handoff.
+  remain gates. Archive code/tests/docs are committed locally at `ce246cf`.
+  The normal push was rejected by auto-review because the prior source-export
+  approval was judged limited to the earlier payload, not this new archive slice.
+  No retry or workaround was attempted. Remote remains the previously verified
+  `829938c`; direct owner approval is required to export this additional source to
+  `zaidsafa/verbose-winner`, branch `codex/team-delivery-foundation`. No merge/release.
 - Owner requested native local foundation coordinated with Android. Worktree:
   `/Users/zaidsmac/Documents/ChatGPT/TC Projects/pinbook-ios-team-delivery`, branch
   `codex/team-delivery-foundation`, based on `4c8087b`. The original iOS worktree
