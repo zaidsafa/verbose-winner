@@ -1,5 +1,35 @@
 # Validation plan
 
+## 2026-09-05 inactive personal Google Drive OAuth/token boundary
+
+- Added a separate personal-Drive OAuth configuration and AppAuth request. It
+  requires an allocated iOS client ID plus its registered reversed-client callback,
+  uses fresh AppAuth state/nonce/S256 PKCE, requests only `drive.appdata`, and asks
+  for explicit offline consent. It is isolated from team Google sign-in.
+- Added a bounded single-flight Google token client for authorization-code exchange
+  and refresh. Native clients send no client secret; form bodies use one-use streams.
+  Concurrent dispatches fail busy. Strict responses require the exact Drive scope,
+  Bearer type and bounded access/optional refresh expiry. Access/refresh/grant
+  diagnostics are redacted. This layer does not persist tokens.
+- Focused Swift **6/6 PASS**. Complete Swift core **352/352 PASS**, 32 suites.
+  No request reached Google.
+- Signed iOS 26.5 Simulator app-host focused **6/6 PASS**, 1 suite, 0 failures:
+  `/private/tmp/Pinbook-Personal-Drive-OAuth-Hardening-Sim2-20260905.xcresult`.
+  The first attempt omitted the explicit iPhone Simulator SDK and selected a
+  macOS-style test host; it failed before build/test and is not acceptance evidence.
+- A later parallel hardening run returned before its result bundle finalized; its
+  incomplete bundle is also not acceptance evidence. The independent Sim2 rerun
+  above is the exact-current result.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** focused
+  **6/6 PASS**, 1 suite, 0 failures:
+  `/private/tmp/Pinbook-QA-Physical-Personal-Drive-OAuth-Hardening-20260905.xcresult`.
+  The QA app returned to a successful normal launch afterward.
+- Exact-current ordinary unsigned production Release **BUILD SUCCEEDED**, unchanged bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- No allocated Google client ID was invented, no URL scheme/production UI/token
+  custody/revocation/scheduler/real Drive call was enabled, and no Android-device,
+  archive, source push or TestFlight action occurred.
+
 ## 2026-09-05 inactive Google Drive v3 backup transport
 
 - Corrected the upload reservation boundary so `BackupTransport` supplies the

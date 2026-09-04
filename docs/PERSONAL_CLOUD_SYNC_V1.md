@@ -94,10 +94,22 @@ and multipart immutable create. A 409 retry is accepted only after both metadata
 and remote bytes match the reserved operation. Its ephemeral bearer is redacted;
 bounded fresh sessions reject redirects, cookies and compressed responses.
 
+`PersonalGoogleDriveOAuthRequest` and `PersonalGoogleDriveTokenClient` now provide
+the next disconnected authorization boundary. They require a real allocated iOS
+client ID and registered reversed-client callback, use fresh AppAuth state/nonce
+and S256 PKCE, request only `drive.appdata` with explicit offline consent, send no
+client secret, and strictly parse single-flight, one-use code/refresh exchanges.
+Concurrent requests fail busy, and access plus optional refresh lifetimes are
+bounded. Personal Drive grants are redacted and remain isolated from team Google
+sign-in. This checkpoint does not persist refresh tokens, present the browser,
+handle callbacks, revoke a grant or connect the transport.
+
 - Focused transport/owner/Drive tests: **15/15 PASS** on the separate physical
   iPhone QA app, including a real Keychain reopen/clear; Drive wire tests use an
   isolated synthetic executor and make no real provider call.
-- Complete Swift core: **346/346 PASS**, 31 suites.
+- Personal Drive OAuth/token tests: **6/6 PASS** in Swift, signed Simulator and
+  the separate physical iPhone QA app; no real provider request was made.
+- Complete Swift core: **352/352 PASS**, 32 suites.
 - Signed iOS 26.5 Simulator app-host: **372 PASS + 4 expected physical-only
   SKIPS**, 376 total, 0 failures.
 - Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
@@ -105,6 +117,7 @@ bounded fresh sessions reject redirects, cookies and compressed responses.
 
 Exact paths and the initial sandbox-blocked attempt are recorded in
 `VALIDATION.md`. The Drive adapter is not connected: this source still has no
-personal-Drive OAuth flow/token custody, iCloud adapter, scheduler, real remote
+allocated personal-Drive client configuration, browser/callback controller, token
+custody/revocation, iCloud adapter, scheduler, real remote
 bytes, automatic merge or production UI entry. The existing TestFlight build was
 not replaced.

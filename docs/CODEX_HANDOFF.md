@@ -49,6 +49,19 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Personal Drive now has an additional disconnected OAuth/token checkpoint. A
+  real allocated Google iOS client plus matching registered callback is mandatory;
+  AppAuth supplies fresh state/nonce/S256 PKCE and the request asks only for
+  `drive.appdata` with explicit offline consent. The single-flight token client has
+  no client secret, uses one-use request bodies, rejects concurrent dispatch and
+  strictly accepts only bounded exact-scope Bearer grants. Grant/token diagnostics
+  are redacted and team Google sign-in remains isolated. Core **352/352**, signed
+  Simulator focused **6/6**, physical QA focused **6/6**, normal QA relaunch and unsigned production Release
+  pass. No client ID was invented and no browser/callback controller, protected
+  refresh-token custody, revocation, real provider request, production UI, Android
+  operation, source push or TestFlight action occurred. This follow-up remains
+  local-only and unpublished; see `PERSONAL_CLOUD_SYNC_V1.md` and `VALIDATION.md`.
+
 - Personal automatic cloud sync now has an inactive safe cross-client contract:
   Google Drive `appDataFolder` first, iCloud as a later user-selected alternative,
   never both automatic authorities together. The design replaces mutable-file

@@ -58,8 +58,12 @@ checkboxes deliberately remain open until checked against the exact next candida
       Simulator and separate physical-iPhone Keychain tests pass. The inactive
       Drive v3 adapter now reserves appDataFolder file IDs, pages strict private
       metadata, bounds media, creates immutable multipart objects and verifies
-      exact metadata+bytes after a 409 retry. Synthetic wire tests pass; personal
-      OAuth/token custody, real Drive acceptance and UI activation remain open.
+      exact metadata+bytes after a 409 retry. The separate personal OAuth/token
+      boundary now requires a real iOS client, uses AppAuth PKCE with Drive-only
+      offline consent, sends no client secret and strictly parses code/refresh
+      responses. Swift, signed Simulator and physical QA tests pass. Allocated
+      client configuration, browser/callback controller, protected refresh-token
+      custody, revocation, real Drive acceptance and UI activation remain open.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
@@ -89,8 +93,9 @@ checkboxes deliberately remain open until checked against the exact next candida
   app-host, physical iPhone focused QA and ordinary Release pass. The Drive v3
   adapter is implemented behind an ephemeral token provider with strict bounded
   appDataFolder requests and exact conflict replay checks; it remains disconnected.
-  No personal OAuth/token custody, iCloud adapter, scheduler, real remote bytes,
-  merge or UI activation exists.
+  A disconnected personal OAuth/token parser now exists and is isolated from team
+  sign-in, but no allocated client, browser callback, token custody/revocation,
+  iCloud adapter, scheduler, real remote bytes, merge or UI activation exists.
   See `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the
