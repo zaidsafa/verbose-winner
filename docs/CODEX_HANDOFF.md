@@ -45,6 +45,18 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Standard RFC 7518 Concat KDF and RFC 3394 A256KW now match Android/RFC vectors.
+  A completely separate Secure Enclave P-256 agreement identity is bound to exact
+  origin/account/authority epoch/enrollment and retained in non-synchronizing,
+  passcode-only QA Keychain storage with no replace/delete/fallback/signing path.
+  Focused **9/9**, full core **302/302**, and physical app-host **330/330 PASS**;
+  the named real Secure Enclave agreement/reopen/software-peer/wrap test passes.
+  Signed QA/unsigned Release and normal relaunch pass. No normal route or envelope.
+  NEXT: implement exact inactive signed agreement-enrollment checkpoint
+  `b217d504cd46023d6865159b94058aa6a16177bc`; require agreement fields in every
+  audience target without silent shrink. See `TEAM_DELIVERY_CRYPTO_IOS.md`,
+  `TEAM_AGREEMENT_KEY_CUSTODY_IOS.md` and `VALIDATION.md`.
+
 - One-flight current-team audience ownership now composes the exact reviewed
   account generation, registered device/enrollment, fresh membership revision and
   typed challenge/sign/execute routes. Custody signing is read-only and checks the

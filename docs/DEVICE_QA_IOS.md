@@ -5,6 +5,18 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest separate agreement-key checkpoint
+
+The isolated QA app now passes the real Secure Enclave P-256 ECDH identity,
+Keychain reopen, independent software-peer KDF and A256 wrap/unwrap test on the
+physical iPhone. The complete app-host suite is **330/330 PASS**,3.842s, with zero
+failures/skips. Signed QA and ordinary unsigned Release builds pass; QA returned
+to a normal launch. See `TEAM_AGREEMENT_KEY_CUSTODY_IOS.md` and `VALIDATION.md`.
+
+This key is separate from device signing and is not reachable in normal UI. The
+connected Android was not used because no live agreement registration, encrypted
+delivery or sync transport exists yet.
+
 ## Latest one-flight audience lookup checkpoint
 
 The inactive current-authority owner now passes **5/5** focused audience tests,

@@ -34,6 +34,44 @@ func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
     }
 }
 
+#if targetEnvironment(simulator)
+@Test(.disabled("Requires owner-approved separate QA app on physical iPhone."))
+#else
+@Test(.enabled(if: Bundle.main.bundleIdentifier == "com.zaidsafa.pinbook.ios.qa"))
+#endif
+func qaSecureEnclaveAgreementIdentityReopensAndMatchesSoftwarePeer() throws {
+    try #require(SecureEnclave.isAvailable)
+    let custody = try TeamAgreementKeyCustody(origin: "https://pinbook.invalid",
+        accountID: "public-qa-agreement-account", authorityEpoch: "public-qa-epoch",
+        enrollmentID: "public-qa-agreement-enrollment", requireAccess: {})
+    let retained = try custody.prepare()
+    #expect(try custody.current().keyThumbprint == retained.keyThumbprint)
+
+    let peerKey = P256.KeyAgreement.PrivateKey()
+    let peerWire = try TeamDeviceEnrollmentWire.publicKey(
+        P256.Signing.PublicKey(x963Representation: peerKey.publicKey.x963Representation))
+    let peer = TeamAgreementPublic(keyThumbprint: peerWire.thumbprint, publicKey: peerWire)
+    let partyU = Data("delivery".utf8), partyV = Data("physical-qa-peer".utf8)
+    var retainedKEK = try custody.derive(peer: peer, algorithm: "ECDH-ES+A256KW",
+        partyU: partyU, partyV: partyV)
+    let retainedAgreement = try P256.KeyAgreement.PublicKey(
+        x963Representation: retained.publicKey.key.x963Representation)
+    var peerSecret = try peerKey.sharedSecretFromKeyAgreement(with: retainedAgreement)
+        .withUnsafeBytes { Data($0) }
+    var peerKEK = try TeamDeliveryCryptoPrimitives.concatKDF(sharedSecret: peerSecret,
+        algorithm: "ECDH-ES+A256KW", partyU: partyU, partyV: partyV, bits: 256)
+    var contentKey = Data((0..<32).map(UInt8.init))
+    defer {
+        retainedKEK.resetBytes(in: retainedKEK.startIndex..<retainedKEK.endIndex)
+        peerSecret.resetBytes(in: peerSecret.startIndex..<peerSecret.endIndex)
+        peerKEK.resetBytes(in: peerKEK.startIndex..<peerKEK.endIndex)
+        contentKey.resetBytes(in: contentKey.startIndex..<contentKey.endIndex)
+    }
+    #expect(retainedKEK == peerKEK)
+    let wrapped = try TeamDeliveryCryptoPrimitives.wrapA256(kek: retainedKEK, key: contentKey)
+    #expect(try TeamDeliveryCryptoPrimitives.unwrapA256(kek: peerKEK, wrapped: wrapped) == contentKey)
+}
+
 @Test func personalBackupReaderChecksActualBytesAndShortReads() throws {
     var chunks = [Data("ab".utf8), Data("cd".utf8), Data()]
     let data = try BackupFileRead.readBounded(maximumBytes: 4) { requested in

@@ -17,6 +17,10 @@
 		C70000000000000000000006 /* TeamDeviceRequestHTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000005 /* TeamDeviceRequestHTTP.swift */; };
 		C70000000000000000000008 /* TeamAudienceLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000007 /* TeamAudienceLookup.swift */; };
 		C7000000000000000000000A /* TeamAudienceLookupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000009 /* TeamAudienceLookupTests.swift */; };
+		C7000000000000000000000C /* TeamDeliveryCryptoPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7000000000000000000000B /* TeamDeliveryCryptoPrimitives.swift */; };
+		C7000000000000000000000E /* TeamDeliveryCryptoPrimitivesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7000000000000000000000D /* TeamDeliveryCryptoPrimitivesTests.swift */; };
+		C70000000000000000000010 /* TeamAgreementKeyCustody.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7000000000000000000000F /* TeamAgreementKeyCustody.swift */; };
+		C70000000000000000000012 /* TeamAgreementKeyCustodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000011 /* TeamAgreementKeyCustodyTests.swift */; };
 		B10000000000000000000015 /* TeamMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* TeamMembershipView.swift */; };
 		B10000000000000000000016 /* TeamInvitationAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* TeamInvitationAccountView.swift */; };
 		B2000000000000000000001B /* TeamMembershipScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TeamMembershipScreen.swift */; };
@@ -146,6 +150,10 @@
 		C70000000000000000000005 /* TeamDeviceRequestHTTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceRequestHTTP.swift; sourceTree = "<group>"; };
 		C70000000000000000000007 /* TeamAudienceLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAudienceLookup.swift; sourceTree = "<group>"; };
 		C70000000000000000000009 /* TeamAudienceLookupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAudienceLookupTests.swift; sourceTree = "<group>"; };
+		C7000000000000000000000B /* TeamDeliveryCryptoPrimitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeliveryCryptoPrimitives.swift; sourceTree = "<group>"; };
+		C7000000000000000000000D /* TeamDeliveryCryptoPrimitivesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliveryCryptoPrimitivesTests.swift; sourceTree = "<group>"; };
+		C7000000000000000000000F /* TeamAgreementKeyCustody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAgreementKeyCustody.swift; sourceTree = "<group>"; };
+		C70000000000000000000011 /* TeamAgreementKeyCustodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAgreementKeyCustodyTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* TeamMembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipView.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* TeamInvitationAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationAccountView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TeamMembershipScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipScreen.swift; sourceTree = "<group>"; };
@@ -341,6 +349,8 @@
 				C70000000000000000000001 /* TeamDeviceRequestWire.swift */,
 				C70000000000000000000005 /* TeamDeviceRequestHTTP.swift */,
 				C70000000000000000000007 /* TeamAudienceLookup.swift */,
+				C7000000000000000000000B /* TeamDeliveryCryptoPrimitives.swift */,
+				C7000000000000000000000F /* TeamAgreementKeyCustody.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -371,6 +381,8 @@
 				E30000000000000000000001 /* TeamInvitationWorkflowTests.swift */,
 				C70000000000000000000003 /* TeamDeviceRequestWireTests.swift */,
 				C70000000000000000000009 /* TeamAudienceLookupTests.swift */,
+				C7000000000000000000000D /* TeamDeliveryCryptoPrimitivesTests.swift */,
+				C70000000000000000000011 /* TeamAgreementKeyCustodyTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -629,6 +641,8 @@
 				C70000000000000000000002 /* TeamDeviceRequestWire.swift in Sources */,
 				C70000000000000000000006 /* TeamDeviceRequestHTTP.swift in Sources */,
 				C70000000000000000000008 /* TeamAudienceLookup.swift in Sources */,
+				C7000000000000000000000C /* TeamDeliveryCryptoPrimitives.swift in Sources */,
+				C70000000000000000000010 /* TeamAgreementKeyCustody.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -659,6 +673,8 @@
 				Z30000000000000000000001 /* TeamInvitationWorkflowTests.swift in Sources */,
 				C70000000000000000000004 /* TeamDeviceRequestWireTests.swift in Sources */,
 				C7000000000000000000000A /* TeamAudienceLookupTests.swift in Sources */,
+				C7000000000000000000000E /* TeamDeliveryCryptoPrimitivesTests.swift in Sources */,
+				C70000000000000000000012 /* TeamAgreementKeyCustodyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

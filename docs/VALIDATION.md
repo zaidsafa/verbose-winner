@@ -1,5 +1,44 @@
 # Validation plan
 
+## 2026-09-05 standard delivery crypto and separate agreement custody (inactive)
+
+- Added bounded RFC 7518 Concat KDF/SHA-256 and RFC 3394 A256 Key Wrap using
+  CryptoKit, plus a separate Secure Enclave P-256 agreement identity scoped to the
+  exact canonical origin/account/authority epoch/enrollment. The agreement key
+  cannot sign and the signing key cannot enter this API. Keychain custody has
+  no update/delete/replace/sync/fallback. See `TEAM_DELIVERY_CRYPTO_IOS.md` and
+  `TEAM_AGREEMENT_KEY_CUSTODY_IOS.md`.
+- The first test command was blocked before compile by sandbox denial of Swift
+  compiler caches: `/private/tmp/pinbook-ios-delivery-crypto-focused-20260905.log`.
+  With cache access, compile identified two missing `try` markers in the new
+  independent-agreement test only; corrected without changing app behavior:
+  `/private/tmp/pinbook-ios-delivery-crypto-focused-fixed-20260905.log`.
+- Final standard vectors **4/4 PASS**,0.001s:
+  `/private/tmp/pinbook-ios-delivery-crypto-focused-final-20260905.log`.
+  Combined crypto/custody **9/9 PASS**,0.007s:
+  `/private/tmp/pinbook-ios-agreement-focused-20260905.log`. Complete core
+  **302/302 PASS**,20.014s:
+  `/private/tmp/pinbook-ios-agreement-full-core-20260905.log`.
+- Signed isolated QA build-for-testing PASS:
+  `/private/tmp/pinbook-qa-agreement-build-20260905.log`. A first focused physical
+  selector matched zero Swift Testing cases and is not counted:
+  `/private/tmp/Pinbook-QA-Physical-Agreement-Key-20260905.xcresult`. The complete
+  physical app-host run explicitly executed and passed the named Secure Enclave
+  agreement/Keychain reopen/software-peer/A256 round trip and finished **330/330
+  PASS**,3.842s, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Agreement-Full-20260905.xcresult` and
+  `/private/tmp/pinbook-qa-physical-agreement-full-20260905.log`.
+- A fresh ordinary Release compile exceeded the bounded tool window after source
+  compilation began; a warm-cache rerun passed, and the final durable ordinary
+  unsigned Release log reports **BUILD SUCCEEDED**:
+  `/private/tmp/pinbook-ios-agreement-release-success-20260905.log`. QA returned
+  to a normal launch:
+  `/private/tmp/pinbook-qa-post-agreement-normal-launch-20260905.json`.
+- Prior complete UI **29/29 PASS** remains applicable because there is no UI or
+  runtime route. This does not validate an agreement-enrollment server route,
+  envelope, note encryption, submit/fetch/ACK, Android/iPhone sync, release archive,
+  production activation or TestFlight readiness.
+
 ## 2026-09-05 one-flight current team audience lookup (inactive)
 
 - Added one explicit foreground owner for the exact reviewed account, registered

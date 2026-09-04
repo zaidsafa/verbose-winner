@@ -58,6 +58,13 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- Reviewed standard ECDH-ES Concat KDF/A256KW vectors and a separate non-exported
+  Secure Enclave agreement identity now pass locally and in the isolated physical
+  QA app. The key is exact enrollment scoped and cannot reuse the signing API.
+  This is still inactive: agreement-key registration, required audience fields,
+  canonical envelope, delivery and two-device sync remain open. See
+  `TEAM_DELIVERY_CRYPTO_IOS.md` and `TEAM_AGREEMENT_KEY_CUSTODY_IOS.md`.
+
 - A one-flight current team-audience lookup now pins one reviewed account, exact
   registered device/enrollment and fresh membership revision through one typed
   challenge/sign/execute request. Account/device/proof authority is rechecked
