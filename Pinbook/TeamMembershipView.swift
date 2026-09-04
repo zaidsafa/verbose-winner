@@ -8,8 +8,11 @@ struct TeamMembershipView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
     @State private var model: TeamMembershipScreenModel
+    private let onClose: (() -> Void)?
 
-    init(model: TeamMembershipScreenModel) { _model = State(initialValue: model) }
+    init(model: TeamMembershipScreenModel, onClose: (() -> Void)? = nil) {
+        _model = State(initialValue: model); self.onClose = onClose
+    }
 
     var body: some View {
         NavigationStack {
@@ -147,7 +150,7 @@ struct TeamMembershipView: View {
         default: "Review the team and role before joining."
         }
     }
-    private func close() { model.close(); dismiss() }
+    private func close() { model.close(); if let onClose { onClose() } else { dismiss() } }
 }
 
 #if DEBUG

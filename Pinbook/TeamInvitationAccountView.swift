@@ -8,7 +8,14 @@ struct TeamInvitationAccountView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
     @State private var model: TeamInvitationAccountScreenModel
-    init(model: TeamInvitationAccountScreenModel) { _model = State(initialValue: model) }
+    private let isTransitioning: Bool
+    private let onContinue: (() -> Void)?
+    private let onClose: (() -> Void)?
+    init(model: TeamInvitationAccountScreenModel, isTransitioning: Bool = false,
+         onContinue: (() -> Void)? = nil, onClose: (() -> Void)? = nil) {
+        _model = State(initialValue: model); self.isTransitioning = isTransitioning
+        self.onContinue = onContinue; self.onClose = onClose
+    }
 
     var body: some View {
         NavigationStack {
@@ -68,8 +75,15 @@ struct TeamInvitationAccountView: View {
                         .accessibilityIdentifier("invitation-account-access")
                     }
                     if model.stage == .complete {
-                        Button("Done") { close() }.buttonStyle(.pinbookProminent)
-                            .frame(minHeight: 44).accessibilityIdentifier("invitation-account-done")
+                        if let onContinue {
+                            if isTransitioning { ProgressView().accessibilityLabel(Text("Continue")) }
+                            Button("Continue", action: onContinue).buttonStyle(.pinbookProminent)
+                                .disabled(isTransitioning).frame(minHeight: 44)
+                                .accessibilityIdentifier("invitation-account-continue")
+                        } else {
+                            Button("Done") { close() }.buttonStyle(.pinbookProminent)
+                                .frame(minHeight: 44).accessibilityIdentifier("invitation-account-done")
+                        }
                     }
                 }
                 .padding(24).frame(maxWidth: 560, alignment: .leading).frame(maxWidth: .infinity)
@@ -106,12 +120,12 @@ struct TeamInvitationAccountView: View {
         default: return "Review the team and role before signing in."
         }
     }
-    private func close() { model.close(); dismiss() }
+    private func close() { model.close(); if let onClose { onClose() } else { dismiss() } }
 }
 
 #if DEBUG
 /// Synthetic presentation only: no Keychain, real account, provider or transport.
-private actor TeamInvitationAccountDebugService: TeamInvitationAccountScreenService {
+actor TeamInvitationAccountDebugService: TeamInvitationAccountScreenService {
     private let scenario: String
     init(scenario: String) { self.scenario = scenario }
     func review() async throws -> TeamInvitationAccountReview {

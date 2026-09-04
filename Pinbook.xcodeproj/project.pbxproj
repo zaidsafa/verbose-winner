@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D10000000000000000000001 /* TeamDeviceRegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000001 /* TeamDeviceRegistrationView.swift */; };
+		D10000000000000000000002 /* TeamInvitationWorkflowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000002 /* TeamInvitationWorkflowView.swift */; };
+		D20000000000000000000001 /* TeamDeviceRegistrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* TeamDeviceRegistrationScreen.swift */; };
+		D20000000000000000000002 /* TeamInvitationWorkflow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000002 /* TeamInvitationWorkflow.swift */; };
+		Z30000000000000000000001 /* TeamInvitationWorkflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000000000000000000001 /* TeamInvitationWorkflowTests.swift */; };
 		B10000000000000000000015 /* TeamMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* TeamMembershipView.swift */; };
 		B10000000000000000000016 /* TeamInvitationAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* TeamInvitationAccountView.swift */; };
 		B2000000000000000000001B /* TeamMembershipScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TeamMembershipScreen.swift */; };
@@ -126,6 +131,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E10000000000000000000001 /* TeamDeviceRegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceRegistrationView.swift; sourceTree = "<group>"; };
+		E10000000000000000000002 /* TeamInvitationWorkflowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationWorkflowView.swift; sourceTree = "<group>"; };
+		E20000000000000000000001 /* TeamDeviceRegistrationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDeviceRegistrationScreen.swift; sourceTree = "<group>"; };
+		E20000000000000000000002 /* TeamInvitationWorkflow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationWorkflow.swift; sourceTree = "<group>"; };
+		E30000000000000000000001 /* TeamInvitationWorkflowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamInvitationWorkflowTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* TeamMembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipView.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* TeamInvitationAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationAccountView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TeamMembershipScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipScreen.swift; sourceTree = "<group>"; };
@@ -278,6 +288,8 @@
 				A10000000000000000000012 /* OnboardingView.swift */,
 				A10000000000000000000015 /* TeamMembershipView.swift */,
 				A10000000000000000000016 /* TeamInvitationAccountView.swift */,
+				E10000000000000000000001 /* TeamDeviceRegistrationView.swift */,
+				E10000000000000000000002 /* TeamInvitationWorkflowView.swift */,
 			);
 			path = Pinbook;
 			sourceTree = "<group>";
@@ -314,6 +326,8 @@
 				A2000000000000000000001B /* TeamMembershipScreen.swift */,
 				A2000000000000000000001C /* TeamInvitationAccountScreen.swift */,
 				A2000000000000000000001D /* TeamInvitationDeviceFlow.swift */,
+				E20000000000000000000001 /* TeamDeviceRegistrationScreen.swift */,
+				E20000000000000000000002 /* TeamInvitationWorkflow.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -341,6 +355,7 @@
 				A30000000000000000000013 /* TeamMembershipJoinTests.swift */,
 				A30000000000000000000014 /* TeamMembershipScreenTests.swift */,
 				A30000000000000000000015 /* TeamInvitationAccountScreenTests.swift */,
+				E30000000000000000000001 /* TeamInvitationWorkflowTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -563,6 +578,8 @@
 				B10000000000000000000012 /* OnboardingView.swift in Sources */,
 				B10000000000000000000015 /* TeamMembershipView.swift in Sources */,
 				B10000000000000000000016 /* TeamInvitationAccountView.swift in Sources */,
+				D10000000000000000000001 /* TeamDeviceRegistrationView.swift in Sources */,
+				D10000000000000000000002 /* TeamInvitationWorkflowView.swift in Sources */,
 				B20000000000000000000001 /* Records.swift in Sources */,
 				B20000000000000000000002 /* Backup.swift in Sources */,
 				B20000000000000000000003 /* Money.swift in Sources */,
@@ -592,6 +609,8 @@
 				B2000000000000000000001B /* TeamMembershipScreen.swift in Sources */,
 				B2000000000000000000001C /* TeamInvitationAccountScreen.swift in Sources */,
 				B2000000000000000000001D /* TeamInvitationDeviceFlow.swift in Sources */,
+				D20000000000000000000001 /* TeamDeviceRegistrationScreen.swift in Sources */,
+				D20000000000000000000002 /* TeamInvitationWorkflow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -619,6 +638,7 @@
 				B30000000000000000000013 /* TeamMembershipJoinTests.swift in Sources */,
 				B30000000000000000000014 /* TeamMembershipScreenTests.swift in Sources */,
 				B30000000000000000000015 /* TeamInvitationAccountScreenTests.swift in Sources */,
+				Z30000000000000000000001 /* TeamInvitationWorkflowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

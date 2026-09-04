@@ -2,6 +2,117 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testChineseInvitationWorkflowRequiresThreeSeparateConsents() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationWorkflow", "-PinbookLanguage", "zh-Hans"]
+        app.launch()
+        let accountReview = app.buttons["invitation-account-review"]
+        XCTAssertTrue(accountReview.waitForExistence(timeout: 10)); accountReview.tap()
+        let accountConsent = app.switches.matching(identifier: "invitation-account-consent").firstMatch
+        XCTAssertTrue(accountConsent.waitForExistence(timeout: 5)); reveal(accountConsent, in: app); accountConsent.switches.firstMatch.tap()
+        let access = app.buttons["invitation-account-access"]; reveal(access, in: app); access.tap()
+        let accountContinue = app.buttons["invitation-account-continue"]
+        XCTAssertTrue(accountContinue.waitForExistence(timeout: 5)); accountContinue.tap()
+        let deviceConsent = app.switches.matching(identifier: "device-registration-consent").firstMatch
+        XCTAssertTrue(deviceConsent.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["device-registration-register"].isEnabled)
+        reveal(deviceConsent, in: app)
+        let screen = XCTAttachment(screenshot: app.screenshot()); screen.name = "Chinese separate device registration consent"
+        screen.lifetime = .keepAlways; add(screen)
+        deviceConsent.switches.firstMatch.tap()
+        let register = app.buttons["device-registration-register"]; reveal(register, in: app); register.tap()
+        let deviceContinue = app.buttons["device-registration-continue"]
+        XCTAssertTrue(deviceContinue.waitForExistence(timeout: 5)); deviceContinue.tap()
+        let membershipReview = app.buttons["membership-review"]
+        XCTAssertTrue(membershipReview.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["membership-join"].exists)
+        membershipReview.tap()
+        let membershipConsent = app.switches.matching(identifier: "membership-consent").firstMatch
+        XCTAssertTrue(membershipConsent.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["membership-join"].isEnabled)
+        reveal(membershipConsent, in: app); membershipConsent.switches.firstMatch.tap()
+        let join = app.buttons["membership-join"]; reveal(join, in: app); join.tap()
+        XCTAssertTrue(app.buttons["membership-done"].waitForExistence(timeout: 5))
+    }
+    @MainActor
+    func testArabicExistingAccountStillRequiresSeparateDeviceAndMembershipConsent() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationWorkflow",
+            "-PinbookInvitationWorkflowScenario", "existing", "-PinbookLanguage", "ar", "-PinbookTheme", "dark"]
+        app.launch()
+        let accountReview = app.buttons["invitation-account-review"]
+        XCTAssertTrue(accountReview.waitForExistence(timeout: 10)); accountReview.tap()
+        XCTAssertFalse(app.switches["invitation-account-consent"].exists)
+        let access = app.buttons["invitation-account-access"]; reveal(access, in: app); access.tap()
+        let next = app.buttons["invitation-account-continue"]; XCTAssertTrue(next.waitForExistence(timeout: 5)); next.tap()
+        let consent = app.switches.matching(identifier: "device-registration-consent").firstMatch
+        XCTAssertTrue(consent.waitForExistence(timeout: 5)); XCTAssertEqual(app.buttons["device-registration-register"].label, "سجّل هذا الجهاز")
+        reveal(consent, in: app)
+        let screen = XCTAttachment(screenshot: app.screenshot()); screen.name = "Arabic device registration with fresh consent"
+        screen.lifetime = .keepAlways; add(screen)
+        consent.switches.firstMatch.tap()
+        let register = app.buttons["device-registration-register"]; reveal(register, in: app); register.tap()
+        let deviceContinue = app.buttons["device-registration-continue"]; XCTAssertTrue(deviceContinue.waitForExistence(timeout: 5)); deviceContinue.tap()
+        let review = app.buttons["membership-review"]; XCTAssertTrue(review.waitForExistence(timeout: 5)); review.tap()
+        XCTAssertTrue(app.switches.matching(identifier: "membership-consent").firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["membership-join"].isEnabled)
+    }
+    @MainActor
+    func testDeviceRetryRequiresNewConsentForEveryAttempt() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationWorkflow",
+            "-PinbookInvitationWorkflowScenario", "retry", "-PinbookLanguage", "en"]
+        app.launch(); advanceToDevice(app)
+        for expected in ["An earlier registration is still pending. Wait until the time shown, then continue.",
+                         "The previous attempt was not found. Confirm again to retry with the same device."] {
+            let consent = app.switches.matching(identifier: "device-registration-consent").firstMatch
+            XCTAssertTrue(consent.waitForExistence(timeout: 5)); reveal(consent, in: app); consent.switches.firstMatch.tap()
+            let action = app.buttons["device-registration-register"]; reveal(action, in: app); action.tap()
+            let status = app.staticTexts["device-registration-status"]
+            XCTAssertTrue(status.waitForExistence(timeout: 5)); XCTAssertEqual(status.label, expected)
+            XCTAssertFalse(app.buttons["device-registration-register"].isEnabled)
+        }
+        let consent = app.switches.matching(identifier: "device-registration-consent").firstMatch
+        reveal(consent, in: app); consent.switches.firstMatch.tap()
+        let action = app.buttons["device-registration-register"]; reveal(action, in: app); action.tap()
+        XCTAssertTrue(app.buttons["device-registration-continue"].waitForExistence(timeout: 5))
+    }
+    @MainActor
+    func testUncertainDeviceRegistrationCannotAdvanceOrReplayAutomatically() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationWorkflow",
+            "-PinbookInvitationWorkflowScenario", "uncertain", "-PinbookLanguage", "en"]
+        app.launch(); advanceToDevice(app)
+        let consent = app.switches.matching(identifier: "device-registration-consent").firstMatch
+        reveal(consent, in: app); consent.switches.firstMatch.tap()
+        let action = app.buttons["device-registration-register"]; reveal(action, in: app); action.tap()
+        XCTAssertTrue(app.staticTexts["Registration could not be confirmed. Continue to check the previous attempt before trying again."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["device-registration-continue"].exists)
+        XCTAssertFalse(app.buttons["device-registration-register"].isEnabled)
+    }
+    @MainActor
+    func testBackgroundDuringDeviceConsentClosesWholeWorkflow() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationWorkflow", "-PinbookLanguage", "en"]
+        app.launch(); advanceToDevice(app)
+        let consent = app.switches.matching(identifier: "device-registration-consent").firstMatch
+        XCTAssertTrue(consent.waitForExistence(timeout: 5)); reveal(consent, in: app); consent.switches.firstMatch.tap()
+        XCUIDevice.shared.press(.home); app.activate()
+        XCTAssertTrue(app.staticTexts["Team setup closed. Open the invitation again to continue."].waitForExistence(timeout: 5))
+        XCTAssertFalse(consent.exists); XCTAssertFalse(app.staticTexts["device-registration-account"].exists)
+        XCTAssertFalse(app.buttons["device-registration-register"].exists)
+    }
+    @MainActor private func advanceToDevice(_ app: XCUIApplication) {
+        let review = app.buttons["invitation-account-review"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10)); review.tap()
+        let consent = app.switches.matching(identifier: "invitation-account-consent").firstMatch
+        XCTAssertTrue(consent.waitForExistence(timeout: 5)); reveal(consent, in: app); consent.switches.firstMatch.tap()
+        let access = app.buttons["invitation-account-access"]; reveal(access, in: app); access.tap()
+        let next = app.buttons["invitation-account-continue"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5)); next.tap()
+        XCTAssertTrue(app.switches.matching(identifier: "device-registration-consent").firstMatch.waitForExistence(timeout: 5))
+    }
+    @MainActor private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<5 where !element.isHittable { app.swipeUp() }
+    }
+    @MainActor
     func testInvitationNewAccountUsesChineseCopyAndSeparateUncheckedConsent() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount", "-PinbookLanguage", "zh-Hans"]

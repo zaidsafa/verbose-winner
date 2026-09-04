@@ -45,6 +45,19 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Native invitation workflow UI now retains account → device → membership and
+  requires three separate user actions. Device wait/retry-ready/uncertain outcomes
+  never advance or replay; each explicit registration attempt starts unchecked.
+  Parent close/background cancels and drains every mounted child and transition;
+  mismatched or late children are closed. The DEBUG QA host is fully synthetic.
+  Core **281/281 PASS**; physical app-host **308/308 PASS** and five focused UI
+  journeys **5/5 PASS**. Chinese dark and Arabic RTL screenshots were inspected.
+  Signed QA and unsigned Release builds PASS with **336** localized source/compiled
+  entries. Complete physical UI **29/29 PASS**,422.507s, zero failures/skips; QA
+  normal launch succeeded afterward. Ordinary app entry/session-generation routing remains next; no live registration, note
+  sync, production identity/version/capability, archive, push, or TestFlight upload.
+  See TEAM_INVITATION_WORKFLOW_IOS.md.
+
 - Registration now requires an exact reviewed account ticket at initialization;
   the old scope-only initializer is removed. A regression reproduced wrong-account
   key creation after both same-ID re-login and a different account switch. The fix

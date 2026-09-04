@@ -96,14 +96,15 @@ checkboxes deliberately remain open until checked against the exact next candida
   bridge composes the invitation owner; the native DEBUG host is synthetic, not
   provider issuance. Physical287 app+24 UI passed; after core-only handoff refinements,
   rebuilt288 app+4 affected UI passed. All323 catalog entries match compiled app/
-  widget resources. Parent account/device/membership routing remains open;
-  the retained core TeamInvitationDeviceFlow now connects exact account receipt →
-  separately consented registration → one-use membership-screen transfer. The
-  registration owner requires the reviewed account generation before any key write.
-  Confirmed device registration is not membership; waiting/uncertain/retry-ready
-  cannot advance. Native device consent UI and parent lifecycle routing remain open.
-  See TEAM_INVITATION_DEVICE_FLOW_IOS.md. No new final-feature gate is closed by
-  this core connector or its synthetic/privateTLS test fixtures.
+  widget resources. The retained parent presentation now connects exact account
+  receipt → localized, separately consented device registration → one-use
+  membership-screen transfer. The registration owner requires the reviewed account
+  generation before any key write. Confirmed device registration is not membership;
+  waiting/uncertain/retry-ready cannot advance or replay automatically, and each
+  attempt needs fresh consent. Chinese/Arabic physical UI paths pass in the isolated
+  QA app. Ordinary invitation entry/session-generation routing remains open. See
+  TEAM_INVITATION_DEVICE_FLOW_IOS.md and TEAM_INVITATION_WORKFLOW_IOS.md. No final-
+  feature gate is closed by this synthetic/privateTLS/QA presentation.
   the backend's source-only teams/acceptance route now has bounded iOS transport,
   durable same-identity explicit retry owner and localTLS tests; the native retry
   screen/bridge now composes that owner with new consent and original-link-only

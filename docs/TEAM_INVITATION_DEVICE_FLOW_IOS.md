@@ -1,8 +1,10 @@
 # Invitation account → device → membership ownership
 
 Updated September5,2026. `TeamInvitationDeviceFlow` connects the actual retained
-account bridge, device registration owner and membership screen bridge. It is a
-core workflow, not yet a normal-navigation SwiftUI host or a live service activation.
+account bridge, device registration owner and membership screen bridge. A localized
+native device screen and retained parent presentation now exercise this workflow
+in the isolated DEBUG QA host. Ordinary navigation and live service activation
+remain gated.
 
 ## Explicit stages
 
@@ -52,11 +54,13 @@ It does not delete account/device metadata. A child already handed off belongs t
 the parent workspace: closing this finished device step does not close that child.
 The workspace must close the child itself on background/account replacement.
 
-The future native parent must retain and cancel/drain the asynchronous `begin`
-task, reject late lifecycle-generation results, and close any discarded returned
-flow. Consume the account receipt BEFORE dismissing its source view; disappearance
-invalidates an unconsumed receipt. UI state should store only display context, not
-`TeamInviteJoinIntent` or account credentials. Context is not authorization.
+The native parent retains and cancels/drains the asynchronous `begin` and membership
+transfer tasks, rejects late lifecycle-generation results, and closes discarded
+children. It consumes the account receipt before closing its source view because
+disappearance invalidates an unconsumed receipt. UI state stores only display
+context, not `TeamInviteJoinIntent` or account credentials. Context is not
+authorization. The ordinary app still needs a real invitation entry and account-
+generation routing before activation.
 
 ## Evidence and remaining UI work
 
@@ -73,10 +77,11 @@ invalidates an unconsumed receipt. UI state should store only display context, n
   before device consent and zero join writes before membership consent. The same
   retained typed client is shared throughout. This uses synthetic account/key/
   server fixtures, not Apple/Google issuance or live encrypted notes delivery.
-- Full core, native app-host and build results are in VALIDATION.md. No new native
-  device-registration view was added here; account and membership views remain
-  independently DEBUG-testable. Next: localized device-registration model/view and
-  retained parent navigation with account-generation teardown.
+- Full core, native app-host and build results are in VALIDATION.md. The localized
+  device-registration model/view and retained parent workflow are now separately
+  DEBUG-testable, including Chinese/Arabic, retry and lifecycle paths. See
+  TEAM_INVITATION_WORKFLOW_IOS.md. Next: real app invitation entry/session-generation
+  routing; do not interpret the synthetic QA presentation as live activation.
 
 No production identities/capabilities/version, provider clients, shared server or
 TestFlight release changed. Keep every FINAL_UPDATE_CHECKLIST.md gate intact.

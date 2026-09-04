@@ -5,6 +5,28 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest retained invitation workflow checkpoint
+
+The isolated QA presentation now traverses account access, device registration,
+and membership with three distinct decisions. Physical app-host **308/308 PASS**,
+8.672s, and the five new UI journeys **5/5 PASS**,106.359s. They cover Simplified
+Chinese, Arabic RTL/existing account, three separate consents, explicit retry with
+fresh consent each time, uncertain no-replay behavior, and background closure.
+
+Exported Chinese dark-mode and Arabic RTL device-registration screenshots are
+readable, use semantic foregrounds, keep machine IDs left-to-right, and retain a
+scrollable action path. Artifacts:
+`/private/tmp/Pinbook-QA-Physical-Workflow-Screen-20260905.xcresult`,
+`/private/tmp/pinbook-qa-physical-workflow-screen-20260905.log`, and
+`/private/tmp/pinbook-workflow-attachments-20260905-2/`.
+
+This is synthetic UI/on-device model evidence, not live provider issuance,
+registration, membership, notes synchronization, or TestFlight publication.
+Complete physical UI regression **29/29 PASS**,422.507s, zero failures/skips:
+`/private/tmp/Pinbook-QA-Physical-Workflow-Screen-Full-20260905.xcresult`.
+QA then launched normally without fixture arguments. No ordinary app was targeted.
+See TEAM_INVITATION_WORKFLOW_IOS.md and VALIDATION.md.
+
 ## Latest exact-account device-flow checkpoint
 
 Core-only registration and invitation/device/membership connector changes passed

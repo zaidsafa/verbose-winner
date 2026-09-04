@@ -1,5 +1,51 @@
 # Validation plan
 
+## 2026-09-05 retained invitation workflow and device-consent UI
+
+- Added a native device-registration model/view and retained account → device →
+  membership parent. No I/O starts on presentation. The three decisions remain
+  separate; wait/retry-ready/uncertain registration cannot advance or replay, and
+  every explicit attempt starts with unchecked consent. Close/background drains
+  transitions and children; mismatched, late and cleanup-uncertain products fail
+  closed. The real composition factory uses the exact retained connector, while
+  the DEBUG presentation is public synthetic UI with no provider, Keychain,
+  network, stored-record, or live-note access. See TEAM_INVITATION_WORKFLOW_IOS.md.
+- First QA build correctly failed before testing because the initial new test-file
+  project object identifier duplicated an existing Xcode object. Replaced it with
+  a unique identifier, audited all 24-character object definitions for duplicates,
+  then `xcodebuild -list` and `plutil -lint` passed. Failed/corrected logs:
+  `/private/tmp/pinbook-qa-workflow-screen-build-20260905.log` and
+  `/private/tmp/pinbook-ios-workflow-project-list-fixed-20260905.log`.
+- Focused workflow model **9/9 PASS**:
+  `/private/tmp/pinbook-ios-workflow-screen-focused-20260905.log`.
+  Complete core **281/281 PASS**,14.735s:
+  `/private/tmp/pinbook-ios-workflow-screen-full-core-20260905.log`.
+- Thirteen new source messages across all15 translated locales plus English;
+  localization validation **336 keys PASS**, with exact compiled app/widget parity.
+- Corrected signed QA build-for-testing and ordinary unsigned Release both PASS:
+  `/private/tmp/pinbook-qa-workflow-screen-fixed-build-20260905.log` and
+  `/private/tmp/pinbook-ios-workflow-screen-release-20260905.log`.
+- Physical iPhone app-host **308/308 PASS**,8.672s, plus the five new UI journeys
+  **5/5 PASS**,106.359s, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Workflow-Screen-20260905.xcresult` and
+  `/private/tmp/pinbook-qa-physical-workflow-screen-20260905.log`.
+  Tests cover Chinese three-consent completion, Arabic existing account with
+  separate device/membership consent, fresh consent after both wait and retry-ready,
+  uncertain no-replay/no-advance, and whole-workflow background closure.
+- Chinese dark-mode and Arabic RTL screenshots were exported and visually checked:
+  semantic foregrounds are readable, RTL alignment is correct, machine identifiers
+  remain LTR, and the action remains reachable by scroll. Files are under
+  `/private/tmp/pinbook-workflow-attachments-20260905-2/`.
+- Complete existing+new physical UI regression **29/29 PASS**,422.507s, zero
+  failures/skips. It includes all theme contrast, introduction/language, currency,
+  backup/recovery, invitation, membership, retry, and new workflow journeys:
+  `/private/tmp/Pinbook-QA-Physical-Workflow-Screen-Full-20260905.xcresult` and
+  `/private/tmp/pinbook-qa-physical-workflow-screen-full-20260905.log`.
+  Normal QA launch without fixture arguments succeeded afterward:
+  `/private/tmp/pinbook-qa-post-workflow-screen-normal-launch-20260905.json`.
+  No production identifier, capability, version, archive, provider, shared service,
+  normal route, app records, or TestFlight build changed.
+
 ## 2026-09-05 exact-account device registration and invitation connector
 
 - Regression before fix **FAILED six assertions across two account replacements**:

@@ -121,7 +121,11 @@ func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
     #expect(!PinbookLaunchConfiguration.production.showsTeamKeySetupFixture)
     #expect(!PinbookLaunchConfiguration.production.showsTeamMembershipFixture)
     #expect(!PinbookLaunchConfiguration.production.showsTeamInvitationAccountFixture)
+    #expect(!PinbookLaunchConfiguration.production.showsTeamInvitationWorkflowFixture)
 #if DEBUG
+    #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamInvitationWorkflow"]).showsTeamInvitationWorkflowFixture)
+    #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamInvitationWorkflow"]).showsTeamInvitationWorkflowFixture)
+    #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamInvitationWorkflow", "-PinbookInvitationWorkflowScenario", "invalid"]).invitationWorkflowFixtureScenario == "new")
     #expect(!PinbookLaunchConfiguration(arguments: ["-PinbookTeamInvitationAccount"]).showsTeamInvitationAccountFixture)
     #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount"]).showsTeamInvitationAccountFixture)
     #expect(PinbookLaunchConfiguration(arguments: ["-PinbookFixture", "empty", "-PinbookTeamInvitationAccount", "-PinbookInvitationAccountScenario", "invalid"]).invitationAccountFixtureScenario == "new")
@@ -206,7 +210,7 @@ func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
         let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
         let data = try Data(contentsOf: url)
         let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
-        #expect(values.count == 323)
+        #expect(values.count == 336)
         for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data.", "This backup exceeds the 128 MiB limit. Your records have not been changed.", "I agree to join this team with the role shown.", "We couldn't confirm the result. Check membership before trying anything else.", "Check whether this account still belongs to the team.",
                     "Check previous join", "Check the previous attempt before sending another join request.",
                     "The previous join is still pending. Confirm again to retry the same invitation.",
@@ -219,7 +223,17 @@ func qaSecureEnclaveKeyReopensAndSignsWithoutExportingPrivateMaterial() throws {
                     "Account access could not be confirmed. Close this screen before signing in again.",
                     "Account access is ready. Registering this device and joining need separate confirmation.",
                     "Account screen closed. Open the invitation again to continue.",
-                    "Account cleanup could not be confirmed. Do not retry this invitation yet."] {
+                    "Account cleanup could not be confirmed. Do not retry this invitation yet.",
+                    "Register this device", "This device needs its own registration before you can join the team.",
+                    "Registration does not join the team or share your private notes.",
+                    "I agree to register this device for the account shown.", "Registering device…",
+                    "An earlier registration is still pending. Wait until the time shown, then continue.",
+                    "The previous attempt was not found. Confirm again to retry with the same device.",
+                    "Registration could not be confirmed. Continue to check the previous attempt before trying again.",
+                    "Continue registration", "This device is registered. Continue to review your team membership.",
+                    "Device screen closed. Open the invitation again to continue.",
+                    "Setup could not continue. Close this screen and reopen the invitation.",
+                    "Team setup closed. Open the invitation again to continue."] {
             let value = try #require(values[key])
             #expect(!value.isEmpty && value != key)
         }

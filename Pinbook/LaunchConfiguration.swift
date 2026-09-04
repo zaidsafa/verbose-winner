@@ -14,6 +14,8 @@ struct PinbookLaunchConfiguration: Equatable {
     var membershipFixtureScenario = "success"
     var showsTeamInvitationAccountFixture = false
     var invitationAccountFixtureScenario = "new"
+    var showsTeamInvitationWorkflowFixture = false
+    var invitationWorkflowFixtureScenario = "new"
 
     static let production = PinbookLaunchConfiguration()
 
@@ -36,6 +38,9 @@ struct PinbookLaunchConfiguration: Equatable {
         showsTeamKeySetupFixture = usesEphemeralStore && arguments.contains("-PinbookTeamKeySetup")
         showsTeamMembershipFixture = usesEphemeralStore && arguments.contains("-PinbookTeamMembership")
         showsTeamInvitationAccountFixture = usesEphemeralStore && arguments.contains("-PinbookTeamInvitationAccount")
+        showsTeamInvitationWorkflowFixture = usesEphemeralStore && arguments.contains("-PinbookTeamInvitationWorkflow")
+        if showsTeamInvitationWorkflowFixture, let scenario = arguments.value(after: "-PinbookInvitationWorkflowScenario"),
+           ["new", "existing", "retry", "uncertain"].contains(scenario) { invitationWorkflowFixtureScenario = scenario }
         if showsTeamInvitationAccountFixture, let scenario = arguments.value(after: "-PinbookInvitationAccountScenario"),
            ["new", "existing", "uncertain"].contains(scenario) { invitationAccountFixtureScenario = scenario }
         if showsTeamMembershipFixture, let scenario = arguments.value(after: "-PinbookMembershipScenario"),
