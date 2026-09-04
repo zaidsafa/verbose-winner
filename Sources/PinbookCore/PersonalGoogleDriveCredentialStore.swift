@@ -245,6 +245,61 @@ struct PersonalGoogleDriveCredentialStore: Sendable {
                      now: Int64, consent: Bool) throws
         -> PersonalGoogleDriveCredentialSnapshot {
         try Task.checkCancellation()
+        return try addInitial(
+            grant, configuration: configuration, now: now,
+            consent: consent, phase: .active
+        )
+    }
+
+    /// Fences a newly issued refresh token before connection success. This
+    /// intentionally ignores caller cancellation: once a provider issues a
+    /// token, durable custody must win before cleanup or activation can begin.
+    func stageInitialForActivation(
+        _ grant: PersonalGoogleDriveGrant,
+        configuration: PersonalGoogleDriveConfiguration,
+        now: Int64, consent: Bool
+    ) throws -> PersonalGoogleDriveCredentialSnapshot {
+        try addInitial(
+            grant, configuration: configuration, now: now,
+            consent: consent, phase: .revocationPending
+        )
+    }
+
+    /// Converts the exact fenced generation into the active connection. The
+    /// caller establishes its cancellation linearization before this atomic CAS.
+    func activate(_ current: PersonalGoogleDriveCredentialSnapshot, now: Int64) throws
+        -> PersonalGoogleDriveCredentialSnapshot {
+        guard current.phase == .revocationPending,
+              now >= current.connectedAt, now <= TeamAuthWire.maximumSafeTime else {
+            throw PersonalGoogleDriveCredentialError.staleOperation
+        }
+        if let expiry = current.refreshExpiresAt, expiry <= now {
+            throw PersonalGoogleDriveCredentialError.expired
+        }
+        let active = PersonalGoogleDriveCredentialSnapshot(
+            generation: UUID(), phase: .active,
+            clientIDHash: current.clientIDHash, connectedAt: current.connectedAt,
+            refreshExpiresAt: current.refreshExpiresAt,
+            refreshToken: current.refreshToken
+        )
+        let status = keychain.update(
+            matching(generation: current.generation), try attributes(active)
+        )
+        if status == errSecItemNotFound {
+            throw PersonalGoogleDriveCredentialError.staleOperation
+        }
+        guard status == errSecSuccess else {
+            throw PersonalGoogleDriveCredentialError.unavailable(status)
+        }
+        return active
+    }
+
+    private func addInitial(
+        _ grant: PersonalGoogleDriveGrant,
+        configuration: PersonalGoogleDriveConfiguration,
+        now: Int64, consent: Bool,
+        phase: PersonalGoogleDriveCredentialPhase
+    ) throws -> PersonalGoogleDriveCredentialSnapshot {
         guard consent else { throw PersonalGoogleDriveCredentialError.consentRequired }
         _ = try grant.accessToken(now: now)
         if let expiry = grant.refreshExpiresAt, expiry <= now {
@@ -252,7 +307,7 @@ struct PersonalGoogleDriveCredentialStore: Sendable {
         }
         let value = PersonalGoogleDriveCredentialSnapshot(
             generation: UUID(),
-            phase: .active,
+            phase: phase,
             clientIDHash: PersonalGoogleDriveCredentialCodec.clientIDHash(configuration.clientID),
             connectedAt: now,
             refreshExpiresAt: grant.refreshExpiresAt,

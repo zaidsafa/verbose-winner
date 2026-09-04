@@ -123,26 +123,34 @@ its exact state and S256 verifier; only a bounded matching callback is handed to
 AppAuth and it is consumed once. The ephemeral browser is cancelled on background,
 caller cancellation or a monotonic ten-minute deadline. If cancellation races a
 successful code exchange, the driver attempts isolated refresh-token revocation
-before settling. It returns a redacted in-memory grant only: the next connection
-coordinator must durably save it, or revoke it on any save/ownership failure,
-before reporting connection success.
+before settling. It returns a redacted in-memory grant only; its connection owner
+must durably save it, or revoke it on any save/ownership failure, before reporting
+connection success.
+
+`PersonalGoogleDriveConnectionOwner` now closes that custody gap. It refuses an
+existing active or fenced record before opening the provider and allows one
+attempt at a time. After authorization, the refresh token is atomically persisted
+as an unusable revocation-pending Keychain generation before a second exact CAS
+activates it. Cancellation or activation failure performs revocation outside the
+cancelled caller and deletes only that fenced generation. Ambiguous cleanup stays
+fenced and returns `cleanupRequired`; it never becomes a connected state.
 
 - Focused transport/owner/Drive tests: **15/15 PASS** on the separate physical
   iPhone QA app, including a real Keychain reopen/clear; Drive wire tests use an
   isolated synthetic executor and make no real provider call.
 - Complete personal Drive browser/authorization/custody/revocation boundary:
-  signed Simulator OAuth+authorizer **11/11 PASS** and separate physical iPhone QA
-  app **21/21 PASS**, including real Keychain reopen/delete. No provider request
-  was made.
-- Complete Swift core: **362/362 PASS**, 34 suites.
-- Signed iOS 26.5 Simulator app-host: **372 PASS + 4 expected physical-only
-  SKIPS**, 376 total, 0 failures.
+  signed Simulator and separate physical iPhone QA app **26/26 PASS**, including
+  real staged Keychain activation/reopen/delete. No provider request was made.
+- Complete Swift core: **366/366 PASS**, 35 suites.
+- Earlier pre-connection signed iOS 26.5 Simulator app-host baseline: **372 PASS
+  + 4 expected physical-only SKIPS**, 376 total, 0 failures. The exact current
+  connection source is covered by the focused signed 26/26 run above.
 - Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
 
 Exact paths and the initial sandbox-blocked attempt are recorded in
 `VALIDATION.md`. The Drive adapter is not connected: this source still has no
 allocated personal-Drive client configuration, production callback wiring,
-durable connection coordinator, iCloud adapter, scheduler, real remote
+iCloud adapter, scheduler, real remote
 bytes, automatic merge or production UI entry. The existing TestFlight build was
 not replaced.

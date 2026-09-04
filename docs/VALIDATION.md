@@ -1,5 +1,36 @@
 # Validation plan
 
+## 2026-09-05 inactive personal Drive connection custody coordinator
+
+- Added the authorization-to-Keychain coordinator. Before reporting success, a
+  newly issued refresh token is atomically added as `revocationPending`, then the
+  exact generation is promoted to `active`. Existing active or fenced records
+  stop before provider contact, and a second in-process connection fails busy.
+- Cancellation after provider issuance performs revocation outside the cancelled
+  caller task and deletes only the exact fenced generation. Activation failure
+  follows the same cleanup path. If revocation or deletion is not authoritative,
+  the fenced credential remains unusable and the result is `cleanupRequired`;
+  success is never reported from ambiguous custody.
+- Focused Swift connection+custody **7/7 PASS** using isolated scratch path
+  `/private/tmp/pinbook-spm-connection-20260905-a`. Two earlier runs executed the
+  tests but returned nonzero after the workspace `.build/build.db` reported disk
+  I/O errors; they are not acceptance evidence.
+- Complete Swift core **366/366 PASS**, 35 suites, 14.749s, using that same
+  isolated scratch path.
+- Signed iOS 26.5 Simulator complete personal-Drive suites **26/26 PASS**, zero
+  failures/skips, including real Keychain staged activation/reopen/delete:
+  `/private/tmp/Pinbook-Personal-Drive-Connection-Sim-20260905.xcresult`.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** complete
+  personal-Drive suites **26/26 PASS**, zero failures/skips, including the real
+  Data Protection Keychain:
+  `/private/tmp/Pinbook-QA-Physical-Personal-Drive-Connection-20260905.xcresult`.
+  QA returned to a successful normal launch afterward.
+- Exact-current ordinary unsigned production Release **BUILD SUCCEEDED** at
+  `/private/tmp/pinbook-personal-drive-connection-release-derived`, with unchanged
+  bundle `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- No allocated Google client, production callback route, Google account/request,
+  Android app operation, source push, archive or TestFlight action occurred.
+
 ## 2026-09-05 inactive personal Drive browser and callback owner
 
 - Added a one-flight AppAuth browser/callback owner for explicit personal Drive

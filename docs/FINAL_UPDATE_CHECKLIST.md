@@ -68,8 +68,10 @@ checkboxes deliberately remain open until checked against the exact next candida
       QA tests pass. An inactive AppAuth browser/callback owner now adds explicit
       consent, exact one-use callback routing, ephemeral presentation, cancellation,
       background handling and a monotonic timeout. Allocated dedicated client/project
-      configuration, production callback wiring, durable connection coordinator,
-      real Drive acceptance and UI activation remain open.
+      configuration, production callback wiring, real Drive acceptance and UI
+      activation remain open. The inactive connection coordinator now fences a
+      newly issued token in protected Keychain custody before atomically activating
+      it, and revokes/removes that exact fence on cancellation or failure.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
@@ -100,9 +102,9 @@ checkboxes deliberately remain open until checked against the exact next candida
   adapter is implemented behind an ephemeral token provider with strict bounded
   appDataFolder requests and exact conflict replay checks; it remains disconnected.
   A disconnected personal OAuth/token parser, protected custody/revocation path and
-  AppAuth browser/callback owner now exist and remain isolated from team sign-in,
-  but no allocated client, production callback/connection coordinator, iCloud
-  adapter, scheduler, real remote bytes, merge or UI activation exists.
+  AppAuth browser/callback owner and two-phase connection coordinator now exist and
+  remain isolated from team sign-in, but no allocated client, production callback
+  routing, iCloud adapter, scheduler, real remote bytes, merge or UI activation exists.
   See `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the

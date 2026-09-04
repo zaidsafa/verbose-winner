@@ -49,6 +49,19 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Personal Drive now has an inactive connection-custody coordinator. Every newly
+  issued refresh token is first persisted in the device-only Keychain as an
+  unusable revocation fence, then its exact generation is atomically activated.
+  Cancellation or activation failure revokes outside the cancelled task and
+  removes only that fence; ambiguous cleanup remains durably fenced and requires
+  retry. Existing active/fenced records never contact the provider and concurrent
+  attempts fail busy. Clean isolated core **366/366**, signed Simulator complete
+  personal-Drive **26/26**, physical iPhone **26/26** with real Keychain reopen,
+  normal QA relaunch and unchanged-identity production Release pass. No real
+  provider/Android sync ran. Allocated dedicated Google configuration, production
+  callback routing, live Drive acceptance and UI activation remain. No source
+  push or TestFlight action occurred.
+
 - Personal Drive now has an inactive AppAuth browser/callback owner. It requires
   explicit consent, a registered reversed-client URL scheme and usable foreground
   presenter; retains one pending request/state/verifier; routes only its exact
@@ -59,8 +72,8 @@ Updated: 2026-09-05 (Asia/Shanghai)
   physical iPhone OAuth/authorizer/Keychain/revocation **21/21**, normal QA
   relaunch and unchanged-identity production Release pass. Both iPhone and Samsung
   SM-S9180 are detected, but no real browser/provider/Android sync was run. The
-  allocated dedicated Google client/project, production callback routing,
-  durable connection coordinator, live Drive acceptance and UI activation remain.
+  allocated dedicated Google client/project, production callback routing, live
+  Drive acceptance and UI activation remain.
   No source push or TestFlight action occurred.
 
 - Personal Drive now has device-only Data Protection Keychain refresh-token
@@ -72,8 +85,7 @@ Updated: 2026-09-05 (Asia/Shanghai)
   signed Simulator **16/16**, physical QA **16/16**, normal QA relaunch and
   production Release pass. No real Google credential/request, Android operation,
   source push or TestFlight action occurred. Dedicated Google project/client,
-  production callback wiring/connection coordination, live Drive acceptance and
-  production UI remain.
+  production callback wiring, live Drive acceptance and production UI remain.
 
 - Personal Drive now has an additional disconnected OAuth/token checkpoint. A
   real allocated Google iOS client plus matching registered callback is mandatory;
