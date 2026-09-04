@@ -19,28 +19,37 @@ Android behavior reference: `9ad28646f3ddb5ebfa874421b44e40b4cfda8a74`, version 
 
 ## Draft wording and feedback
 
-Generated initial drafts are authorized. They are not professional or native-reviewed
+Assistant-authored initial drafts are authorized. They are not professional or native-reviewed
 translations. Xcode's `translated` string-unit state means a value exists, not that
 a person reviewed it. Record language, screen, current text, proposed correction,
 and the relevant key when collecting tester feedback.
 
-`scripts/localization_drafts.py --check` is an offline completeness/format-token
-check. Generation is a separate, opt-in operation that sends only interface text to
-the draft service used for Android and caches plain-data responses. It must never
-read or send financial records, backups, credentials, or user-entered content.
+The owner requested direct translation without Google on 2026-09-04. All 13 new
+locales were authored directly by the assistant. No strings were sent to an
+external translation service. `scripts/localization_drafts.py` now has no network
+code: it exports indexed source keys, imports locally authored drafts, and checks
+completeness/format tokens offline. A `translated` state is not a quality certificate.
+
+For future corrections, edit the catalog directly with a focused patch, or use
+`--export-keys DIR` and indexed `locale.txt` drafts (`index|translation`), followed
+by `--import-dir DIR --locales LOCALE`. Existing translations are preserved unless
+`--replace` is explicit. Run `python3 scripts/localization_drafts.py --check`.
+Use `--check-built-app /absolute/path/Pinbook.app` to compare all compiled app and
+widget values exactly against the source catalog. These tools never access
+financial records, backups, credentials, or user-entered content.
 
 ## Current boundary
 
-The language behavior update passed 37 simulator tests and 9 core tests on 2026-09-04,
-plus an unsigned iPhone Release build. Full 16-language draft
-generation is pending explicit approval for the interface-text payload and third-party
-destination; the bulk request was rejected by the approval safeguard before execution.
-The existing English, Arabic, and Simplified Chinese catalogs remain the current
-language coverage. Only compiled languages appear in the selector; the target
-16-language enum is not a claim of shipped coverage. Verify the existing coverage
-with `python3 scripts/localization_drafts.py --check --locales ar zh-Hans`.
-Do not publish or claim complete parity until coverage, layout,
-and exact-build physical acceptance have passed.
+The catalog contains all 256 source keys in English plus 15 complete translations.
+The 13 new locales are Turkish, Traditional Chinese, Spanish, French, German,
+Brazilian Portuguese, Hindi, Indonesian, Japanese, Korean, Russian, Italian, and
+Urdu. Existing Arabic values are preserved. Seven Simplified Chinese strings now
+use “已归档” rather than “已结清”: archiving a record does not prove it was fully paid.
+The project registers all locales and exposes them by their native names.
+
+Catalog coverage does not prove natural wording or every screen layout. Physical
+iPhone acceptance of this exact candidate and TestFlight distribution remain
+pending; this is not a release claim. See `VALIDATION.md` for executed checks.
 
 The simulator caught and the implementation fixed two runtime-refresh issues:
 separate UserDefaults instances did not refresh all observers, and a presented

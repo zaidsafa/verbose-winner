@@ -2,6 +2,56 @@ import XCTest
 
 final class PinbookUITests: XCTestCase {
     @MainActor
+    func testTraditionalChineseUrduAndSystemSelectionAcrossIntroductionPages() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-PinbookFixture", "empty", "-PinbookOnboarding", "show",
+            "-PinbookTheme", "light",
+        ]
+        app.launch()
+        let languageControl = app.buttons["onboarding-language-menu"]
+        XCTAssertTrue(languageControl.waitForExistence(timeout: 5))
+        languageControl.tap()
+        app.buttons["language-zh-Hant"].tap()
+        XCTAssertTrue(app.navigationBars["語言"].waitForExistence(timeout: 5))
+        app.buttons["language-done"].tap()
+        XCTAssertTrue(app.staticTexts["歡迎使用 Pinbook"].waitForExistence(timeout: 5))
+        let chineseEvidence = XCTAttachment(screenshot: app.screenshot())
+        chineseEvidence.name = "Pinbook Traditional Chinese introduction"
+        chineseEvidence.lifetime = .keepAlways
+        add(chineseEvidence)
+        app.buttons["繼續"].tap()
+        XCTAssertTrue(app.staticTexts["選擇您的幣別"].waitForExistence(timeout: 5))
+        languageControl.tap()
+        let urdu = app.buttons["language-ur"]
+        for _ in 0..<5 where !urdu.isHittable { app.swipeUp() }
+        XCTAssertTrue(urdu.isHittable)
+        urdu.tap()
+        XCTAssertTrue(app.navigationBars["زبان"].waitForExistence(timeout: 5))
+        app.buttons["language-done"].tap()
+        // The language change must keep the user's current introduction page.
+        XCTAssertTrue(app.staticTexts["اپنی کرنسیاں منتخب کریں"].waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(languageControl.frame.midX, app.buttons["onboarding-skip"].frame.midX)
+        app.buttons["جاری رکھیں"].tap()
+        XCTAssertTrue(app.staticTexts["دیکھیں کتنی رقم باقی ہے"].waitForExistence(timeout: 5))
+        app.buttons["جاری رکھیں"].tap()
+        XCTAssertTrue(app.staticTexts["بنیادی طور پر نجی"].waitForExistence(timeout: 5))
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook Urdu final introduction page RTL"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+        languageControl.tap()
+        let system = app.buttons["language-system"]
+        for _ in 0..<5 where !system.isHittable { app.swipeDown() }
+        system.tap()
+        XCTAssertTrue(app.navigationBars["Language"].waitForExistence(timeout: 5))
+        app.buttons["language-done"].tap()
+        XCTAssertTrue(app.staticTexts["Private by default"].waitForExistence(timeout: 5))
+        XCTAssertLessThan(languageControl.frame.midX, app.buttons["onboarding-skip"].frame.midX)
+    }
+
+    @MainActor
     func testFirstRunLanguageSelectionUpdatesIntroductionAndRTLImmediately() throws {
         let app = XCUIApplication()
         app.launchArguments = [

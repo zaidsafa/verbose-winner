@@ -61,13 +61,31 @@ import UIKit
     #expect(PinbookLanguage.arabic.layoutDirection() == .rightToLeft)
     #expect(PinbookLanguage.urdu.layoutDirection() == .rightToLeft)
     #expect(PinbookLanguage.traditionalChinese.layoutDirection() == .leftToRight)
-    #expect(PinbookLanguage.system.layoutDirection(systemLocale: Locale(identifier: "ur_PK")) == .rightToLeft)
+    #expect(PinbookLanguage.system.layoutDirection(preferredLanguages: ["ur-PK"]) == .rightToLeft)
     #expect(PinbookLanguage.system.resolved(preferredLanguages: ["zh-TW"]) == .traditionalChinese)
     #expect(PinbookLanguage.system.resolved(preferredLanguages: ["zh-CN"]) == .simplifiedChinese)
     #expect(PinbookLanguage.system.resolved(preferredLanguages: ["pt-PT"]) == .brazilianPortuguese)
     #expect(PinbookLanguage.system.resolved(preferredLanguages: ["nl-NL", "de-DE"]) == .german)
     #expect(PinbookLanguage.system.resolved(preferredLanguages: ["nl-NL"]) == .english)
-    #expect(PinbookLanguage.system.layoutDirection(systemLocale: Locale(identifier: "fa_IR")) == .leftToRight)
+    #expect(PinbookLanguage.system.layoutDirection(preferredLanguages: ["fa-IR"]) == .leftToRight)
+    #expect(PinbookLanguage.system.layoutDirection(preferredLanguages: ["nl-NL", "ur-PK"]) == .rightToLeft)
+    #expect(PinbookLanguage.system.layoutDirection(preferredLanguages: ["fa-IR", "de-DE"]) == .leftToRight)
+}
+
+@Test func everyParityLanguageIsCompiledAndContainsTranslatedInterfaceAndServiceCopy() throws {
+    #expect(PinbookLanguage.availableCases == PinbookLanguage.allCases)
+    for language in PinbookLanguage.allCases where language != .system && language != .english {
+        let bundle = language.bundle()
+        #expect(bundle.bundleURL.lastPathComponent == "\(language.rawValue).lproj")
+        let url = try #require(bundle.url(forResource: "Localizable", withExtension: "strings"))
+        let data = try Data(contentsOf: url)
+        let values = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
+        #expect(values.count == 256)
+        for key in ["Language", "Welcome to Pinbook", "Purpose and person are required.", "This backup is corrupt or contains invalid data."] {
+            let value = try #require(values[key])
+            #expect(!value.isEmpty && value != key)
+        }
+    }
 }
 
 @Test func chosenLanguageBundlesLocalizeServiceErrorsIndependentlyOfSystemLanguage() {

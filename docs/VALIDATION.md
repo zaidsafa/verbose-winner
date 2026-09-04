@@ -1,5 +1,34 @@
 # Validation plan
 
+## 2026-09-04 complete translation draft milestone
+
+- Directly authored the 13 remaining locales without Google or another translation service.
+- Passed 9/9 Swift package tests and the final 39/39 complete Simulator tests
+  (29 app tests, 10 XCUITests) on the dedicated iPhone 17 Pro, iOS 26.5.
+- Final result: `/private/tmp/Pinbook-Translations-Final.xcresult`;
+  log: `/private/tmp/pinbook-translations-final.log`.
+- Passed unsigned generic iPhone Release build, log:
+  `/private/tmp/pinbook-translations-release-final.log`.
+- Offline check passed all 256 keys × 15 translated locales, plus English source.
+  Both Debug Simulator and Release iPhone app/widget bundles exactly match the
+  translation catalog. English source strings may be omitted by Xcode and fall
+  back to their keys; all non-English bundles contain all 256 translated values.
+- Verified all 16 language choices are compiled, distinct Chinese script bundles,
+  localized service errors, and RTL when a supported secondary phone language is
+  Arabic/Urdu. The existing persistence and System Default tests passed again.
+- New UI coverage switches Traditional Chinese → Urdu → System Default while
+  retaining the current onboarding page; checks Urdu navigation text and mirrored
+  controls, advances to the final page, and returns to English without relaunching.
+- Visually inspected final screenshots with readable, unclipped text:
+  `docs/evidence/pinbook-language-zh-hant.png` and
+  `docs/evidence/pinbook-language-ur.png`.
+- Seven Simplified Chinese archive-related strings now distinguish archiving
+  from full payment. Existing English and Arabic values remain unchanged.
+- No financial-data reset, schema migration, signing change, physical install,
+  GitHub push, TestFlight upload, or account mutation. Exhaustive layouts, native
+  wording review, real device/widget installation, and external transfers are
+  outside this validation. Translations remain assistant-authored drafts.
+
 ## 2026-09-04 language-control milestone
 
 - Passed 9/9 Swift package tests and 37/37 full simulator tests (28 app, 9 UI).

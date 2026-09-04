@@ -13,8 +13,8 @@ The Android product remains the behavioral reference while this repository devel
 - Shared backup-v8 models and deterministic conflict merge groundwork.
 - Local Backup & Recovery center with native Files export/import, validated per-entity restore preview, pre-restore snapshots, exact recovery, and privacy-safe activity history.
 - Five adaptive Pinbook visual skins with descriptive symbol/palette previews, automated light/dark contrast coverage, and accessible native motion.
-- Complete English, Arabic, and Simplified Chinese UI coverage with RTL-safe layout.
-- First-run and Options language controls with persistent choice, System Default reset, live layout updates, and localized validation messages. The other 13 target catalogs remain pending; only compiled locales are offered. See `docs/LOCALIZATION_REVIEW.md` for the generated-draft and release boundaries.
+- Complete 256-key catalogs for 16 languages, including separate Simplified/Traditional Chinese and Arabic/Urdu RTL. The 13 added locales are assistant-authored drafts, not native-reviewed translations.
+- First-run and Options language controls with persistent choice, System Default reset, live layout updates, and localized validation messages. Only compiled locales are offered. See `docs/LOCALIZATION_REVIEW.md` for translation checks and release boundaries.
 - A short, skippable, replayable first-run introduction; production starts with no sample financial records and never resets a returning user's local data.
 - Editable books, a searchable 159-code Foundation ISO currency catalog with localized names and symbols, explicit favorites, templates, Favorites, and Quick Add.
 - Two privacy-safe WidgetKit widgets: Quick Expense and Balance Overview. They deep-link into Pinbook without placing financial amounts on the Home Screen.

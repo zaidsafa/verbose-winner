@@ -334,6 +334,19 @@
 				en,
 				Base,
 				"zh-Hans",
+				"zh-Hant",
+				tr,
+				es,
+				fr,
+				de,
+				"pt-BR",
+				hi,
+				id,
+				ja,
+				ko,
+				ru,
+				it,
+				ur,
 			);
 			mainGroup = G00000000000000000000001;
 			productRefGroup = G90000000000000000000001 /* Products */;

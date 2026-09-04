@@ -40,7 +40,7 @@ enum PinbookLanguage: String, CaseIterable, Identifiable {
     }
 
     // Never offer a locale whose catalog has not been compiled into this build.
-    // The full parity list becomes available as its complete catalogs land.
+    // All parity catalogs are included; this also guards incomplete future builds.
     static var availableCases: [PinbookLanguage] {
         allCases.filter { $0 == .system || $0 == .english || Bundle.main.localizations.contains($0.rawValue) }
     }
@@ -91,10 +91,10 @@ enum PinbookLanguage: String, CaseIterable, Identifiable {
         self == .system ? systemLocale : Locale(identifier: rawValue)
     }
 
-    func layoutDirection(systemLocale: Locale = .autoupdatingCurrent) -> LayoutDirection {
-        let locale = self == .system
-            ? resolved(preferredLanguages: [systemLocale.identifier]).effectiveLocale()
-            : effectiveLocale(systemLocale: systemLocale)
+    func layoutDirection(preferredLanguages: [String] = Locale.preferredLanguages) -> LayoutDirection {
+        // Match the same supported-language fallback used by localized service
+        // strings, including a supported secondary phone language.
+        let locale = resolved(preferredLanguages: preferredLanguages).effectiveLocale()
         let languageCode = locale.language.languageCode?.identifier ?? locale.identifier
         return ["ar", "ur"].contains(languageCode) ? .rightToLeft : .leftToRight
     }
