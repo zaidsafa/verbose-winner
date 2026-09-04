@@ -27,6 +27,15 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Apple adapter now implemented; see TEAM_APPLE_IDENTITY_ADAPTER_IOS.md. Six
+  fake-driver tests compile in the exact Debug test build; final unsigned iPhone
+  Release passes. Runtime execution still awaits fresh shared-GUI clearance from
+  WooOrders iOS; do not count these six tests as passed. No real Apple account UI,
+  client/capability setup or navigation wiring exists yet. Prior app-host124+one
+  skip remains checkpoint1ee16cf evidence. Google10.0.0 source review confirms
+  fresh custom-nonce API but shared SDK Keychain state and no public flow-cancel
+  method; resolve those integration boundaries before dependency adoption.
+
 - Refresh integration checkpoint `ea03850` committed locally. New sign-in
   coordinator adds consented durable login reservations, native callback ownership,
   wall+monotonic deadlines around awaits/custody reads, single exchange and a

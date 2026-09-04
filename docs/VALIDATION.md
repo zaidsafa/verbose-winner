@@ -1,5 +1,25 @@
 # Validation plan
 
+## 2026-09-04 concrete Apple identity adapter — runtime check pending
+
+- AuthenticationServices controller/delegate/scene-anchor adapter implemented,
+  with callback ownership, cancellation quarantine, expiry/clock rollback checks
+  and bounded, unverified Apple identity-token handling. No navigation activation.
+- Six fake-driver app-host tests compile, including synchronous and stale callbacks,
+  wrong state/provider/token, unavailable presentation, expiry and cancellation.
+  They do not contact Apple or present an Apple account sheet.
+- Exact Debug build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-apple-adapter-final-test-build.log`.
+- Exact unsigned iPhone Release **PASS**, including DEBUG-only test injection
+  exclusion and the final callback-time rollback check:
+  `/private/tmp/pinbook-ios-apple-adapter-final-release.log`.
+- Runtime test launch is pending fresh shared-GUI clearance from WooOrders iOS.
+  No new app-host or UI pass is claimed. Prior124 passes/one hardware skip belong
+  to checkpoint1ee16cf, not this adapter. Android's resource-batch hold was cleared;
+  that does not independently clear the shared GUI slot.
+- No client IDs, entitlement, signing, provider account, financial data, TestFlight
+  build, source push or shared Infrastructure configuration changed.
+
 ## 2026-09-04 durable native sign-in coordinator (inactive)
 
 - Seven new sign-in/reservation tests **PASS7/7** in0.029s:
