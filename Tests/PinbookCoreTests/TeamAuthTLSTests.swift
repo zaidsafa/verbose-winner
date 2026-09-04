@@ -8,6 +8,12 @@ import Testing
 /// system trust. Certificates exist only in a fresh temporary fixture directory.
 @Suite(.serialized)
 struct TeamAuthTLSTests {
+    private final class TransportDiagnostics: @unchecked Sendable {
+        private let lock = NSLock()
+        private var codes = [TeamAuthTestFailure]()
+        func record(_ code: TeamAuthTestFailure) { lock.withLock { if codes.count < 32 { codes.append(code) } } }
+        var values: [TeamAuthTestFailure] { lock.withLock { codes } }
+    }
     private final class ProcessExit: @unchecked Sendable {
         private let lock = NSLock()
         private let signal = DispatchSemaphore(value: 0)
@@ -32,9 +38,12 @@ struct TeamAuthTLSTests {
         let server: Process
         let origin: URL
         let anchor: Data
+        let diagnostics = TransportDiagnostics()
+        let mode: String
         private let serverExit = ProcessExit()
 
         init(mode: String) async throws {
+            self.mode = mode
             let directory = FileManager.default.temporaryDirectory.appendingPathComponent("pinbook-auth-tls-\(UUID())", isDirectory: true)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false,
                                                     attributes: [.posixPermissions: 0o700])
@@ -81,11 +90,14 @@ struct TeamAuthTLSTests {
             }
         }
         deinit {
+            let errors = diagnostics.values
+            if !errors.isEmpty { print("Private localhost TLS fixture \(mode): \(errors)") }
             if serverExit.stop(server) { try? FileManager.default.removeItem(at: directory) }
             else { Issue.record("Synthetic TLS server did not confirm exit; retained its private fixture directory") }
         }
         func client() throws -> TeamAuthHTTPClient {
-            try TeamAuthHTTPClient(origin: origin, protocolClasses: nil, localTestAnchor: anchor, clock: { 1_000 })
+            try TeamAuthHTTPClient(origin: origin, protocolClasses: nil, localTestAnchor: anchor,
+                testTransportFailure: { [diagnostics] in diagnostics.record($0) }, clock: { 1_000 })
         }
         func records(_ name: String) throws -> [[String: Any]] {
             let url = directory.appendingPathComponent(name + ".jsonl")
@@ -283,18 +295,21 @@ struct TeamAuthTLSTests {
         let fixture = try await Fixture(mode: "stall")
         let client = try fixture.client()
         let task = Task { try await client.refresh(pair) }
+        var bodyObserved = false
         for _ in 0..<100 {
-            if try !fixture.records("bodies").isEmpty { break }
+            if try !fixture.records("bodies").isEmpty { bodyObserved = true; break }
             try await Task.sleep(for: .milliseconds(20))
         }
         task.cancel()
         await #expect(throws: CancellationError.self) { try await task.value }
+        #expect(bodyObserved, "Cancellation fixture did not receive body; URL error codes=\(fixture.diagnostics.values)")
         #expect(try fixture.records("attempts").count == 1)
         let deadlineFixture = try await Fixture(mode: "stall")
         let deadlineClient = try deadlineFixture.client()
         let start = ContinuousClock.now
         await #expect(throws: TeamAuthHTTPError.transport) { try await deadlineClient.refresh(pair) }
         #expect(start.duration(to: .now) < .seconds(18))
+        #expect(deadlineFixture.diagnostics.values.contains(.url(NSURLErrorTimedOut)))
         #expect(try deadlineFixture.records("attempts").count == 1)
     }
 
@@ -340,7 +355,7 @@ struct TeamAuthTLSTests {
         catch {
             // Fixed error cases and public path/count only; never token/body data.
             let routes = try fixture.records("attempts").compactMap { $0["path"] as? String }
-            Issue.record("Local TLS sign-in failure case\(iteration): \(await trace.failures), routes=\(routes), bodies=\(try fixture.records("bodies").count)")
+            Issue.record("Local TLS sign-in failure case\(iteration): \(await trace.failures), URLcodes=\(fixture.diagnostics.values), routes=\(routes), bodies=\(try fixture.records("bodies").count)")
             throw error
         }
         #expect(try store.load(scope: scope)?.usablePair(now: 2_000) == result)

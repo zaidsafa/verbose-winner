@@ -453,6 +453,9 @@ struct TeamAuthHTTPTests {
         #expect(throws: TeamAuthHTTPError.invalidConfiguration) {
             try TeamAuthHTTPClient(origin: URL(string: "https://auth.invalid")!, protocolClasses: nil, localTestAnchor: Data())
         }
+        #expect(throws: TeamAuthHTTPError.invalidConfiguration) {
+            try TeamAuthHTTPClient(origin: URL(string: "https://localhost")!, protocolClasses: nil, testTransportFailure: { _ in })
+        }
         let configuration = TeamAuthHTTPClient.configuration()
         #expect(configuration.httpCookieStorage == nil && configuration.urlCache == nil && configuration.urlCredentialStorage == nil)
         #expect(!configuration.httpShouldSetCookies && !configuration.waitsForConnectivity)

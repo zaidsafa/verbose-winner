@@ -1,5 +1,59 @@
 # Validation plan
 
+## 2026-09-04 durable membership intent and recovery metadata (inactive)
+
+- Invitation compatibility after initial join-store compilation **11/11 PASS**,
+ 0.014s: `/private/tmp/pinbook-ios-join-store-compile.log`.
+- Initial nine join-store cases **9/9 PASS**,0.987s:
+  `/private/tmp/pinbook-ios-join-store-focused.log`.
+- Expanded full core **188 tests, 2 issues — FAILED**,22.079s:
+  `/private/tmp/pinbook-ios-join-store-full-core.log`. The existing actual localhost
+  cancellation test returned transport rather than CancellationError and did not
+  observe exactly one request. The new eleven storage tests passed; their success
+  does not turn the complete run green. Exact underlying transport cause was not
+  captured in that run. No attribution to storage or concurrent compilation.
+- Added bounded numeric DEBUG-localhost transport diagnostics and a required
+  pre-cancel body-observed assertion. Isolated cancellation/deadline **1/1 PASS**,
+  10.465s: `/private/tmp/pinbook-ios-join-tls-cancellation-diagnostic.log`.
+- Added byte-capacity headroom and a twelfth storage test. Full **189 tests,
+  1 issue — FAILED**,18.441s:
+  `/private/tmp/pinbook-ios-join-store-full-diagnostic.log`. Invitation TLS preview
+  returned previewUnavailable; diagnostic codes were not emitted before fixture
+  teardown in that run, so its underlying cause remains unproven. All twelve
+  join-store tests passed. Do not claim this is the same cause as the prior failure.
+- Diagnostics now emit only bounded enum/numeric URL and Security errors from
+  private DEBUG localhost fixtures. No URL, body, userInfo or credential logging;
+  Release rejects diagnostic configuration. Trust/date/hostname validation,
+  deadlines and one-use request/no-retry policy are unchanged. The stalled-body
+  deadline test now also requires URL timeout -1001, not an arbitrary transport
+  error. Invalid diagnostic-without-local-anchor configuration is covered.
+- Full core with diagnostics **189/189 PASS**,17.349s:
+  `/private/tmp/pinbook-ios-join-store-full-trust-diagnostic.log`. Only expected
+  synthetic dropped-connection -1005 and timeout -1001 codes appeared. The earlier
+  intermittent failures have NOT been diagnosed or fixed by this green run.
+- Initial Simulator build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-join-store-test-build.log`. This predates final capacity/
+  clock tightening and the diagnostic additions; final compile evidence follows.
+- After same-scope time checks around new/recovered records, full core
+  **189/189 PASS**,14.569s: `/private/tmp/pinbook-ios-join-store-final-core.log`.
+  Simulator build-for-testing and unsigned iPhone Release PASS:
+  `/private/tmp/pinbook-ios-join-store-final-test-build.log` and
+  `/private/tmp/pinbook-ios-join-store-release.log`.
+- Final load-time reserved-capacity validation included: full core **189/189 PASS**,
+  16.171s: `/private/tmp/pinbook-ios-join-store-final-verified-core.log`.
+  Twelve storage cases include rollback against a newer record in the SAME scope,
+  and loading revalidates future growth headroom as well as the current byte count.
+  Intermittent TLS caveats above remain open, not declared fixed by repeated passes.
+- Final Simulator build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-join-store-verified-test-build.log`.
+  Final unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-join-store-verified-release.log`.
+  Build evidence only; no new app-host/UI run or signed distribution artifact.
+- No actual Keychain protection, app-host/UI, physical device, provider or deployed
+  service acceptance. TEAM_JOIN_RECOVERY_IOS.md describes remaining owner/consent/
+  recovery integration. TestFlight, normal navigation and personal records/keys
+  remain unchanged.
+
 ## 2026-09-04 invitation account consent and exact committed-account handoff (inactive)
 
 - Existing native sign-in compatibility after the snapshot refactor: **7/7 PASS**,

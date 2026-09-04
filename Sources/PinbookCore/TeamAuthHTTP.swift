@@ -131,6 +131,10 @@ struct TeamAuthResponse: Sendable {
     let body: Data
 }
 
+/// Fixed non-secret diagnostic values, injectable only for private DEBUG TLS tests.
+enum TeamAuthTestFailure: Sendable, Equatable {
+    case url(Int), trust(Int), trustSetup, otherTransport
+}
 /// Mutable state is protected by lock, including task cancellation and delegate
 /// callbacks. Each request owns a fresh ephemeral session and exactly one resume.
 final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Sendable {
@@ -148,14 +152,21 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
     private let localTestAnchor: Data?
     private let responseProfile: ResponseProfile
     private let maximumResponseBytes: Int
+    private let testTransportFailure: (@Sendable (TeamAuthTestFailure) -> Void)?
 
     init(request: URLRequest, configuration: URLSessionConfiguration, localTestAnchor: Data?,
-         responseProfile: ResponseProfile = .pinbook, maximumResponseBytes: Int = TeamAuthWire.maximumResponseBytes) {
+         responseProfile: ResponseProfile = .pinbook, maximumResponseBytes: Int = TeamAuthWire.maximumResponseBytes,
+         testTransportFailure: (@Sendable (TeamAuthTestFailure) -> Void)? = nil) {
         self.request = request
         self.configuration = configuration
         self.localTestAnchor = localTestAnchor
         self.responseProfile = responseProfile
         self.maximumResponseBytes = maximumResponseBytes
+        #if DEBUG
+        self.testTransportFailure = localTestAnchor != nil && request.url?.host == "localhost" ? testTransportFailure : nil
+        #else
+        self.testTransportFailure = nil
+        #endif
     }
 
     func run() async throws -> TeamAuthResponse {
@@ -234,8 +245,13 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
                   SecTrustSetPolicies(trust, SecPolicyCreateSSL(true, "localhost" as CFString)) == errSecSuccess,
                   SecTrustSetAnchorCertificates(trust, [certificate] as CFArray) == errSecSuccess,
                   SecTrustSetAnchorCertificatesOnly(trust, true) == errSecSuccess,
-                  SecTrustSetNetworkFetchAllowed(trust, false) == errSecSuccess,
-                  SecTrustEvaluateWithError(trust, nil) else {
+                  SecTrustSetNetworkFetchAllowed(trust, false) == errSecSuccess else {
+                testTransportFailure?(.trustSetup)
+                completionHandler(.cancelAuthenticationChallenge, nil); return
+            }
+            var trustError: CFError?
+            guard SecTrustEvaluateWithError(trust, &trustError) else {
+                testTransportFailure?(.trust(trustError.map { CFErrorGetCode($0) } ?? 0))
                 completionHandler(.cancelAuthenticationChallenge, nil); return
             }
             completionHandler(.useCredential, URLCredential(trust: trust)); return
@@ -302,6 +318,11 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
         else if let response { result = .success(TeamAuthResponse(status: response.statusCode, body: bytes)) }
         else { result = .failure(TeamAuthHTTPError.invalidResponse) }
         lock.unlock()
+        // Private DEBUG loopback fixtures only: fixed URL error number, never
+        // localized text, userInfo, URLs, bodies or credentials.
+        if let error = error as NSError? {
+            testTransportFailure?(error.domain == NSURLErrorDomain ? .url(error.code) : .otherTransport)
+        }
         finish(result)
     }
 }
@@ -325,11 +346,13 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
     private let origin: URL
     private let protocolClasses: [AnyClass]?
     private let localTestAnchor: Data?
+    private let testTransportFailure: (@Sendable (TeamAuthTestFailure) -> Void)?
     private let clock: @Sendable () -> Int64
     private let slot = TeamAuthRequestSlot()
 
     public convenience init(origin: URL) throws { try self.init(origin: origin, protocolClasses: nil) }
     init(origin: URL, protocolClasses: [AnyClass]?, localTestAnchor: Data? = nil,
+         testTransportFailure: (@Sendable (TeamAuthTestFailure) -> Void)? = nil,
          clock: @escaping @Sendable () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }) throws {
         guard origin.scheme == "https", let host = origin.host, !host.isEmpty,
               origin.user == nil, origin.password == nil, origin.query == nil, origin.fragment == nil,
@@ -337,13 +360,15 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
             throw TeamAuthHTTPError.invalidConfiguration
         }
         #if DEBUG
-        guard localTestAnchor == nil || (host == "localhost" && protocolClasses == nil) else {
+        guard (localTestAnchor == nil || (host == "localhost" && protocolClasses == nil)),
+              testTransportFailure == nil || localTestAnchor != nil else {
             throw TeamAuthHTTPError.invalidConfiguration
         }
         #else
-        guard localTestAnchor == nil else { throw TeamAuthHTTPError.invalidConfiguration }
+        guard localTestAnchor == nil, testTransportFailure == nil else { throw TeamAuthHTTPError.invalidConfiguration }
         #endif
         self.origin = origin; self.protocolClasses = protocolClasses; self.localTestAnchor = localTestAnchor
+        self.testTransportFailure = testTransportFailure
         self.clock = clock
     }
 
@@ -472,7 +497,7 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
         }
         let result = try await TeamAuthURLExchange(request: request,
             configuration: Self.configuration(protocolClasses: protocolClasses), localTestAnchor: localTestAnchor,
-            maximumResponseBytes: maximumResponseBytes).run()
+            maximumResponseBytes: maximumResponseBytes, testTransportFailure: testTransportFailure).run()
         try Task.checkCancellation()
         guard result.status == expectedStatus else { throw TeamAuthWire.serverError(result.body, status: result.status) }
         if expectedStatus == 204, !result.body.isEmpty { throw TeamAuthHTTPError.invalidResponse }

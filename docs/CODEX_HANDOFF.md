@@ -27,6 +27,27 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Durable join recovery metadata now records scoped PENDING before accept, with
+  no raw invitation or account credentials, exact generation/response binding,
+  fresh recovery generations and read-only scoped listing. Dedicated passcode-only
+  Keychain CAS index,8scopes/10teams each/80records/64KiB, reserves future metadata
+  growth so admitted recovery can proceed at capacity. No automatic retry/deletion.
+  Twelve synthetic storage/policy/fault/race tests pass. Two full regressions hit
+  intermittent localhostTLS failures (cancellation and invitation preview); exact
+  causes unproven. Added bounded DEBUG numeric transport/trust diagnostics without
+  relaxing verification, deadlines or replay policy. Subsequent full189 PASS;
+  final exact source **189/189 PASS**,16.171s:
+  `/private/tmp/pinbook-ios-join-store-final-verified-core.log`.
+  Final Simulator build-for-testing PASS:
+  `/private/tmp/pinbook-ios-join-store-verified-test-build.log`; unsigned iPhone
+  Release PASS: `/private/tmp/pinbook-ios-join-store-verified-release.log`.
+  preserve both failures as open final-validation caveats. See VALIDATION.md and
+  TEAM_JOIN_RECOVERY_IOS.md. Next: actual retained membership owner with current
+  account/device, fresh lookup, separate single-use consent, one accept and
+  read-only current-team reconciliation; then localized screens/host lifecycle.
+  No normal navigation, real provider/hardware, shared resource, source push or
+  TestFlight activation. Full final feature checklist remains open.
+
 - Invitation account consent now has read-only preview, exact current-account
   display, opaque single-use five-minute wall/monotonic confirmation, bound native
   challenge/exchange, cancellation ownership and a memory-only join intent. The

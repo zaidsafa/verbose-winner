@@ -82,13 +82,18 @@ checkboxes deliberately remain open until checked against the exact next candida
   checks and fresh lookup/recovery without proof replay. Invitation account access
   now has read-only preview, exact committed/current account handoff and one-use
   wall/monotonic consent, tested synthetically and over private localhost TLS.
-  It returns a memory-only intent, not membership authority; durable join/recovery
-  and separate membership consent remain next. See TEAM_INVITATION_CONSENT_IOS.md.
+  It returns a memory-only intent, not membership authority. Durable scoped join
+  metadata now supports exact pending/confirmation/recovery generations without
+  storing the raw code; separate current-account/device membership orchestration
+  and consent remain next. See TEAM_JOIN_RECOVERY_IOS.md and
+  TEAM_INVITATION_CONSENT_IOS.md.
   Consent/join UI, real
   hardware/protection/provider acceptance and live enrollment remain open.
-  See TEAM_DEVICE_REGISTRATION_IOS.md; one older localhostTLS test failed once
-  and has not reproduced with added mandatory cases/diagnostics. Keep that caveat
-  in final regression rather than claiming its underlying cause was fixed.
+  See TEAM_DEVICE_REGISTRATION_IOS.md and VALIDATION.md: intermittent localhostTLS
+  failures have occurred in sign-in, cancellation and invitation preview across
+  separate runs. Exact causes are unproven. Added bounded numeric transport/trust
+  diagnostics and stronger assertions; subsequent green runs do not close this
+  final-regression caveat or establish one common cause.
   See TEAM_DEVICE_CUSTODY_IOS.md; no normal navigation has been activated.
   See TEAM_ONBOARDING_HTTP_IOS.md; no acceptance checkbox is closed by this layer.
 
