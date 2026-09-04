@@ -50,6 +50,13 @@ struct TeamPreparedDeviceChallenge: TeamOnboardingDiagnostic {
     let challengeID: String
     let expiresAt: Int64
     fileprivate let wire: Data
+    init(validating wire: Data, expected: TeamDeviceEnrollmentWire.Binding, now: Int64) throws {
+        _ = try TeamDeviceEnrollmentWire.message(challenge: wire, expected: expected, now: now)
+        let object = try TeamStrictJSON.object(wire)
+        challengeID = try TeamAuthWire.string(object, "challengeId", secret: true)
+        expiresAt = try TeamAuthWire.time(object, "expiresAt")
+        self.wire = wire
+    }
     // Caller must still recheck durable generation/monotonic lifetime and current
     // session immediately before using these bytes with its dedicated device key.
     func message(expected: TeamDeviceEnrollmentWire.Binding, now: Int64) throws -> Data {
@@ -128,10 +135,8 @@ extension TeamAuthHTTPClient {
                          session: TeamAccountSessionSnapshot) async throws -> TeamPreparedDeviceChallenge {
         guard acceptsDeviceBinding(expected, session: session), key.thumbprint == expected.keyThumbprint else { throw TeamAuthHTTPError.invalidRequest }
         let reply = try await onboarding(.deviceChallenge, fields: ["deviceId": expected.deviceID, "publicKey": key.jwk], session: session)
-        do { _ = try TeamDeviceEnrollmentWire.message(challenge: reply.data, expected: expected, now: reply.receivedAt) }
+        do { return try .init(validating: reply.data, expected: expected, now: reply.receivedAt) }
         catch { throw TeamAuthHTTPError.invalidResponse }
-        let object = try TeamStrictJSON.object(reply.data)
-        return try .init(challengeID: TeamAuthWire.string(object, "challengeId", secret: true), expiresAt: TeamAuthWire.time(object, "expiresAt"), wire: reply.data)
     }
     func completeDevice(challenge: TeamPreparedDeviceChallenge, signature: Data, expected: TeamDeviceEnrollmentWire.Binding,
                         session: TeamAccountSessionSnapshot) async throws -> TeamRegisteredDevice {

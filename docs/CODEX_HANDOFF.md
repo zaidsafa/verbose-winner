@@ -27,6 +27,21 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Device custody now uses an inactive SecureEnclave-only provider and a separate
+  bounded passcode-only Keychain index. RESERVED→READY→SUBMIT_PENDING (before signing)
+  →REGISTERED; fresh RECOVERING generation and exact-key absence retain the SAME key.
+  Fifteen synthetic fault/race/Keychain-policy tests plus composed actual localhost
+  TLS signature verification added. Full core **149/149 PASS**; Simulator test build
+  PASS. See TEAM_DEVICE_CUSTODY_IOS.md. No real Secure Enclave/Keychain runtime or
+  physical acceptance is implied. Next: current-session access-only ticket and
+  monotonic registration owner, then invited account consent and distinct join UI.
+  The owning app must perform a fresh lookup even for local REGISTERED metadata;
+  it is not lasting authority. Keep all final scope/activation/publication gates.
+  Unsigned iPhone Release also PASS:
+  `/private/tmp/pinbook-ios-device-custody-release.log`. Requested a fresh explicit
+  app-host-only GUI release from WooOrders iOS after compilation; no live GUI
+  operation is presumed from its task activity and no test was launched yet.
+
 - Thirteen typed onboarding routes now share the retained auth HTTP client's
   unresolved slot; public/protected auth, exact scopes/roles/device keys, null vs
   uncertainty, 4 KiB/32 KiB limits and strict duplicate-safe JSON are enforced.

@@ -1,5 +1,36 @@
 # Validation plan
 
+## 2026-09-04 protected device identity and uncertain-proof recovery (inactive)
+
+- Onboarding compatibility **8/8 PASS** after adding the validating prepared-
+  challenge initializer: `/private/tmp/pinbook-ios-device-custody-compile.log`.
+- Initial custody test compilation failed on throwing values inside nested Swift
+  Testing macros. Both failed attempts retained, not passes:
+  `/private/tmp/pinbook-ios-device-custody-focused.log` and
+  `/private/tmp/pinbook-ios-device-custody-focused-fixed.log`.
+- Corrected initial11cases **PASS** in0.038s:
+  `/private/tmp/pinbook-ios-device-custody-focused-verified.log`.
+- Expanded15cases including Keychain policy/CAS adapters and two-owner races
+  **PASS** in0.029s: `/private/tmp/pinbook-ios-device-custody-races.log`.
+- Full core before composed transport **148/148 PASS**,13.285s:
+  `/private/tmp/pinbook-ios-device-custody-final-core.log`.
+- Full core with actual localhostTLS lookup→challenge→complete and verification
+  of the transmitted raw64 P256 signature **149/149 PASS**,13.156s:
+  `/private/tmp/pinbook-ios-device-custody-composed-core.log`.
+  Synthetic opaque handles/ephemeral CryptoKit fixture keys only; no real hardware
+  key, deployed registration service, provider credentials or system trust change.
+- Simulator **build-for-testing PASS**:
+  `/private/tmp/pinbook-ios-device-custody-test-build.log`. Production SecureEnclave
+  adapter compiles; it was NOT invoked. Existing Apple/Google test-only warnings
+  remain. No new app-host execution and no shared-GUI/physical evidence inferred.
+- Read Apple's official SecureEnclave/CryptoKit/accessibility guidance and local
+  SDK declarations; see TEAM_DEVICE_CUSTODY_IOS.md for source links, policy and
+  explicit platform limits. Real Keychain64KiB/CAS/protection/restore and Secure
+  Enclave stored-size/lock behavior remain acceptance gates. Normal navigation,
+  data/backup keys, account sessions, shared resources and build0.1.0(3) unchanged.
+- Unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-device-custody-release.log`.
+
 ## 2026-09-04 thirteen-route native onboarding transport (inactive)
 
 - Four strict protocol-JSON tests **PASS**:

@@ -1,5 +1,6 @@
 #if os(macOS) && SWIFT_PACKAGE
 import Foundation
+import CryptoKit
 import Testing
 @testable import PinbookCore
 
@@ -149,6 +150,32 @@ struct TeamAuthTLSTests {
             #expect(try fixture.records("bodies").count == 1)
             #expect(try store.load(scope: scope)?.usablePair(now: 1_000) == pair)
         }
+    }
+
+    @Test func deviceCustodyComposesWithActualTLSAndTransmittedSignatureVerifies() async throws {
+        let fixture = try await Fixture(mode: "success"), client = try fixture.client()
+        let scope = try TeamDeviceScope(audience: fixture.origin.absoluteString, accountID: pair.accountID, authorityEpoch: "public-epoch")
+        let metadata = try KeychainTeamDeviceMetadata(testService: "pinbook.device-test.tls", keychain: SessionMemoryKeychain())
+        let custody = TeamDeviceCustody(storage: metadata, keys: DeviceFixtureKeys(), clock: { 1_000 })
+        let ready = try custody.prepare(scope: scope, consent: true), key = try #require(ready.publicKey)
+        let session = try TeamAccountSessionCodec.active(pair: pair, scope: .init(origin: fixture.origin, providerID: "public-ios"), now: 1_000)
+        let binding = TeamDeviceEnrollmentWire.Binding(audience: scope.audience, authorityEpoch: scope.authorityEpoch,
+            accountID: scope.accountID, sessionID: pair.sessionID, deviceID: ready.deviceID, keyThumbprint: key.thumbprint, accessExpiresAt: pair.accessExpiresAt)
+        #expect(try await client.lookupDevice(key: key, expected: binding, session: session) == nil)
+        let challenge = try await client.deviceChallenge(key: key, expected: binding, session: session)
+        let proof = try custody.signForSubmission(ready, challenge: challenge, binding: binding)
+        #expect(try custody.load(scope: scope)?.phase == .submitPending)
+        let registration = try await client.completeDevice(challenge: challenge, signature: proof.signature, expected: binding, session: session)
+        #expect(try custody.recordRegistration(proof.pending, registration: registration).phase == .registered)
+        let attempts = try fixture.records("attempts")
+        #expect(attempts.compactMap { $0["path"] as? String } == ["/api/v1/devices/lookup", "/api/v1/devices/challenge", "/api/v1/devices/complete"])
+        #expect(attempts.allSatisfy { $0["authorization"] as? String == "Bearer \(pair.accessToken)" })
+        let bodyString = try #require(fixture.records("bodies").last?["body"] as? String)
+        let fields = try TeamStrictJSON.object(Data(bodyString.utf8))
+        let raw = try #require((fields["signature"] as? String).flatMap(TeamDeviceEnrollmentWire.decode))
+        let signature = try P256.Signing.ECDSASignature(rawRepresentation: raw)
+        #expect(try key.key.isValidSignature(signature, for: challenge.message(expected: binding, now: 1_000)))
+        #expect(raw.count == 64 && raw == proof.signature)
     }
 
     @Test func rotatingTokenNeverReplayedAfterHTTPFailureOrLostResponse() async throws {

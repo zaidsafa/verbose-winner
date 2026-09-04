@@ -75,8 +75,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   Internal P256 enrollment canonical bytes and public signature
   interoperability pass in both Node/Swift directions. Thirteen typed onboarding
   routes now compile and pass intercepted/localhost TLS tests, sharing the auth
-  client's unresolved slot with strict 4 KiB/32 KiB parsing. Private-key custody,
-  current durable generation/monotonic ownership and live enrollment remain open.
+  client's unresolved slot with strict 4 KiB/32 KiB parsing. Dedicated device
+  custody now implements protected reservation/pending/recovery with same-key
+  preservation and synthetic fault/race tests. Real hardware/protection acceptance,
+  current session-generation/monotonic ownership and live enrollment remain open.
+  See TEAM_DEVICE_CUSTODY_IOS.md; no normal navigation has been activated.
   See TEAM_ONBOARDING_HTTP_IOS.md; no acceptance checkbox is closed by this layer.
 
 - Personal Files import now coordinates/read-checks off-main, is cancellable and

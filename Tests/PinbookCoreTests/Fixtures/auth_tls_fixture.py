@@ -1,5 +1,7 @@
 """Synthetic loopback-only TLS fixture. Never accepts production credentials."""
 import http.server
+import base64
+import hashlib
 import json
 import pathlib
 import socket
@@ -62,6 +64,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.path == "/api/v1/teams/invites/list":
             fields = {"invitations": [{"inviteId": f"public-invite-{i}", "role": "MEMBER",
                                        "state": "PENDING", "expiresAt": 20000} for i in range(100)]}
+        if self.path == "/api/v1/devices/lookup":
+            fields = {"registration": None}
+        if self.path == "/api/v1/devices/challenge":
+            request = json.loads(body)
+            thumb = base64.urlsafe_b64encode(hashlib.sha256(json.dumps(request["publicKey"], sort_keys=True, separators=(",", ":")).encode()).digest()).decode().rstrip("=")
+            fields = {"audience": "https://" + self.headers["Host"], "authorityEpoch": "public-epoch",
+                      "accountId": "public-account", "sessionId": "public-session",
+                      "deviceId": request["deviceId"], "keyThumbprint": thumb,
+                      "challengeId": token("A"), "nonce": token("B"), "expiresAt": 9000}
+            (root / "device-public.json").write_text(json.dumps(fields))
+        if self.path == "/api/v1/devices/complete":
+            # Transport fixture only. The Swift test independently verifies the
+            # exact transmitted signature; this is not a real enrollment service.
+            challenge = json.loads((root / "device-public.json").read_text())
+            fields = {key: challenge[key] for key in ("accountId", "deviceId", "keyThumbprint", "authorityEpoch")}
+            fields["enrollmentId"] = "public-enrollment"
         if mode in ("503", "408"):
             status = int(mode)
             fields = {"error": "uncertain" if mode == "503" else "request_timeout"}
