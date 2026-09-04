@@ -8,9 +8,30 @@ public struct TeamArchiveRestoreResult: Equatable, Sendable {
     public let unchanged: Int
 }
 
+/// Point-in-time counts only. Confirmation must recheck conflicts in its write transaction.
+public struct TeamArchiveRestorePreview: Equatable, Sendable {
+    public let newRecords: Int
+    public let unchangedRecords: Int
+    public let conflictingRecords: Int
+    public var canRestore: Bool { conflictingRecords == 0 }
+}
+
 public struct ArchivedTeamNote: Equatable, Sendable {
     public let envelope: TeamNoteEnvelope
     public let savedAt: Int64
+}
+
+/// In-memory pagination position, not a server token or restored account credential.
+public struct TeamArchiveCursor: Equatable, Sendable {
+    fileprivate let accountId: String
+    fileprivate let teamId: String
+    fileprivate let savedAt: Int64
+    fileprivate let deliveryId: String
+}
+
+public struct TeamArchivePage: Equatable, Sendable {
+    public let notes: [ArchivedTeamNote]
+    public let nextCursor: TeamArchiveCursor?
 }
 
 /// Local outbox identity only. The plaintext digest MUST NOT be serialized to the relay.
@@ -174,6 +195,50 @@ public final class TeamInboxStore: @unchecked Sendable {
         return try lock.withLock { try archivedUnlocked(deliveryId: deliveryId) }
     }
 
+    /// Bounded local inbox history, newest saved first with a deterministic ID tie-break.
+    /// Each page is a SELECT snapshot, not a snapshot across multiple requests. New records
+    /// newer than the cursor appear on refresh. Reading never acknowledges or deletes notes.
+    public func archivePage(before cursor: TeamArchiveCursor? = nil, limit: Int = 50) throws -> TeamArchivePage {
+        guard (1...100).contains(limit) else { throw TeamDeliveryError.invalidLimit }
+        if let cursor {
+            guard cursor.accountId == target.userId, cursor.teamId == teamId else {
+                throw TeamDeliveryError.invalidScope
+            }
+        }
+        return try lock.withLock {
+            var values: [Value] = [.text(target.userId), .text(teamId)]
+            var predicate = ""
+            if let cursor {
+                predicate = " AND (saved_at < ? OR (saved_at = ? AND delivery_id < ?))"
+                values += [.integer(cursor.savedAt), .integer(cursor.savedAt), .text(cursor.deliveryId)]
+            }
+            values.append(.integer(Int64(limit + 1)))
+            let statement = try prepare("""
+                SELECT delivery_id, envelope, saved_at FROM archive
+                WHERE account_id=? AND team_id=?\(predicate)
+                ORDER BY saved_at DESC, delivery_id DESC LIMIT ?
+                """, values)
+            defer { sqlite3_finalize(statement) }
+            var notes: [ArchivedTeamNote] = []
+            while try step(statement) == SQLITE_ROW {
+                let deliveryId = String(cString: sqlite3_column_text(statement, 0))
+                let envelope = try readEnvelope(statement, column: 1)
+                let savedAt = sqlite3_column_int64(statement, 2)
+                guard envelope.recipient.userId == target.userId, envelope.deliveryId == deliveryId,
+                      savedAt >= 0 else { throw TeamDeliveryError.storage(SQLITE_CORRUPT) }
+                try envelope.validate(for: envelope.recipient, expectedTeamId: teamId)
+                notes.append(ArchivedTeamNote(envelope: envelope, savedAt: savedAt))
+            }
+            let hasMore = notes.count > limit
+            if hasMore { notes.removeLast() }
+            let next = hasMore ? notes.last.map {
+                TeamArchiveCursor(accountId: target.userId, teamId: teamId,
+                                  savedAt: $0.savedAt, deliveryId: $0.envelope.deliveryId)
+            } : nil
+            return TeamArchivePage(notes: notes, nextCursor: next)
+        }
+    }
+
     /// Account-wide archive export, distinct from the team's live delivery/receipt scope.
     /// Returns authenticated ciphertext only; no plaintext file or key is written to disk.
     public func exportEncryptedAccountArchive(exportedAt: Int64, recoveryKey: SymmetricKey) throws -> String {
@@ -200,7 +265,36 @@ public final class TeamInboxStore: @unchecked Sendable {
 
     /// Authenticate and validate EVERYTHING before the archive-only transaction. No receipts restored.
     public func restoreEncryptedAccountArchive(_ compact: String, recoveryKey: SymmetricKey) throws -> TeamArchiveRestoreResult {
-        let archive = try TeamArchiveJWE.decrypt(compact, recoveryKey: recoveryKey, expectedAccountId: target.userId)
+        try restorePreparedArchive(TeamArchiveImport.prepare(compact, recoveryKey: recoveryKey,
+                                                            expectedAccountId: target.userId))
+    }
+
+    /// No archive/outbox writes. A single read snapshot makes the counts internally consistent.
+    public func previewArchiveRestore(_ candidate: TeamArchiveImport) throws -> TeamArchiveRestorePreview {
+        guard candidate.accountId == target.userId else { throw TeamArchiveError.invalidAccount }
+        return try lock.withLock {
+            var newRecords = 0
+            var unchanged = 0
+            var conflicts = 0
+            try transaction(readOnly: true) {
+                for note in candidate.archive.notes {
+                    let envelope = note.envelope
+                    if let previous = try archivedUnlocked(deliveryId: envelope.deliveryId, archiveTeamId: envelope.teamId) {
+                        if previous.envelope == envelope { unchanged += 1 }
+                        else { conflicts += 1 }
+                    } else { newRecords += 1 }
+                }
+            }
+            return TeamArchiveRestorePreview(newRecords: newRecords, unchangedRecords: unchanged,
+                                             conflictingRecords: conflicts)
+        }
+    }
+
+    /// Restores exactly the authenticated candidate the user previewed. A changed database
+    /// is revalidated atomically; stale preview counts never authorize an overwrite.
+    public func restorePreparedArchive(_ candidate: TeamArchiveImport) throws -> TeamArchiveRestoreResult {
+        guard candidate.accountId == target.userId else { throw TeamArchiveError.invalidAccount }
+        let archive = candidate.archive
         return try lock.withLock {
             var inserted = 0
             var unchanged = 0
@@ -333,8 +427,8 @@ public final class TeamInboxStore: @unchecked Sendable {
         return sqlite3_column_int64(statement, 0)
     }
 
-    private func transaction(_ body: () throws -> Void) throws {
-        try execute("BEGIN IMMEDIATE")
+    private func transaction(readOnly: Bool = false, _ body: () throws -> Void) throws {
+        try execute(readOnly ? "BEGIN DEFERRED" : "BEGIN IMMEDIATE")
         do {
             try body()
             try execute("COMMIT")

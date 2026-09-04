@@ -1,9 +1,167 @@
 import CryptoKit
 import Foundation
+import Darwin
+import Security
+
+public enum TeamRecoveryKeyError: Error, Equatable {
+    case invalidKey, alreadyExists, invalidStoredItem, unavailable(OSStatus)
+}
+
+protocol TeamRecoveryKeychain: Sendable {
+    func add(_ query: [String: Any]) -> OSStatus
+    func copy(_ query: [String: Any]) -> (OSStatus, CFTypeRef?)
+}
+
+private struct SystemTeamRecoveryKeychain: TeamRecoveryKeychain {
+    func add(_ query: [String: Any]) -> OSStatus { SecItemAdd(query as CFDictionary, nil) }
+    func copy(_ query: [String: Any]) -> (OSStatus, CFTypeRef?) {
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        return (status, result)
+    }
+}
+
+/// Inactive archive-key custody only; not a login, group key, cloud backup or recovery guarantee.
+/// No replacement/deletion API: replacing a key can make existing backups unrecoverable.
+public struct TeamRecoveryKeyStore: Sendable {
+    private let service: String
+    private let keychain: any TeamRecoveryKeychain
+
+    public init() {
+        service = "com.zaidsafa.pinbook.ios.team-archive-recovery.v1"
+        keychain = SystemTeamRecoveryKeychain()
+    }
+
+    // Isolated synthetic test namespace; no production caller can change the service.
+    init(testService: String, keychain: (any TeamRecoveryKeychain)? = nil) {
+        service = testService
+        self.keychain = keychain ?? SystemTeamRecoveryKeychain()
+    }
+
+    private func query(accountId: String) throws -> [String: Any] {
+        try TeamDeliveryRules.requireID(accountId)
+        return [kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: accountId,
+                kSecAttrSynchronizable as String: false,
+                kSecUseDataProtectionKeychain as String: true]
+    }
+
+    /// Explicit first save only. SecItemAdd atomically refuses an existing account/purpose key.
+    /// Caller must arrange user consent and an intentional off-device recovery-key copy.
+    public func storeNew(_ recoveryKey: SymmetricKey, accountId: String) throws {
+        guard recoveryKey.bitCount == 256 else { throw TeamRecoveryKeyError.invalidKey }
+        var attributes = try query(accountId: accountId)
+        var bytes = recoveryKey.withUnsafeBytes { Data($0) }
+        defer { bytes.resetBytes(in: bytes.startIndex..<bytes.endIndex) }
+        attributes[kSecValueData as String] = bytes
+        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        let status = keychain.add(attributes)
+        if status == errSecDuplicateItem { throw TeamRecoveryKeyError.alreadyExists }
+        guard status == errSecSuccess else { throw TeamRecoveryKeyError.unavailable(status) }
+    }
+
+    /// Missing is distinct from inaccessible/corrupt. Never generates a replacement on failure.
+    public func load(accountId: String) throws -> SymmetricKey? {
+        var attributes = try query(accountId: accountId)
+        attributes[kSecMatchLimit as String] = kSecMatchLimitOne
+        attributes[kSecReturnData as String] = true
+        attributes[kSecReturnAttributes as String] = true
+        let (status, result) = keychain.copy(attributes)
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess else { throw TeamRecoveryKeyError.unavailable(status) }
+        guard let stored = result as? [String: Any],
+              stored[kSecAttrService as String] as? String == service,
+              stored[kSecAttrAccount as String] as? String == accountId,
+              stored[kSecAttrAccessible as String] as? String == kSecAttrAccessibleWhenUnlockedThisDeviceOnly as String,
+              stored[kSecAttrSynchronizable as String] as? Bool == false,
+              var bytes = stored[kSecValueData as String] as? Data,
+              bytes.count == 32 else { throw TeamRecoveryKeyError.invalidStoredItem }
+        defer { bytes.resetBytes(in: bytes.startIndex..<bytes.endIndex) }
+        return SymmetricKey(data: bytes)
+    }
+}
 
 public enum TeamArchiveError: Error, Equatable {
     case invalidFormat, invalidAccount, invalidTimestamp, duplicateDelivery, tooLarge
     case invalidKey, authenticationFailed
+    case fileUnavailable
+}
+
+/// An authenticated, immutable import candidate. It grants no remote account authority.
+/// Keep only while the restore confirmation is open; do not log or persist this value.
+public struct TeamArchiveImport: Sendable, CustomStringConvertible, CustomDebugStringConvertible {
+    let archive: TeamPortableArchive
+    public var accountId: String { archive.accountId }
+    public var exportedAt: Int64 { archive.exportedAt }
+    public var recordCount: Int { archive.notes.count }
+    public var teamCount: Int { Set(archive.notes.map { $0.envelope.teamId }).count }
+    public var description: String { "TeamArchiveImport(<redacted>)" }
+    public var debugDescription: String { description }
+
+    private init(archive: TeamPortableArchive) { self.archive = archive }
+
+    public static func prepare(_ compact: String, recoveryKey: SymmetricKey,
+                               expectedAccountId: String) throws -> Self {
+        Self(archive: try TeamArchiveJWE.decrypt(compact, recoveryKey: recoveryKey,
+                                               expectedAccountId: expectedAccountId))
+    }
+
+    /// Caller owns security-scoped access and file-provider coordination. Reads one opened
+    /// regular file, with a byte cap independent of advertised size. Never writes plaintext.
+    /// Confirmation uses this candidate, not a second read of a possibly replaced file.
+    public static func prepare(fileURL: URL, recoveryKey: SymmetricKey,
+                               expectedAccountId: String) throws -> Self {
+        guard recoveryKey.bitCount == 256 else { throw TeamArchiveError.invalidKey }
+        try TeamDeliveryRules.requireID(expectedAccountId)
+        let compact = try readCompactFile(fileURL)
+        return try prepare(compact, recoveryKey: recoveryKey, expectedAccountId: expectedAccountId)
+    }
+
+    static func readCompactFile(_ url: URL) throws -> String {
+        guard url.isFileURL, !url.path.utf8.contains(0) else { throw TeamArchiveError.fileUnavailable }
+        // NONBLOCK avoids hanging on a FIFO before fstat can reject non-regular inputs.
+        let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+        guard descriptor >= 0 else { throw TeamArchiveError.fileUnavailable }
+        defer { Darwin.close(descriptor) }
+        var info = stat()
+        guard fstat(descriptor, &info) == 0, (info.st_mode & S_IFMT) == S_IFREG,
+              info.st_size >= 0 else { throw TeamArchiveError.fileUnavailable }
+        guard info.st_size <= TeamArchiveJWE.maximumCompactBytes else { throw TeamArchiveError.tooLarge }
+        return try readBoundedCompact { count in
+            var data = Data(count: count)
+            let actual = data.withUnsafeMutableBytes { buffer in
+                var result: Int
+                repeat { result = Darwin.read(descriptor, buffer.baseAddress, count) }
+                while result < 0 && errno == EINTR
+                return result
+            }
+            guard actual >= 0 else { throw TeamArchiveError.fileUnavailable }
+            data.count = actual
+            return data
+        }
+    }
+
+    /// Internal stream seam exercises short reads, growth and failures without provider access.
+    static func readBoundedCompact(maximumBytes: Int = TeamArchiveJWE.maximumCompactBytes,
+                                   read: (Int) throws -> Data) throws -> String {
+        guard (0...TeamArchiveJWE.maximumCompactBytes).contains(maximumBytes) else {
+            throw TeamArchiveError.tooLarge
+        }
+        var data = Data()
+        while true {
+            let requested = min(64 * 1024, maximumBytes - data.count + 1)
+            let chunk = try read(requested)
+            guard chunk.count <= requested, chunk.count <= maximumBytes - data.count else {
+                throw TeamArchiveError.tooLarge
+            }
+            if chunk.isEmpty { break }
+            // Compact JWE is ASCII. Reject invalid bytes rather than lossy replacement.
+            guard chunk.allSatisfy({ $0 < 128 }) else { throw TeamArchiveError.invalidFormat }
+            data.append(chunk)
+        }
+        return String(decoding: data, as: UTF8.self)
+    }
 }
 
 /// Portable archive only. No ACKs, enrollment credentials, group keys or remote authority.
