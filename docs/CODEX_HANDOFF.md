@@ -45,6 +45,19 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Corrected agreement-enrollment contract
+  `0011c1d4f9719ab0137632ecd3485676c6a54cad` now has iOS source parity: two
+  closed routes, canonical signed agreement body, one-flight exact current
+  account/device/membership/agreement owner, exact response rebound, and required
+  distinct signing+agreement credentials on every audience target without silent
+  shrink. Clean focused **43/43**, full core **307/307**, unsigned generic-iOS
+  app/test and Release builds PASS. Source-only: no phone, runtime, endpoint or
+  TestFlight action. ECDH confirmation remains a pre-staging requirement because
+  registered-device authorization alone does not prove a hostile client owns the
+  agreement private key. See `TEAM_AGREEMENT_ENROLLMENT_IOS.md` and
+  `VALIDATION.md`. NEXT: review/design cross-platform ECDH key confirmation before
+  freezing any envelope or delivery handler.
+
 - Standard RFC 7518 Concat KDF and RFC 3394 A256KW now match Android/RFC vectors.
   A completely separate Secure Enclave P-256 agreement identity is bound to exact
   origin/account/authority epoch/enrollment and retained in non-synchronizing,
@@ -52,9 +65,8 @@ Updated: 2026-09-05 (Asia/Shanghai)
   Focused **9/9**, full core **302/302**, and physical app-host **330/330 PASS**;
   the named real Secure Enclave agreement/reopen/software-peer/wrap test passes.
   Signed QA/unsigned Release and normal relaunch pass. No normal route or envelope.
-  NEXT: implement exact inactive signed agreement-enrollment checkpoint
-  `b217d504cd46023d6865159b94058aa6a16177bc`; require agreement fields in every
-  audience target without silent shrink. See `TEAM_DELIVERY_CRYPTO_IOS.md`,
+  The exact inactive signed agreement-enrollment checkpoint is now the newer item
+  above; agreement fields are required without silent shrink. See `TEAM_DELIVERY_CRYPTO_IOS.md`,
   `TEAM_AGREEMENT_KEY_CUSTODY_IOS.md` and `VALIDATION.md`.
 
 - One-flight current-team audience ownership now composes the exact reviewed

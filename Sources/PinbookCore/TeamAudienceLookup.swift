@@ -13,8 +13,9 @@ extension TeamAccountSessionStore: TeamAudienceSessionChecking {}
 protocol TeamAudienceDevices: Sendable {
     func load(scope: TeamDeviceScope) async throws -> TeamDeviceSnapshot?
     func requireCurrent(_ expected: TeamDeviceSnapshot) async throws
-    func signRequest(_ expected: TeamDeviceSnapshot, challenge: TeamPreparedDeviceRequestChallenge,
-                     binding: TeamDeviceRequestWire.Binding, request: TeamAudienceRevisionRequest,
+    func signRequest<Request: TeamDeviceRequestPayload>(_ expected: TeamDeviceSnapshot,
+                     challenge: TeamPreparedDeviceRequestChallenge,
+                     binding: TeamDeviceRequestWire.Binding, request: Request,
                      checkAuthority: @escaping @Sendable () throws -> Void) async throws -> Data
 }
 
@@ -34,8 +35,9 @@ struct TeamAudienceDeviceDriver: TeamAudienceDevices {
     func requireCurrent(_ expected: TeamDeviceSnapshot) async throws {
         try await teamAudienceIO { try custody.requireCurrent(expected) }
     }
-    func signRequest(_ expected: TeamDeviceSnapshot, challenge: TeamPreparedDeviceRequestChallenge,
-                     binding: TeamDeviceRequestWire.Binding, request: TeamAudienceRevisionRequest,
+    func signRequest<Request: TeamDeviceRequestPayload>(_ expected: TeamDeviceSnapshot,
+                     challenge: TeamPreparedDeviceRequestChallenge,
+                     binding: TeamDeviceRequestWire.Binding, request: Request,
                      checkAuthority: @escaping @Sendable () throws -> Void) async throws -> Data {
         try await teamAudienceIO {
             try custody.signRequest(expected, challenge: challenge, binding: binding,
@@ -205,6 +207,9 @@ actor TeamAudienceLookup {
                   TeamAuthWire.identifier(target.enrollmentID), target.accountID != account.accountID,
                   TeamAuthWire.credential(target.keyThumbprint),
                   target.publicKey.thumbprint == target.keyThumbprint,
+                  TeamAuthWire.credential(target.agreementKeyThumbprint),
+                  target.agreementPublicKey.thumbprint == target.agreementKeyThumbprint,
+                  target.agreementKeyThumbprint != target.keyThumbprint,
                   accounts.insert(target.accountID).inserted,
                   devices.insert(target.deviceID).inserted,
                   enrollments.insert(target.enrollmentID).inserted else {

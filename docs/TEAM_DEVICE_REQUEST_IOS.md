@@ -24,9 +24,10 @@ The message is the no-whitespace JSON array defined by the shared contract,
 starting with `pinbook-device-request-v1`. The implementation does not accept
 server-provided message bytes to sign. Its binding and diagnostics are redacted.
 
-All four protocol operation names are reserved in the message grammar. The
-corrected backend currently issues challenges only for `team-audience`; delivery
-submit/fetch/ACK must remain inactive until each fixed coordinator exists.
+All five protocol operation names are reserved in the message grammar. The
+corrected backend currently issues challenges only for `agreement-enroll` and
+`team-audience`; delivery submit/fetch/ACK must remain inactive until each fixed
+coordinator exists.
 
 Two typed HTTP methods use the existing authenticated onboarding client and its
 shared unresolved-operation slot. Challenge sends exactly `enrollmentId` and the
@@ -38,8 +39,10 @@ and reviewed enrollment public key.
 
 The audience response accepts only the requested team/revision and at most nine
 other-account targets. Account, device, and enrollment IDs must each be unique;
-every exact public JWK must match its RFC7638 thumbprint. Recipient discovery is
-not completed note delivery or authorization to ACK anything.
+every target must include distinct signing and agreement public JWKs matching
+their RFC7638 thumbprints. Missing agreement credentials reject the whole
+snapshot. Recipient discovery is not completed note delivery or authorization to
+ACK anything.
 
 ## Evidence and next boundary
 
@@ -55,5 +58,7 @@ The one-flight audience owner now composes current account generation, exact
 these routes. Request signing is read-only on that exact retained device and
 rechecks the pinned account session inside the custody operation. See
 `TEAM_AUDIENCE_LOOKUP_IOS.md`. There is still no generic transaction callback or
-raw PostgreSQL client. Separate agreement-key custody, submit/fetch, encrypted
+raw PostgreSQL client. Separate agreement custody and the closed signed
+agreement-enrollment coordinator are now implemented as inactive source; see
+`TEAM_AGREEMENT_ENROLLMENT_IOS.md`. ECDH confirmation, submit/fetch, encrypted
 delivery and archive-before-ACK remain separate gates.

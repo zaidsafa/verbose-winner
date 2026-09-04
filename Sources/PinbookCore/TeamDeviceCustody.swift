@@ -304,8 +304,9 @@ final class TeamDeviceCustody: @unchecked Sendable {
     }
     /// Read-only request proof from one exact REGISTERED generation. The caller's
     /// account check runs inside this custody operation before and after signing.
-    func signRequest(_ expected: TeamDeviceSnapshot, challenge: TeamPreparedDeviceRequestChallenge,
-                     binding: TeamDeviceRequestWire.Binding, request: TeamAudienceRevisionRequest,
+    func signRequest<Request: TeamDeviceRequestPayload>(_ expected: TeamDeviceSnapshot,
+                     challenge: TeamPreparedDeviceRequestChallenge,
+                     binding: TeamDeviceRequestWire.Binding, request: Request,
                      checkAuthority: @escaping @Sendable () throws -> Void) throws -> Data {
         try checkAuthority()
         let row = try current(expected)

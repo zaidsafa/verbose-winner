@@ -5,6 +5,15 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest source-only agreement-enrollment checkpoint
+
+The exact signed agreement-enrollment routes/owner and mandatory dual-key audience
+contract compile and pass **307/307** clean core tests plus unsigned generic-iOS
+app/test and Release builds. This exact checkpoint was deliberately not installed
+or run on either phone; the prior physical **330/330** belongs to the preceding
+agreement-custody commit. See `TEAM_AGREEMENT_ENROLLMENT_IOS.md` and
+`VALIDATION.md`.
+
 ## Latest separate agreement-key checkpoint
 
 The isolated QA app now passes the real Secure Enclave P-256 ECDH identity,

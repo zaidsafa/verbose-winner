@@ -11,6 +11,7 @@ enum TeamDeviceRequestWire {
     static let maximumBodyBytes = 64 * 1024
 
     enum Operation: String, CaseIterable, Sendable {
+        case agreementEnroll = "agreement-enroll"
         case teamAudience = "team-audience"
         case deliverySubmit = "delivery-submit"
         case deliveryFetch = "delivery-fetch"

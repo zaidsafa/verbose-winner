@@ -22,9 +22,11 @@ lookup:
 - executes once, then revalidates the returned team, revision and every target.
 
 The audience remains bounded to nine other accounts. Account, device and
-enrollment identifiers must each be unique, and each exact P-256 public JWK must
-match its RFC7638 thumbprint. Wall time, monotonic time, access expiry and proof
-expiry are checked before and after remote and custody boundaries.
+enrollment identifiers must each be unique. Every target must now contain
+distinct signing and agreement P-256 JWKs matching their RFC7638 thumbprints;
+missing agreement credentials fail the entire lookup rather than silently
+shrinking it. Wall time, monotonic time, access expiry and proof expiry are checked
+before and after remote and custody boundaries.
 
 Cancellation marks the retained operation invalid and requests cancellation, but
 the one-flight slot is not released until even a noncooperative dependency has

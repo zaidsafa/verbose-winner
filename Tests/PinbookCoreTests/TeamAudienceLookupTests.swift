@@ -33,8 +33,9 @@ private actor AudienceDevices: TeamAudienceDevices {
     func requireCurrent(_ expected: TeamDeviceSnapshot) throws {
         guard value?.generation == expected.generation else { throw TeamDeviceCustodyError.staleOperation }
     }
-    func signRequest(_ expected: TeamDeviceSnapshot, challenge: TeamPreparedDeviceRequestChallenge,
-                     binding: TeamDeviceRequestWire.Binding, request: TeamAudienceRevisionRequest,
+    func signRequest<Request: TeamDeviceRequestPayload>(_ expected: TeamDeviceSnapshot,
+                     challenge: TeamPreparedDeviceRequestChallenge,
+                     binding: TeamDeviceRequestWire.Binding, request: Request,
                      checkAuthority: @escaping @Sendable () throws -> Void) throws -> Data {
         try requireCurrent(expected); try checkAuthority(); signatures += 1
         let message = try challenge.message(expected: binding, publicKey: signerPublic(), request: request, now: 1_000)
@@ -60,15 +61,18 @@ private actor AudienceTransport: TeamAudienceTransport {
     private let local: TeamDeviceSnapshot
     private let key: TeamDeviceEnrollmentWire.PublicKey
     private let targetKey: TeamDeviceEnrollmentWire.PublicKey
+    private let targetAgreementKey: TeamDeviceEnrollmentWire.PublicKey
     private var lookupHook = Hook.none, membershipHook = Hook.none, challengeHook = Hook.none, executeHook = Hook.none
     private var gate: AudienceGate?
     private var wrongTeam = false, badTarget = false
     private(set) var calls = [String]()
     init(session: AudienceSession, devices: AudienceDevices, account: TeamAccountAccessTicket,
          local: TeamDeviceSnapshot, key: TeamDeviceEnrollmentWire.PublicKey,
-         targetKey: TeamDeviceEnrollmentWire.PublicKey) {
+         targetKey: TeamDeviceEnrollmentWire.PublicKey,
+         targetAgreementKey: TeamDeviceEnrollmentWire.PublicKey) {
         self.session = session; self.devices = devices; self.account = account
         self.local = local; self.key = key; self.targetKey = targetKey
+        self.targetAgreementKey = targetAgreementKey
     }
     func configure(lookup: Hook = .none, membership: Hook = .none, challenge: Hook = .none,
                    execute: Hook = .none, gate: AudienceGate? = nil,
@@ -123,7 +127,8 @@ private actor AudienceTransport: TeamAudienceTransport {
         await apply(executeHook)
         let target = TeamAudienceTarget(accountID: "peer-account", deviceID: "peer-device",
             enrollmentID: "peer-enrollment", keyThumbprint: badTarget ? key.thumbprint : targetKey.thumbprint,
-            publicKey: targetKey)
+            publicKey: targetKey, agreementKeyThumbprint: targetAgreementKey.thumbprint,
+            agreementPublicKey: targetAgreementKey)
         return .init(teamID: wrongTeam ? "other-team" : expected.teamID,
             membershipRevision: request.membershipRevision, targets: [target])
     }
@@ -152,8 +157,9 @@ struct TeamAudienceLookupTests {
             observedAt: 1_000, publicKey: key, proofExpiresAt: nil, enrollmentID: "enrollment")
         let sessions = AudienceSession(), devices = AudienceDevices(local, signer: signer)
         let target = try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
+        let targetAgreement = try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
         let transport = AudienceTransport(session: sessions, devices: devices, account: account,
-            local: local, key: key, targetKey: target)
+            local: local, key: key, targetKey: target, targetAgreementKey: targetAgreement)
         let owner = try TeamAudienceLookup(account: account, authorityEpoch: "epoch", sessions: sessions,
             devices: devices, transport: transport, clock: { .init(wallTime: wall, instant: .now) },
             requestID: { String(repeating: "E", count: 42) + "A" })

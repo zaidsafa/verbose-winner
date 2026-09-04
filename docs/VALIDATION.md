@@ -1,5 +1,45 @@
 # Validation plan
 
+## 2026-09-05 signed agreement-key enrollment and strict audience (inactive)
+
+- Updated to corrected Android/server contract
+  `0011c1d4f9719ab0137632ecd3485676c6a54cad`. Added the literal
+  `device-agreements/challenge` and `/execute` routes, exact canonical agreement
+  body, locally verified registered-device signature, exact response rebinding,
+  one-flight current account/device/membership/agreement owner, and mandatory
+  signing+agreement recipient credentials. Missing agreement credentials reject
+  the entire audience and signing/agreement reuse rejects. No normal route,
+  listener, deployment or delivery. See `TEAM_AGREEMENT_ENROLLMENT_IOS.md`.
+- First focused HTTP run passed **41/42**; its only issue was the test attempting
+  to decode the larger public agreement body with the deliberately 32-byte-only
+  coordinate decoder. The test now performs canonical general base64url decoding;
+  production behavior was unchanged:
+  `/private/tmp/pinbook-ios-agreement-enrollment-http-focused-20260905.log`.
+- The first owner compile exposed only Swift overload ambiguity between async and
+  synchronous checkpoint helpers plus explicit closure-capture requirements.
+  Renamed the synchronous helper and captured the sendable identity explicitly.
+  The next run passed **43/43** but SwiftPM printed a local build-database I/O
+  warning while reusing valid artifacts:
+  `/private/tmp/pinbook-ios-agreement-enrollment-focused-20260905.log` and
+  `/private/tmp/pinbook-ios-agreement-enrollment-focused-fixed-20260905.log`.
+- A separate clean scratch build under `/private/tmp` freshly compiled and passed
+  focused **43/43**,0.095s:
+  `/private/tmp/pinbook-ios-agreement-enrollment-focused-clean-20260905.log`.
+  Complete clean core **307/307 PASS**,14.782s:
+  `/private/tmp/pinbook-ios-agreement-enrollment-full-core-20260905.log`.
+- Unsigned generic-iOS app plus test targets **TEST BUILD SUCCEEDED**:
+  `/private/tmp/pinbook-ios-agreement-enrollment-test-build-20260905.log`.
+  Ordinary unsigned Release **BUILD SUCCEEDED**:
+  `/private/tmp/pinbook-ios-agreement-enrollment-release-20260905.log`.
+- This checkpoint is intentionally source-only and was not installed or run on
+  either connected phone. The prior physical **330/330** applies to the preceding
+  crypto/custody commit, not this newer source. Prior UI **29/29** remains source-
+  applicable because UI did not change, but is not a run of this exact checkpoint.
+- Signing authorization alone is not proof of agreement-private-key possession by
+  a hostile client. ECDH confirmation remains required before staging. No live
+  provider/TLS, encryption envelope, submit/fetch/ACK, two-device note sync,
+  release archive, production activation or TestFlight readiness was established.
+
 ## 2026-09-05 standard delivery crypto and separate agreement custody (inactive)
 
 - Added bounded RFC 7518 Concat KDF/SHA-256 and RFC 3394 A256 Key Wrap using

@@ -26,8 +26,8 @@ was created/reopened through the QA Keychain and derived the same KEK as an
 independent software peer; A256 wrap/unwrap completed. The complete physical
 app-host suite is **330/330 PASS**. Exact evidence is in `VALIDATION.md`.
 
-No normal route constructs this custody. There is no agreement-key server
-registration yet in this checkpoint, and current audience targets do not yet
-carry a required agreement key. Therefore this is not usable encryption or live
-Android/iPhone sync. Agreement enrollment must be separately authorized by the
-registered signing device and rebound to the exact membership revision.
+No normal route constructs this custody. The separate inactive signed enrollment
+coordinator and required audience fields now exist in source; see
+`TEAM_AGREEMENT_ENROLLMENT_IOS.md`. They do not make this usable encryption or
+live Android/iPhone sync. ECDH key confirmation, the canonical envelope and
+delivery remain separate gates.

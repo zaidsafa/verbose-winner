@@ -58,6 +58,14 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- The separate agreement public key now has an inactive, registered-device-signed
+  enrollment route and one-flight current-authority owner. Every audience target
+  must include distinct valid signing and agreement credentials; missing fields
+  reject the whole snapshot. Clean core and unsigned iOS builds pass, but this
+  exact source-only checkpoint has no phone/live endpoint evidence. ECDH private-
+  key confirmation is explicitly required before staging. See
+  `TEAM_AGREEMENT_ENROLLMENT_IOS.md`.
+
 - Reviewed standard ECDH-ES Concat KDF/A256KW vectors and a separate non-exported
   Secure Enclave agreement identity now pass locally and in the isolated physical
   QA app. The key is exact enrollment scoped and cannot reuse the signing API.
