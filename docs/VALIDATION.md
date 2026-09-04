@@ -1,5 +1,46 @@
 # Validation plan
 
+## 2026-09-05 one-flight current team audience lookup (inactive)
+
+- Added one explicit foreground owner for the exact reviewed account, registered
+  device/enrollment and fresh current-team revision. It performs one typed
+  challenge/sign/execute sequence; rechecks account, device, wall/monotonic and
+  proof authority around every boundary; validates the bounded returned audience;
+  and has no retry, cache, timer, poll, background work or runtime route. Device
+  signing is a read-only exact-generation custody operation with the account check
+  inside the transaction. See `TEAM_AUDIENCE_LOOKUP_IOS.md`.
+- The first focused lookup run compiled and passed **4/5**; one expired-access test
+  had constructed a ticket already expired at fixture creation. The fixture now
+  creates a valid ticket and places the lookup exactly at expiry. A subsequent
+  compile rejected a mutable captured test counter under strict concurrency; it
+  was replaced by a lock-protected helper without changing app code. Final focused
+  lookup plus custody **6/6 PASS**,0.027s:
+  `/private/tmp/pinbook-ios-audience-lookup-focused-final-fixed-20260905.log`.
+- Complete core **293/293 PASS**,17.324s:
+  `/private/tmp/pinbook-ios-audience-lookup-full-core-20260905.log`.
+  Signed isolated QA build-for-testing PASS:
+  `/private/tmp/pinbook-qa-audience-lookup-build-20260905.log`.
+- Physical iPhone audience **5/5 PASS**,0.017s; complete custody **16/16 PASS**,
+  0.064s; complete app-host **320/320 PASS**,3.798s, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Audience-Lookup-20260905.xcresult`,
+  `/private/tmp/Pinbook-QA-Physical-Audience-Custody-20260905.xcresult`, and
+  `/private/tmp/Pinbook-QA-Physical-Audience-Lookup-Full-20260905.xcresult`.
+- The first fresh-derived Release attempt could not resolve AppAuth because the
+  sandbox had no network; the local-cache retry was initially denied compiler
+  cache access. The same source then passed ordinary unsigned Release using the
+  already-resolved package/cache. Logs:
+  `/private/tmp/pinbook-ios-audience-lookup-release-20260905.log`,
+  `/private/tmp/pinbook-ios-audience-lookup-release-fixed-20260905.log`, and
+  `/private/tmp/pinbook-ios-audience-lookup-release-final-20260905.log` (interrupted
+  warm-cache compile). Final ordinary unsigned Release **BUILD SUCCEEDED**:
+  `/private/tmp/pinbook-ios-audience-lookup-release-success-20260905.log`. QA
+  launched normally afterward:
+  `/private/tmp/pinbook-qa-post-audience-lookup-normal-launch-20260905.json`.
+- Prior complete UI **29/29 PASS** remains applicable because this checkpoint adds
+  no UI/runtime path. All transports and identities are synthetic/intercepted.
+  This is not live TLS/provider validation, encryption, submit/fetch/ACK, two-device
+  note sync, release archive, production activation or TestFlight readiness.
+
 ## 2026-09-05 typed device-request challenge/execute transport (inactive)
 
 - Added two literal authenticated routes to the existing bounded client. Challenge

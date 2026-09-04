@@ -87,6 +87,17 @@ private final class DeviceClock: @unchecked Sendable {
     func now() -> Int64 { lock.withLock { time } }
     func set(_ value: Int64) { lock.withLock { time = value } }
 }
+private final class DeviceAuthorityCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    let failAt: Int?
+    init(failAt: Int? = nil) { self.failAt = failAt }
+    func check() throws {
+        let value = lock.withLock { count += 1; return count }
+        if value == failAt { throw TeamAccountSessionError.staleOperation }
+    }
+    var value: Int { lock.withLock { count } }
+}
 private struct DeviceFixture {
     let store = DeviceMemoryStore()
     let keys = DeviceFixtureKeys()
@@ -110,9 +121,50 @@ private struct DeviceFixture {
         try .init(enrollmentID: "public-enrollment", accountID: account ?? scope.accountID, deviceID: s.deviceID,
             keyThumbprint: #require(s.publicKey).thumbprint, authorityEpoch: scope.authorityEpoch)
     }
+    func request(_ snapshot: TeamDeviceSnapshot) throws -> (TeamPreparedDeviceRequestChallenge,
+        TeamDeviceRequestWire.Binding, TeamAudienceRevisionRequest) {
+        let key = try #require(snapshot.publicKey), request = try TeamAudienceRevisionRequest(membershipRevision: 7)
+        let binding = TeamDeviceRequestWire.Binding(audience: scope.audience, authorityEpoch: scope.authorityEpoch,
+            accountID: scope.accountID, sessionID: "public-session", deviceID: snapshot.deviceID,
+            enrollmentID: try #require(snapshot.enrollmentID), keyThumbprint: key.thumbprint,
+            operation: .teamAudience, teamID: "public-team", requestID: String(repeating: "C", count: 42) + "A",
+            accessExpiresAt: 20_000)
+        let body = Data(#"{"membershipRevision":7}"#.utf8)
+        let wire = try JSONSerialization.data(withJSONObject: ["audience": binding.audience,
+            "authorityEpoch": binding.authorityEpoch, "accountId": binding.accountID,
+            "sessionId": binding.sessionID, "deviceId": binding.deviceID, "enrollmentId": binding.enrollmentID,
+            "keyThumbprint": binding.keyThumbprint, "operation": binding.operation.rawValue,
+            "teamId": binding.teamID, "requestId": binding.requestID,
+            "bodySha256": try TeamDeviceRequestWire.bodySHA256(body),
+            "challengeId": String(repeating: "A", count: 43),
+            "nonce": String(repeating: "B", count: 42) + "A", "expiresAt": 10_000])
+        return (try .init(validating: wire, expected: binding, publicKey: key,
+            request: request, now: clock.now()), binding, request)
+    }
 }
 
 struct TeamDeviceCustodyTests {
+    @Test func registeredRequestSigningIsReadOnlyAndChecksAuthorityInsideCustody() throws {
+        let f = try DeviceFixture(), owner = f.owner()
+        let ready = try owner.prepare(scope: f.scope, consent: true)
+        let registered = try owner.recordRegistration(ready, registration: f.registration(ready))
+        let (challenge, binding, request) = try f.request(registered)
+        let checks = DeviceAuthorityCounter()
+        let signature = try owner.signRequest(registered, challenge: challenge, binding: binding,
+            request: request) { try checks.check() }
+        let key = try #require(registered.publicKey)
+        let message = try challenge.message(expected: binding, publicKey: key, request: request, now: 1_000)
+        #expect(key.key.isValidSignature(try P256.Signing.ECDSASignature(rawRepresentation: signature), for: message))
+        #expect(checks.value == 3 && f.keys.signingCount == 1 && f.store.writeCount == 3)
+        #expect(try owner.load(scope: f.scope)?.generation == registered.generation)
+        let failing = DeviceAuthorityCounter(failAt: 2)
+        #expect(throws: (any Error).self) {
+            try owner.signRequest(registered, challenge: challenge, binding: binding, request: request) {
+                try failing.check()
+            }
+        }
+        #expect(failing.value == 2 && f.keys.signingCount == 1 && f.store.writeCount == 3)
+    }
     @Test func keychainAdapterUsesSeparatePasscodeOnlyIndexAndAtomicExpectedPayload() throws {
         let backend = SessionMemoryKeychain()
         let store = try KeychainTeamDeviceMetadata(testService: "pinbook.device-test.public", keychain: backend)

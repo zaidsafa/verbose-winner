@@ -5,6 +5,18 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest one-flight audience lookup checkpoint
+
+The inactive current-authority owner now passes **5/5** focused audience tests,
+**16/16** complete custody tests and **320/320** complete app-host tests on the
+physical iPhone, all without failures/skips. Signed QA and ordinary unsigned
+Release builds pass, and QA returned to a normal launch. Exact artifacts are in
+`VALIDATION.md` and the contract is in `TEAM_AUDIENCE_LOOKUP_IOS.md`.
+
+All remote identities and responses were synthetic/intercepted. The Android phone
+is available for the later two-device acceptance run, but no live sync provider or
+delivery path exists yet, so cross-device notes sync has not been claimed.
+
 ## Latest typed device-request transport checkpoint
 
 The two inactive challenge/execute methods pass **17/17** intercepted transport

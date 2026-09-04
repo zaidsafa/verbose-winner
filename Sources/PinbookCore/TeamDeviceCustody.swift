@@ -302,6 +302,35 @@ final class TeamDeviceCustody: @unchecked Sendable {
         _ = try challenge.message(expected: binding, now: now(since: instant))
         return .init(pending: pending, signature: signature)
     }
+    /// Read-only request proof from one exact REGISTERED generation. The caller's
+    /// account check runs inside this custody operation before and after signing.
+    func signRequest(_ expected: TeamDeviceSnapshot, challenge: TeamPreparedDeviceRequestChallenge,
+                     binding: TeamDeviceRequestWire.Binding, request: TeamAudienceRevisionRequest,
+                     checkAuthority: @escaping @Sendable () throws -> Void) throws -> Data {
+        try checkAuthority()
+        let row = try current(expected)
+        guard row.snapshot.phase == .registered, row.snapshot.enrollmentID == binding.enrollmentID,
+              let sealed = row.sealedKey, let key = row.snapshot.publicKey else {
+            throw TeamDeviceCustodyError.invalidPhase
+        }
+        guard binding.audience == row.snapshot.scope.audience,
+              binding.accountID == row.snapshot.scope.accountID,
+              binding.authorityEpoch == row.snapshot.scope.authorityEpoch,
+              binding.deviceID == row.snapshot.deviceID,
+              binding.keyThumbprint == key.thumbprint else { throw TeamDeviceCustodyError.bindingMismatch }
+        let instant = try now(since: row.snapshot.observedAt)
+        var message = try challenge.message(expected: binding, publicKey: key, request: request, now: instant)
+        defer { message.resetBytes(in: message.startIndex..<message.endIndex) }
+        try checkAuthority(); _ = try current(expected)
+        let signature = try keys.sign(sealed: sealed, message: message)
+        guard signature.count == 64,
+              let parsed = try? P256.Signing.ECDSASignature(rawRepresentation: signature),
+              key.key.isValidSignature(parsed, for: message) else { throw TeamDeviceCustodyError.keyUnavailable }
+        try checkAuthority(); _ = try current(expected)
+        _ = try challenge.message(expected: binding, publicKey: key, request: request,
+            now: now(since: instant))
+        return signature
+    }
     private func match(_ binding: TeamDeviceEnrollmentWire.Binding, row: TeamDeviceSnapshot) throws {
         guard binding.audience == row.scope.audience, binding.accountID == row.scope.accountID,
               binding.authorityEpoch == row.scope.authorityEpoch, binding.deviceID == row.deviceID,

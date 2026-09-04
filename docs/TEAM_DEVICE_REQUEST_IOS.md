@@ -2,9 +2,10 @@
 
 Updated September 5, 2026 from the corrected shared checkpoint
 `dbeba7df0d64a637ea89fa2614cbe0b4fbeae97b`. This contains a bounded wire
-primitive, public interoperability fixture, and two typed inactive client routes.
-It adds no request signer, Secure Enclave transaction, generic callback, listener,
-provider, delivery handler, stored request, or runtime activation.
+primitive, public interoperability fixture, two typed inactive client routes, and
+a separately documented one-flight current-authority owner. It adds no generic
+callback, listener, provider, delivery handler, stored request, or runtime
+activation.
 
 ## Exact local checks
 
@@ -49,9 +50,10 @@ CryptoKit, rejects a changed message, and rejects every binding/body/public-key
 substitution. It also tests body, shape, access, and one-minute deadline bounds.
 Exact local and physical-iPhone counts are in `VALIDATION.md`.
 
-The next narrow layer is a one-flight audience owner that composes current account
-generation, exact REGISTERED device generation, server enrollment and membership
-revision around these routes. Signing must use that exact retained device and
-recheck the pinned account session before and after the device transaction. There
-is still no generic transaction callback or raw PostgreSQL client. Submit/fetch,
-encrypted delivery and archive-before-ACK remain separate gates.
+The one-flight audience owner now composes current account generation, exact
+`REGISTERED` device generation, server enrollment and membership revision around
+these routes. Request signing is read-only on that exact retained device and
+rechecks the pinned account session inside the custody operation. See
+`TEAM_AUDIENCE_LOOKUP_IOS.md`. There is still no generic transaction callback or
+raw PostgreSQL client. Separate agreement-key custody, submit/fetch, encrypted
+delivery and archive-before-ACK remain separate gates.

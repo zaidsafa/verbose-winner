@@ -58,6 +58,14 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- A one-flight current team-audience lookup now pins one reviewed account, exact
+  registered device/enrollment and fresh membership revision through one typed
+  challenge/sign/execute request. Account/device/proof authority is rechecked
+  around every boundary and inside read-only custody signing. Local and physical
+  QA pass through the complete 320-test app-host suite. This remains inactive and
+  synthetic; it does not close live provider, encryption, delivery, two-device
+  sync, final-candidate or TestFlight gates. See `TEAM_AUDIENCE_LOOKUP_IOS.md`.
+
 - Shared device-authorized request v1 now has an inactive Swift exact-message/body-
   hash validator, byte-identical public fixture, and two strict authenticated typed
   transport methods. Cross-platform raw P-256 verification and intercepted routes

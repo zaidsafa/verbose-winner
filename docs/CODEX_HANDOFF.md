@@ -45,6 +45,18 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- One-flight current-team audience ownership now composes the exact reviewed
+  account generation, registered device/enrollment, fresh membership revision and
+  typed challenge/sign/execute routes. Custody signing is read-only and checks the
+  account inside the exact device transaction; cancellation retains busy ownership
+  until noncooperative work settles. Focused **6/6**, full core **293/293**,
+  physical audience **5/5**, physical custody **16/16** and complete app-host
+  **320/320 PASS**; QA/Release build and normal relaunch pass. No UI/runtime route,
+  live endpoint, encryption, delivery or TestFlight upload. NEXT: port only the
+  reviewed shared ECDH-ES/A256KW primitives, then add a separate agreement-key
+  custody identity without reusing the signing key or freezing the envelope. See
+  `TEAM_AUDIENCE_LOOKUP_IOS.md` and `VALIDATION.md`.
+
 - Two exact inactive device-request HTTP routes now compose the existing bounded,
   shared-slot authenticated client. Only `team-audience` challenge is allowed;
   execute rechecks the prepared proof and verifies the raw64 signature locally.
@@ -52,9 +64,9 @@ Updated: 2026-09-05 (Asia/Shanghai)
   unique across account/device/enrollment, and exact-JWK/thumbprint checked. Focused
   **17/17**, full core **287/287**, physical focused **17/17**, and app-host
   **314/314 PASS**; signed QA/unsigned Release pass. All network tests were
-  intercepted; no endpoint/runtime activated. NEXT: one-flight current account +
-  exact REGISTERED device + membership-revision audience owner, following Android
-  `f954b56`, then separate submit/fetch/archive-before-ACK gates. See
+  intercepted; no endpoint/runtime activated. The one-flight current-authority
+  owner from Android `f954b56` is now implemented as the newer checkpoint above;
+  separate agreement custody and submit/fetch/archive-before-ACK remain. See
   TEAM_DEVICE_REQUEST_IOS.md and VALIDATION.md.
 
 - Corrected shared device-request checkpoint
