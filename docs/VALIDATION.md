@@ -1,5 +1,54 @@
 # Validation plan
 
+## 2026-09-04 inactive team-delivery foundation
+
+- Isolated branch `codex/team-delivery-foundation` based on `4c8087b`; no release,
+  signing/version changes, network/team UI, personal-data migration or live service.
+  The original iOS worktree's user-owned signing/project edits were preserved.
+- Shared Android draft2 fixture is byte-identical, SHA-256
+  `af994f328144079960f0bcaa5f78ed6db91a8c02a3387b21c0251797583cf033`.
+  Fixtures are test resources, not included in the production app.
+- Final Swift package tests: **24/24 passed** (9 prior, 15 team). Command:
+  `swift test --disable-sandbox --scratch-path /private/tmp/pinbook-ios-team-foundation-swift`.
+  Log: `/private/tmp/pinbook-ios-team-foundation-swift-final.log`.
+- Simulator app tests: **44 executed/passed**, with **one explicitly skipped**
+  hardware-only Data Protection test (45 discovered). Result:
+  `/private/tmp/Pinbook-Team-Foundation-Verified.xcresult`; log:
+  `/private/tmp/pinbook-ios-team-foundation-simulator-verified.log`.
+  Destination: iPhone 17 Pro `4A87A62E-C254-4FBE-8673-7D089E4165C1`, iOS 26.5,
+  Debug, `-only-testing:PinbookTests`, `CODE_SIGNING_ALLOWED=NO`.
+- Existing XCUITest regression: **10/10 passed**, including onboarding languages,
+  RTL, theme/currency selection and native Files presentation. Initial result:
+  `/private/tmp/Pinbook-Team-Foundation.xcresult`; log:
+  `/private/tmp/pinbook-ios-team-foundation-simulator.log`.
+  That initial combined run failed only its new protection-attribute assertion;
+  its overall result must not be described as passed.
+- The initial assertion incorrectly cast Apple's NSString protection value;
+  correcting the cast revealed that this Simulator returns no protection attribute.
+  The test was split: backup exclusion and 0700/0600 permissions still execute;
+  the hardware protection test is explicitly disabled on Simulator and enabled on
+  a physical iPhone. Hardware initialization verifies Complete protection before
+  content writes. No phone reconnection or hardware acceptance is claimed.
+- Coverage includes exact deadline/overflow, frozen sender-excluding targets,
+  foreign device/enrollment/team rejection, contradictory cancellation/ACK sets,
+  UTF-8 bounds and unpaired surrogate rejection, immutable redelivery, atomic
+  receipt-insert failure rollback, all-connection close/reopen, concurrent duplicate
+  receipt idempotency, enrollment-bound retirement, full bounded queues, independent
+  account limits, unknown-schema refusal and preservation of personal fixture bytes.
+- After the Simulator run, final review added fail-closed connection invalidation
+  if ROLLBACK itself fails. The final **24/24** package run includes this change.
+  Simulator execution above predates that final safeguard; no result is relabeled
+  as exact-final iOS execution. Further device launches were held for another
+  project's exclusive Simulator credential-entry window.
+- Generic iPhone unsigned Release and generic Simulator Debug final-source builds
+  are recorded in `/private/tmp/pinbook-ios-team-foundation-release-final.log` and
+  `/private/tmp/pinbook-ios-team-foundation-debug-final.log`.
+- Transaction-trigger failure/reopen tests are not sudden power loss, actual disk
+  exhaustion or cryptographic durability proof. Hardware protection/lock behavior,
+  actual OS backup extraction, portable encrypted Android/iOS archive transfer,
+  authentication/enrollment/crypto, durable attachment verification, server ACKs,
+  provider deletion and restore remain gates. Infrastructure is NEEDS_INFO.
+
 ## 2026-09-04 TestFlight build 2 physical validation
 
 - App Store Connect upload succeeded and processing completed for `0.1.0 (2)`.

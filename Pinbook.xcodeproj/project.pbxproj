@@ -33,6 +33,10 @@
 		B20000000000000000000004 /* Merge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Merge.swift */; };
 		B20000000000000000000005 /* ServicePorts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ServicePorts.swift */; };
 		B20000000000000000000006 /* BackupRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* BackupRecovery.swift */; };
+		B20000000000000000000007 /* TeamDelivery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* TeamDelivery.swift */; };
+		B20000000000000000000008 /* TeamInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* TeamInbox.swift */; };
+		B30000000000000000000002 /* TeamDeliveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* TeamDeliveryTests.swift */; };
+		B30000000000000000000003 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000003 /* Fixtures */; };
 		B30000000000000000000001 /* PinbookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000001 /* PinbookTests.swift */; };
 		B40000000000000000000001 /* PinbookUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* PinbookUITests.swift */; };
 		B50000000000000000000001 /* PinbookWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000001 /* PinbookWidgets.swift */; };
@@ -105,6 +109,10 @@
 		A20000000000000000000004 /* Merge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Merge.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* ServicePorts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicePorts.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* BackupRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecovery.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* TeamDelivery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamDelivery.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* TeamInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInbox.swift; sourceTree = "<group>"; };
+		A30000000000000000000002 /* TeamDeliveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamDeliveryTests.swift; sourceTree = "<group>"; };
+		A30000000000000000000003 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../Tests/PinbookCoreTests/Fixtures; sourceTree = "<group>"; };
 		A30000000000000000000001 /* PinbookTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000001 /* PinbookUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookUITests.swift; sourceTree = "<group>"; };
 		A50000000000000000000001 /* PinbookWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinbookWidgets.swift; sourceTree = "<group>"; };
@@ -195,6 +203,8 @@
 				A20000000000000000000004 /* Merge.swift */,
 				A20000000000000000000005 /* ServicePorts.swift */,
 				A20000000000000000000006 /* BackupRecovery.swift */,
+				A20000000000000000000007 /* TeamDelivery.swift */,
+				A20000000000000000000008 /* TeamInbox.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -203,6 +213,8 @@
 			isa = PBXGroup;
 			children = (
 				A30000000000000000000001 /* PinbookTests.swift */,
+				A30000000000000000000002 /* TeamDeliveryTests.swift */,
+				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
 			sourceTree = "<group>";
@@ -376,6 +388,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B30000000000000000000003 /* Fixtures in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -424,6 +437,8 @@
 				B20000000000000000000004 /* Merge.swift in Sources */,
 				B20000000000000000000005 /* ServicePorts.swift in Sources */,
 				B20000000000000000000006 /* BackupRecovery.swift in Sources */,
+				B20000000000000000000007 /* TeamDelivery.swift in Sources */,
+				B20000000000000000000008 /* TeamInbox.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,6 +447,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B30000000000000000000001 /* PinbookTests.swift in Sources */,
+				B30000000000000000000002 /* TeamDeliveryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

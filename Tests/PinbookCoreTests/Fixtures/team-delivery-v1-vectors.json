@@ -1,0 +1,30 @@
+{
+  "contract": "pinbook-team-delivery-local-v1-draft2",
+  "note": "Decrypted local fixtures only; do not send plaintext content digests to the control server.",
+  "validEnvelope": {
+    "protocolVersion": 1,
+    "teamId": "team-one",
+    "deliveryId": "delivery-one",
+    "noteId": "note-one",
+    "authorUserId": "author",
+    "recipient": {"userId": "alice", "deviceId": "alice-phone", "enrollmentId": "alice-phone-enrollment"},
+    "body": "abc",
+    "bodySha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    "acceptedAt": 1000,
+    "expiresAt": 2592001000,
+    "attachmentCount": 0
+  },
+  "targets": [
+    {"userId": "alice", "deviceId": "alice-phone", "enrollmentId": "alice-phone-enrollment"},
+    {"userId": "bob", "deviceId": "bob-phone", "enrollmentId": "bob-phone-enrollment"}
+  ],
+  "retentionCases": [
+    {"now": 1000, "acknowledgedUsers": [], "revokedUsers": [], "expected": "KEEP"},
+    {"now": 1001, "acknowledgedUsers": ["alice"], "revokedUsers": [], "expected": "KEEP"},
+    {"now": 1002, "acknowledgedUsers": ["alice", "bob"], "revokedUsers": [], "expected": "ALL_RECIPIENTS_SETTLED"},
+    {"now": 1003, "acknowledgedUsers": ["alice"], "revokedUsers": ["bob"], "expected": "ALL_RECIPIENTS_SETTLED"},
+    {"now": 2592000999, "acknowledgedUsers": ["alice"], "revokedUsers": [], "expected": "KEEP"},
+    {"now": 2592001000, "acknowledgedUsers": ["alice"], "revokedUsers": [], "expected": "EXPIRED"},
+    {"now": 2592001001, "acknowledgedUsers": [], "revokedUsers": [], "expected": "EXPIRED"}
+  ]
+}

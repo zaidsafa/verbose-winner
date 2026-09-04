@@ -2,6 +2,33 @@
 
 Updated: 2026-09-04 (Asia/Shanghai)
 
+## Current isolated team-delivery workstream
+
+- Owner requested native local foundation coordinated with Android. Worktree:
+  `/Users/zaidsmac/Documents/ChatGPT/TC Projects/pinbook-ios-team-delivery`, branch
+  `codex/team-delivery-foundation`, based on `4c8087b`. The original iOS worktree
+  and its uncommitted signing/project edits remain untouched.
+- Read `docs/TEAM_DELIVERY_IOS.md` for scope, implementation, evidence limits and
+  activation gates. `docs/TEAM_DELIVERY_V1.md` snapshots the Android-owned draft2
+  contract. Shared fixture SHA-256:
+  `af994f328144079960f0bcaa5f78ed6db91a8c02a3387b21c0251797583cf033`.
+- Local text envelope, frozen account/device/enrollment policy, exact 30-day
+  retention reference, sender exclusion, explicit cancellation, immutable archive
+  plus receipt transaction, bounded outbox and enrollment-scoped receipt retirement
+  are implemented. Media is rejected. No network or app/team UI entry point exists.
+- Personal records, backup-v8 serializers, version/build and signing settings are
+  unchanged. No phone, shared Infrastructure, App Store Connect or release action
+  was performed for this workstream. Source commit/push is authorized for this
+  isolated implementation branch; the older push restriction below is historical.
+- Local Swift tests: 24/24 passed (9 existing, 15 new). Simulator: 44 app tests
+  passed, one hardware-only protection check explicitly skipped; 10/10 existing
+  UI tests passed. Hardware protection is not claimed. See `docs/VALIDATION.md`
+  for exact final-source versus Simulator evidence boundaries.
+- Infrastructure and Android were notified directly. Admission remains NEEDS_INFO.
+  Auth/crypto/enrollment/recovery, portable encrypted Android/iOS archive transfer,
+  complete durable media handling and deployment admission remain prerequisites.
+  No E2EE, public activation, physical deletion, or worldwide compliance claim.
+
 ## Current TestFlight publication
 
 - Owner authorized publishing build 2 to all existing internal and external test groups.
