@@ -142,6 +142,24 @@ enum PinbookDeepLink: Equatable {
     var opensExpenseEditor: Bool { self == .newExpense }
 }
 
+struct PinbookDeepLinkPresentation: Equatable {
+    let tab: PinbookTab
+    let showsExpenseEditor: Bool
+    let showsQuickAdd: Bool
+
+    init(tab: PinbookTab, showsExpenseEditor: Bool, showsQuickAdd: Bool) {
+        self.tab = tab
+        self.showsExpenseEditor = showsExpenseEditor
+        self.showsQuickAdd = showsQuickAdd
+    }
+
+    init(_ deepLink: PinbookDeepLink) {
+        tab = deepLink.destinationTab
+        showsExpenseEditor = deepLink.opensExpenseEditor
+        showsQuickAdd = false
+    }
+}
+
 struct AppShellView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -255,10 +273,10 @@ struct AppShellView: View {
         .onOpenURL { url in
             guard let scheme = Bundle.main.object(forInfoDictionaryKey: "PinbookURLScheme") as? String,
                   let deepLink = PinbookDeepLink(url: url, expectedScheme: scheme) else { return }
-            selection = deepLink.destinationTab
-            if deepLink.opensExpenseEditor {
-                showingAddExpense = true
-            }
+            let presentation = PinbookDeepLinkPresentation(deepLink)
+            showingQuickAdd = presentation.showsQuickAdd
+            showingAddExpense = presentation.showsExpenseEditor
+            selection = presentation.tab
         }
         .task {
             do {

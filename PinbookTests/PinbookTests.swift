@@ -345,11 +345,15 @@ func qaSecureEnclaveAgreementDecryptsCanonicalTeamPayloadJWE() throws {
     #expect(add == .newExpense)
     #expect(add.destinationTab == .expenses)
     #expect(add.opensExpenseEditor)
+    #expect(PinbookDeepLinkPresentation(add) == .init(
+        tab: .expenses, showsExpenseEditor: true, showsQuickAdd: false))
 
     let summary = try #require(PinbookDeepLink(url: URL(string: "pinbook://summary")!))
     #expect(summary == .summary)
     #expect(summary.destinationTab == .summary)
     #expect(!summary.opensExpenseEditor)
+    #expect(PinbookDeepLinkPresentation(summary) == .init(
+        tab: .summary, showsExpenseEditor: false, showsQuickAdd: false))
 
     #expect(PinbookDeepLink(url: URL(string: "https://example.com")!) == nil)
     #expect(PinbookDeepLink(url: URL(string: "pinbook://unknown")!) == nil)

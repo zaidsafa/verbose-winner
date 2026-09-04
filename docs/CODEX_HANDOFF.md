@@ -45,6 +45,22 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Actual iOS 26.5 Simulator widget-gallery acceptance now covers both Pinbook
+  kinds and all four Home Screen gallery pages: Quick Expense small/medium and
+  Balance Overview small/medium. Installed Balance Overview opens Summary;
+  installed Quick Expense opens New Expense. Cross-routing exposed a real stale-
+  sheet bug, now fixed by applying an authoritative presentation state for every
+  deep link. The full signed app-host rerun passes **353 + 4 expected physical-
+  only skips**, 0 failures (357 total), including the named widget route test.
+  Manual retest confirms Summary dismisses the New Expense sheet. Evidence:
+  `docs/evidence/pinbook-final-widgets-installed.png`,
+  `docs/evidence/pinbook-final-widget-quick-expense-deeplink.png`, and
+  `docs/evidence/pinbook-final-widget-cross-route-summary.png`. The bright glass
+  pinwheel icon is visible in the installed gallery. Physical Lock Screen/Always
+  On and the exact next App Store Connect artifact remain separate open gates.
+  Ordinary unsigned production Release also passes without changing bundle,
+  version or build; no archive/upload/publication action occurred.
+
 - Exact-current automated final-candidate regression at local iOS commit
   `910f3dc` now passes: signed Simulator app-host **353 PASS + 4 expected
   physical-only SKIPS** (357 total,0 failures), physical QA app-host **357/357**,

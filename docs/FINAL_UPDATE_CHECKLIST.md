@@ -20,11 +20,18 @@ ones; neither compiled source nor a placeholder counts as a completed feature.
 - [x] Currency catalog with localized names, symbols and unambiguous ISO codes;
       search, favorites, selection and correct localized amount precision.
 - [ ] Bright app icon in the installed app, widget gallery and App Store Connect.
+      The colorful glass pinwheel is verified in the installed Simulator app and
+      Pinbook widget gallery; the exact next App Store Connect candidate remains
+      open until the one final build is uploaded and processed.
 - [x] Expenses, settlements, balances, notes, templates, receipts, reminders,
       statements, personal backup-v8 preview/merge/recovery without data loss.
-- [ ] Both iPhone widgets: clear privacy behavior and verified installation/deep links.
+- [x] Both iPhone widgets: clear privacy behavior and verified Simulator
+      installation/deep links. The gallery exposes Quick Expense and Balance
+      Overview in small/medium families; their installed widgets open New Expense
+      and Summary. Cross-routing now dismisses stale sheets authoritatively.
       Current Balance Overview is an entry point, not live shared-container data.
       Live balances require explicit App Group/capability and privacy integration.
+      Physical Lock Screen/Always On behavior remains in the physical-only gate.
 
 These items exist in the published baseline to varying documented extents; final
 checkboxes deliberately remain open until checked against the exact next candidate.
@@ -190,9 +197,12 @@ checkboxes deliberately remain open until checked against the exact next candida
   bounds actual file bytes to 128 MiB. Export uses the same limit. Legacy backups
   larger than this limit need an accepted recovery path before final sign-off;
   schema remains v8. No automatic cloud sync is implied by provider coordination.
-- Both privacy-only widgets now have Lock Screen family layouts and adaptive
-  tinted/background-removed colors. Compile/tests alone do not close gallery,
-  installation, Always On or physical locked-device acceptance.
+- Both privacy-only widgets have Lock Screen family layouts and adaptive
+  tinted/background-removed colors. The actual Simulator gallery, installed
+  Home Screen widgets and both deep links now pass. A discovered cross-widget
+  presentation bug was fixed: opening Summary after New Expense closes the
+  expense/Quick Add presentations instead of leaving a stale sheet over Summary.
+  Always On and physical locked-device acceptance remain open.
 - Received-text local store and restricted encrypted portable archive implemented;
   public cross-platform fixture round trip passed. No production entry point.
 - Bounded file reader and immutable authenticated restore candidate implemented.

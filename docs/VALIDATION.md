@@ -1,5 +1,34 @@
 # Validation plan
 
+## 2026-09-05 installed widgets and authoritative cross-route presentation
+
+- The actual Pinbook entry in the iOS 26.5 Simulator widget gallery exposes four
+  Home Screen choices: Quick Expense small/medium and Balance Overview small/
+  medium. Both widget kinds were installed together. The bright multicolor glass
+  pinwheel icon appears in the gallery.
+- Installed Balance Overview opened Summary and installed Quick Expense opened
+  New Expense. Testing the widgets in sequence found a real state bug: after New
+  Expense was presented, a later Summary route changed the selected tab but left
+  the expense sheet covering it. `PinbookDeepLinkPresentation` now makes every
+  accepted deep link set tab, expense-editor and Quick Add state authoritatively.
+- Complete signed Simulator app-host rerun on the corrected source: **353 passes,
+  4 expected physical-only skips, 0 failures**, 357 total. The named
+  `widgetDeepLinksRouteWithoutExposingFinancialData()` test passed. Result:
+  `/private/tmp/Pinbook-Widget-Route-Full-AppHost-20260905.xcresult`.
+- Manual cross-route retest opened `pinbook://expense/new`, then
+  `pinbook://summary`; Summary was visible with no stale sheet. Evidence:
+  `docs/evidence/pinbook-final-widgets-installed.png` SHA-256
+  `a2596b515f7f6dba2b9281cfd310348d9dba891414dc4477bc29cfe15971d48c`,
+  `docs/evidence/pinbook-final-widget-quick-expense-deeplink.png` SHA-256
+  `3cee6f443f16ebcca1993c6e6439cb1962c6e497c5ebb23497142de3abb460eb`,
+  and `docs/evidence/pinbook-final-widget-cross-route-summary.png` SHA-256
+  `924ddb07ef25a83c6ab79af8b7fe717eb2fe93100d949ac1e7e5c773778c1cc7`.
+- Ordinary unsigned generic-iPhone Release **BUILD SUCCEEDED** with production
+  bundle `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`:
+  `/private/tmp/pinbook-widget-route-release-20260905.log`.
+  This does not claim physical Lock Screen/Always On behavior, live App Group
+  balances, a new archive/upload, or App Store Connect acceptance.
+
 ## 2026-09-05 exact-current UI, localization and backend-profile regression
 
 - Exact iOS source at local commit `910f3dc` passed the complete signed native UI
