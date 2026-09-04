@@ -83,11 +83,19 @@ struct TeamAuthTLSTests {
                     try await Task.sleep(for: .milliseconds(20))
                 }
                 let port = try String(contentsOf: portURL, encoding: .utf8)
-                origin = try #require(URL(string: "https://localhost:\(port)"))
+                origin = try Self.origin(forPort: port)
             } catch {
                 if !server.isRunning || serverExit.stop(server) { try? FileManager.default.removeItem(at: directory) }
                 throw error
             }
+        }
+        static func origin(forPort raw: String) throws -> URL {
+            guard !raw.isEmpty, raw.utf8.allSatisfy({ (48...57).contains($0) }),
+                  let port = Int(raw), (1...65_535).contains(port), String(port) == raw,
+                  let url = URL(string: "https://localhost:\(port)"), url.port == port else {
+                throw FixtureError.setup
+            }
+            return url
         }
         deinit {
             let errors = diagnostics.values
@@ -127,6 +135,17 @@ struct TeamAuthTLSTests {
             accessExpiresAt: 10_000, sessionExpiresAt: 30_000)
     }
 
+    @Test func fixtureRejectsIncompleteOrInvalidPortPublication() throws {
+        // Previously file existence could race with write_text and publish "";
+        // Foundation accepts that URL but silently loses the intended port.
+        #expect(URL(string: "https://localhost:")?.port == nil)
+        for raw in ["", " ", "0", "65536", "443\n", "+123", "01", "1.0", "localhost"] {
+            #expect(throws: FixtureError.setup) { try Fixture.origin(forPort: raw) }
+        }
+        for port in [1, 443, 49_152, 65_535] {
+            #expect(try Fixture.origin(forPort: String(port)).port == port)
+        }
+    }
     @Test func tlsTrustAndActualPostBody() async throws {
         let fixture = try await Fixture(mode: "success")
         let untrusted = try TeamAuthHTTPClient(origin: fixture.origin)

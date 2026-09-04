@@ -150,5 +150,9 @@ context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.minimum_version = ssl.TLSVersion.TLSv1_2
 context.load_cert_chain(root / "certificate.pem", root / "private.pem")
 server.socket = context.wrap_socket(server.socket, server_side=True)
-(root / "port").write_text(str(server.server_port))
+# Publish readiness atomically: Swift waits for file existence. Creating `port`
+# before its contents are written exposes an empty string and a default-port URL.
+port_pending = root / "port.pending"
+port_pending.write_text(str(server.server_port))
+port_pending.replace(root / "port")
 server.serve_forever()
