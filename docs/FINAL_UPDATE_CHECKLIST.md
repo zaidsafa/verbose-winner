@@ -69,9 +69,10 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 - Durable local outgoing drafts now use version compare-and-swap and atomically
   finalize into immutable, distinct note/correction/approval/changes-requested
-  events. Reading/saving does not approve, exact enrollment owns its queue and no
-  unauthenticated event-retirement path exists. This remains inactive and has no
-  encrypted wire/submission/reconciliation UI. See `TEAM_OUTGOING_IOS.md`.
+  events. Reading/saving does not approve, exact enrollment owns its queue,
+  finalized draft identities cannot be reused while their pending event exists,
+  and no unauthenticated event-retirement path exists. This remains inactive and
+  has no encrypted wire/submission/reconciliation UI. See `TEAM_OUTGOING_IOS.md`.
 
 - `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md` is superseded historical design. Its
   proposed bytes must not replace the accepted shared possession contract.

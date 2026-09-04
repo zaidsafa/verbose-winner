@@ -24,7 +24,8 @@ public enum TeamOutgoingError: Error, Equatable {
 }
 
 /// Local editable work. This is never a delivery, review decision, or server mutation.
-public struct TeamOutgoingDraft: Equatable, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct TeamOutgoingDraft: Equatable, Sendable, CustomStringConvertible, CustomDebugStringConvertible,
+                                 CustomReflectable {
     public let accountId: String
     public let teamId: String
     public let deviceId: String
@@ -40,10 +41,12 @@ public struct TeamOutgoingDraft: Equatable, Sendable, CustomStringConvertible, C
 
     public var description: String { "TeamOutgoingDraft(<redacted>)" }
     public var debugDescription: String { description }
+    public var customMirror: Mirror { Mirror(self, children: [:]) }
 }
 
 /// Immutable local event awaiting future authenticated/encrypted submission.
-public struct PendingTeamOutgoingEvent: Equatable, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct PendingTeamOutgoingEvent: Equatable, Sendable, CustomStringConvertible, CustomDebugStringConvertible,
+                                        CustomReflectable {
     public let accountId: String
     public let teamId: String
     public let deviceId: String
@@ -58,6 +61,7 @@ public struct PendingTeamOutgoingEvent: Equatable, Sendable, CustomStringConvert
 
     public var description: String { "PendingTeamOutgoingEvent(<redacted>)" }
     public var debugDescription: String { description }
+    public var customMirror: Mirror { Mirror(self, children: [:]) }
 }
 
 /// Inactive local foundation. No production screen, transport, or crypto route instantiates it.
@@ -169,6 +173,12 @@ public final class TeamOutgoingStore: @unchecked Sendable {
         return try lock.withLock {
             try transaction {
                 guard try draftUnlocked(draftId: draftId) == nil else { throw TeamOutgoingError.immutableConflict }
+                guard try scalar("""
+                    SELECT count(*) FROM pending_event
+                    WHERE account_id=? AND team_id=? AND device_id=? AND enrollment_id=? AND source_draft_id=?
+                    """, scopeValues + [.text(draftId)]) == 0 else {
+                    throw TeamOutgoingError.immutableConflict
+                }
                 guard try scopedCount(table: "draft") < Self.maximumDrafts else { throw TeamOutgoingError.queueFull }
                 try execute("""
                     INSERT INTO draft VALUES (?,?,?,?,?,?,?,?,?,?,?,?)

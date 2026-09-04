@@ -1,5 +1,30 @@
 # Validation plan
 
+## 2026-09-05 finalized-draft identity safeguard (inactive)
+
+- A finalized draft ID can no longer be recreated while its immutable pending
+  event remains. This prevents a later draft from aliasing the idempotent retry
+  identity of already-finalized work. Outgoing public values also expose an empty
+  reflection mirror so payload text is not surfaced by generic diagnostics.
+- Focused outgoing-store **9/9 PASS**:
+  `/private/tmp/pinbook-ios-outgoing-commit-focused-20260905.log`. Complete core
+  **318/318 PASS**,25 suites,15.321s:
+  `/private/tmp/pinbook-ios-outgoing-commit-full-core-20260905.log`.
+- Signed Simulator app-host **346/346 PASS**,26 suites,8.981s:
+  `/private/tmp/Pinbook-Outbox-Commit-Signed.xcresult` and
+  `/private/tmp/pinbook-ios-outbox-commit-signed-app-host-20260905.log`.
+- Separate signed physical-iPhone QA **BUILD SUCCEEDED** and complete app-host
+  **346/346 PASS**,26 suites,3.924s:
+  `/private/tmp/pinbook-ios-device-qa-outbox-commit-build-20260905.log`,
+  `/private/tmp/Pinbook-QA-Physical-Outbox-Commit-20260905.xcresult` and
+  `/private/tmp/pinbook-qa-physical-outbox-commit-20260905.log`. QA then returned
+  to a successful normal launch:
+  `/private/tmp/pinbook-qa-outbox-commit-normal-launch-20260905.json`.
+- Ordinary unsigned Release **BUILD SUCCEEDED** with bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`:
+  `/private/tmp/pinbook-ios-outbox-release-final-20260905.log`. No live endpoint,
+  Android test, sync, archive or TestFlight upload was performed.
+
 ## 2026-09-05 agreement private-key possession parity (inactive)
 
 - Implemented exact iOS parity with the frozen Android/server checkpoint
@@ -59,8 +84,9 @@
   permission issue, not an app-code correction.
 - This slice is included in the clean **318/318** core, signed Simulator
   **346/346**, physical QA **346/346**, and ordinary unsigned Release results in
-  the section above. No normal UI, encrypted wire event, server revision,
-  transmission, remote retry/reconciliation, Android transfer or live sync exists.
+  the newest safeguard section above. No normal UI, encrypted wire event, server
+  revision, transmission, remote retry/reconciliation, Android transfer or live
+  sync exists.
 
 ## 2026-09-05 signed agreement-key enrollment and strict audience (inactive)
 

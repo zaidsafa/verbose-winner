@@ -20,7 +20,8 @@ Reading or saving a draft never creates a review decision.
 Only explicit `finalizeDraft` atomically inserts one immutable pending event and
 removes its editable draft. A retry with the same event/draft identity is
 idempotent after a committed-but-unobserved result; an event ID cannot alias a
-different draft. Stale finalization, queue capacity or storage failure leaves the
+different draft, and a finalized draft ID cannot be recreated while its pending
+event exists. Stale finalization, queue capacity or storage failure leaves the
 draft intact. There is deliberately no pending-event deletion/retirement API yet:
 future retirement requires an authenticated, exact server result.
 

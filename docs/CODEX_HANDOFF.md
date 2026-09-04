@@ -45,6 +45,14 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Finalized outgoing draft identities cannot be recreated while their immutable
+  pending events remain, preventing retry identity aliasing; generic reflection
+  of outgoing values is empty. Exact final source passes focused outgoing
+  **9/9**, complete core **318/318**, signed Simulator **346/346**, physical QA
+  iPhone **346/346**, normal QA relaunch and ordinary unsigned Release. No Android
+  or live sync test was possible because the envelope/transport remains inactive.
+  See the newest `VALIDATION.md` section.
+
 - Frozen Android/server agreement-possession checkpoint
   `fdfa0a883af409d0fd02a47aaeeaed15b66e1400` now has exact inactive iOS parity.
   The challenge sends the proposed agreement JWK, validates the server ephemeral

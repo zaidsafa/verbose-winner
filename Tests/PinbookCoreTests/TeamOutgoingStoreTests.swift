@@ -55,6 +55,8 @@ private func executeOutgoingSQL(_ url: URL, _ sql: String) throws {
                                        eventId: "event-1", finalizedAt: 13) == event)
         #expect(!event.description.contains("updated"))
         #expect(!first.description.contains("draft-1"))
+        #expect(Mirror(reflecting: event).children.isEmpty)
+        #expect(Mirror(reflecting: first).children.isEmpty)
     }
 }
 
@@ -156,6 +158,10 @@ private func executeOutgoingSQL(_ url: URL, _ sql: String) throws {
                                         baseRevision: nil, body: "one", createdAt: 1)
         _ = try store.finalizeDraft(draftId: one.draftId, expectedVersion: one.version,
                                     eventId: "event", finalizedAt: 2)
+        #expect(throws: TeamOutgoingError.immutableConflict) {
+            try store.createDraft(draftId: "one", noteId: "note-new", kind: .noteSubmission,
+                                  baseRevision: nil, body: "new", createdAt: 3)
+        }
         _ = try store.createDraft(draftId: "two", noteId: "note-2", kind: .noteSubmission,
                                   baseRevision: nil, body: "two", createdAt: 3)
         #expect(throws: TeamOutgoingError.immutableConflict) {
