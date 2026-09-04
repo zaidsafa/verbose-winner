@@ -49,6 +49,17 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Personal Drive now has device-only Data Protection Keychain refresh-token
+  custody, while access tokens remain memory-only. Exact generation-bound refresh
+  and deletion prevent stale mutation. Explicit disconnect persists a durable
+  revocation-pending fence before its one-use remote revocation request; failures
+  remain fenced for retry, refresh cannot race revocation, and only authoritative
+  success removes the exact token. Focused Swift **15/15**, clean core **361/361**,
+  signed Simulator **16/16**, physical QA **16/16**, normal QA relaunch and
+  production Release pass. No real Google credential/request, Android operation,
+  source push or TestFlight action occurred. Dedicated Google project/client,
+  browser/callback presentation, live Drive acceptance and production UI remain.
+
 - Personal Drive now has an additional disconnected OAuth/token checkpoint. A
   real allocated Google iOS client plus matching registered callback is mandatory;
   AppAuth supplies fresh state/nonce/S256 PKCE and the request asks only for

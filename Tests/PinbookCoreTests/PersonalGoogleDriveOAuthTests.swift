@@ -145,6 +145,9 @@ struct PersonalGoogleDriveOAuthTests {
         #expect(throws: PersonalGoogleDriveOAuthError.expired) {
             try grant.accessToken(now: 4_600_000)
         }
+        #expect(throws: PersonalGoogleDriveOAuthError.expired) {
+            try grant.accessToken(now: 999_999)
+        }
 
         let request = try #require(await stub.requests.first)
         #expect(request.url == PersonalGoogleDriveTokenClient.endpoint)
@@ -243,6 +246,11 @@ struct PersonalGoogleDriveOAuthTests {
                 try PersonalGoogleDriveTokenClient.grant(body, existingRefresh: nil,
                                                          now: 1_000)
             }
+        }
+        #expect(throws: PersonalGoogleDriveOAuthError.invalidResponse) {
+            try PersonalGoogleDriveTokenClient.grant(
+                personalDriveTokenJSON(), existingRefresh: nil, now: -1
+            )
         }
 
         for status in [400, 500] {

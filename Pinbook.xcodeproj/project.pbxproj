@@ -41,6 +41,10 @@
 		C90000000000000000000008 /* GoogleDriveBackupTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90000000000000000000007 /* GoogleDriveBackupTransport.swift */; };
 		CA0000000000000000000002 /* PersonalGoogleDriveOAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0000000000000000000001 /* PersonalGoogleDriveOAuth.swift */; };
 		CA0000000000000000000004 /* PersonalGoogleDriveOAuthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0000000000000000000003 /* PersonalGoogleDriveOAuthTests.swift */; };
+		CB0000000000000000000002 /* PersonalGoogleDriveCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000001 /* PersonalGoogleDriveCredentialStore.swift */; };
+		CB0000000000000000000004 /* PersonalGoogleDriveCredentialStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000003 /* PersonalGoogleDriveCredentialStoreTests.swift */; };
+		CD0000000000000000000002 /* PersonalGoogleDriveRevocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0000000000000000000001 /* PersonalGoogleDriveRevocation.swift */; };
+		CD0000000000000000000004 /* PersonalGoogleDriveRevocationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0000000000000000000003 /* PersonalGoogleDriveRevocationTests.swift */; };
 		B10000000000000000000015 /* TeamMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* TeamMembershipView.swift */; };
 		B10000000000000000000016 /* TeamInvitationAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* TeamInvitationAccountView.swift */; };
 		B2000000000000000000001B /* TeamMembershipScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TeamMembershipScreen.swift */; };
@@ -194,6 +198,10 @@
 		C90000000000000000000007 /* GoogleDriveBackupTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleDriveBackupTransport.swift; sourceTree = "<group>"; };
 		CA0000000000000000000001 /* PersonalGoogleDriveOAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalGoogleDriveOAuth.swift; sourceTree = "<group>"; };
 		CA0000000000000000000003 /* PersonalGoogleDriveOAuthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/PersonalGoogleDriveOAuthTests.swift; sourceTree = "<group>"; };
+		CB0000000000000000000001 /* PersonalGoogleDriveCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalGoogleDriveCredentialStore.swift; sourceTree = "<group>"; };
+		CB0000000000000000000003 /* PersonalGoogleDriveCredentialStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/PersonalGoogleDriveCredentialStoreTests.swift; sourceTree = "<group>"; };
+		CD0000000000000000000001 /* PersonalGoogleDriveRevocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalGoogleDriveRevocation.swift; sourceTree = "<group>"; };
+		CD0000000000000000000003 /* PersonalGoogleDriveRevocationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/PersonalGoogleDriveRevocationTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* TeamMembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipView.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* TeamInvitationAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamInvitationAccountView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TeamMembershipScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamMembershipScreen.swift; sourceTree = "<group>"; };
@@ -401,6 +409,8 @@
 				C90000000000000000000003 /* PersonalCloudUpload.swift */,
 				C90000000000000000000007 /* GoogleDriveBackupTransport.swift */,
 				CA0000000000000000000001 /* PersonalGoogleDriveOAuth.swift */,
+				CB0000000000000000000001 /* PersonalGoogleDriveCredentialStore.swift */,
+				CD0000000000000000000001 /* PersonalGoogleDriveRevocation.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -443,6 +453,8 @@
 				C90000000000000000000001 /* BackupTransportTests.swift */,
 				C90000000000000000000005 /* GoogleDriveBackupTransportTests.swift */,
 				CA0000000000000000000003 /* PersonalGoogleDriveOAuthTests.swift */,
+				CB0000000000000000000003 /* PersonalGoogleDriveCredentialStoreTests.swift */,
+				CD0000000000000000000003 /* PersonalGoogleDriveRevocationTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -713,6 +725,8 @@
 				C90000000000000000000004 /* PersonalCloudUpload.swift in Sources */,
 				C90000000000000000000008 /* GoogleDriveBackupTransport.swift in Sources */,
 				CA0000000000000000000002 /* PersonalGoogleDriveOAuth.swift in Sources */,
+				CB0000000000000000000002 /* PersonalGoogleDriveCredentialStore.swift in Sources */,
+				CD0000000000000000000002 /* PersonalGoogleDriveRevocation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -755,6 +769,8 @@
 				C90000000000000000000002 /* BackupTransportTests.swift in Sources */,
 				C90000000000000000000006 /* GoogleDriveBackupTransportTests.swift in Sources */,
 				CA0000000000000000000004 /* PersonalGoogleDriveOAuthTests.swift in Sources */,
+				CB0000000000000000000004 /* PersonalGoogleDriveCredentialStoreTests.swift in Sources */,
+				CD0000000000000000000004 /* PersonalGoogleDriveRevocationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

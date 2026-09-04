@@ -138,7 +138,9 @@ enum TeamAuthTestFailure: Sendable, Equatable {
 /// Mutable state is protected by lock, including task cancellation and delegate
 /// callbacks. Each request owns a fresh ephemeral session and exactly one resume.
 final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Sendable {
-    enum ResponseProfile { case pinbook, googleToken, googleDriveJSON, googleDriveMedia }
+    enum ResponseProfile {
+        case pinbook, googleToken, googleRevoke, googleDriveJSON, googleDriveMedia
+    }
     private let lock = NSLock()
     private var continuation: CheckedContinuation<TeamAuthResponse, Error>?
     private var session: URLSession?
@@ -276,6 +278,9 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
         let drive = responseProfile == .googleDriveJSON || responseProfile == .googleDriveMedia
         let expectedMIME = responseProfile == .googleDriveMedia
             ? "application/octet-stream" : "application/json"
+        let validMIME = responseProfile == .googleRevoke
+            ? (response.mimeType?.lowercased() == expectedMIME || response.mimeType == nil)
+            : response.mimeType?.lowercased() == expectedMIME
         guard let http = response as? HTTPURLResponse, http.url == request.url,
               http.allHeaderFields.count <= 32,
               http.allHeaderFields.reduce(0, { $0 + String(describing: $1.key).utf8.count + String(describing: $1.value).utf8.count }) <= 8192,
@@ -284,7 +289,7 @@ final class TeamAuthURLExchange: NSObject, URLSessionDataDelegate, @unchecked Se
               (drive || http.value(forHTTPHeaderField: "Cache-Control")?.lowercased().split(separator: ",")
                 .contains(where: { $0.trimmingCharacters(in: .whitespaces) == "no-store" }) == true),
               (responseProfile != .pinbook || http.value(forHTTPHeaderField: "X-Content-Type-Options")?.lowercased() == "nosniff"),
-              http.mimeType?.lowercased() == expectedMIME else {
+              validMIME else {
             completionHandler(.cancel)
             finish(.failure(TeamAuthHTTPError.invalidResponse))
             return

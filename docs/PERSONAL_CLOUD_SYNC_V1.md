@@ -68,6 +68,8 @@ Official implementation references:
 - https://developers.google.com/workspace/drive/api/guides/appdata
 - https://developers.google.com/workspace/drive/api/reference/rest/v3/files/list
 - https://developers.google.com/workspace/drive/api/guides/manage-uploads
+- https://developers.google.com/identity/protocols/oauth2/native-app
+- https://developers.google.com/identity/openid-connect/reference#revoke
 
 ## Implemented inactive guard and evidence
 
@@ -101,15 +103,26 @@ and S256 PKCE, request only `drive.appdata` with explicit offline consent, send 
 client secret, and strictly parse single-flight, one-use code/refresh exchanges.
 Concurrent requests fail busy, and access plus optional refresh lifetimes are
 bounded. Personal Drive grants are redacted and remain isolated from team Google
-sign-in. This checkpoint does not persist refresh tokens, present the browser,
-handle callbacks, revoke a grant or connect the transport.
+sign-in. Refresh tokens now persist only in the non-synchronizing, device-only
+Data Protection Keychain. Stored records bind a client-ID hash, generation,
+time, optional expiry and active/revocation-pending phase; access tokens remain
+memory-only. Refresh rotation is generation-bound.
+
+Explicit disconnect first writes a durable revocation-pending fence so refresh
+cannot race remote revocation. The one-use bounded revocation client accepts only
+Google's authoritative empty 200 or exact already-invalid response before deleting
+that same Keychain generation. Failure/cancellation retains the fenced token for
+an explicit retry. This is intentionally isolated from team Google authorization;
+the real personal-Drive client should use a dedicated Google project because
+revocation can invalidate every OAuth scope granted to that project.
 
 - Focused transport/owner/Drive tests: **15/15 PASS** on the separate physical
   iPhone QA app, including a real Keychain reopen/clear; Drive wire tests use an
   isolated synthetic executor and make no real provider call.
-- Personal Drive OAuth/token tests: **6/6 PASS** in Swift, signed Simulator and
-  the separate physical iPhone QA app; no real provider request was made.
-- Complete Swift core: **352/352 PASS**, 32 suites.
+- Complete personal Drive authorization/custody/revocation boundary: focused Swift
+  **15/15 PASS**; signed Simulator and separate physical iPhone QA app **16/16
+  PASS**, including real Keychain reopen/delete. No provider request was made.
+- Complete Swift core: **361/361 PASS**, 34 suites.
 - Signed iOS 26.5 Simulator app-host: **372 PASS + 4 expected physical-only
   SKIPS**, 376 total, 0 failures.
 - Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
@@ -117,7 +130,7 @@ handle callbacks, revoke a grant or connect the transport.
 
 Exact paths and the initial sandbox-blocked attempt are recorded in
 `VALIDATION.md`. The Drive adapter is not connected: this source still has no
-allocated personal-Drive client configuration, browser/callback controller, token
-custody/revocation, iCloud adapter, scheduler, real remote
+allocated personal-Drive client configuration, browser/callback controller,
+iCloud adapter, scheduler, real remote
 bytes, automatic merge or production UI entry. The existing TestFlight build was
 not replaced.

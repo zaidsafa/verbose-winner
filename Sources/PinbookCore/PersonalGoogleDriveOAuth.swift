@@ -45,9 +45,9 @@ public struct PersonalGoogleDriveConfiguration: Sendable {
 public struct PersonalGoogleDriveRefreshToken: Sendable, CustomStringConvertible,
                                                CustomDebugStringConvertible,
                                                CustomReflectable {
-    fileprivate let value: String
+    let value: String
 
-    fileprivate init(_ value: String) throws {
+    init(_ value: String) throws {
         guard Self.valid(value) else {
             throw PersonalGoogleDriveOAuthError.invalidResponse
         }
@@ -70,18 +70,24 @@ public struct PersonalGoogleDriveGrant: Sendable, CustomStringConvertible,
                                         CustomDebugStringConvertible, CustomReflectable {
     private let access: GoogleDriveAccessToken
     let refresh: PersonalGoogleDriveRefreshToken
+    private let observedAt: Int64
     public let accessExpiresAt: Int64
+    let refreshExpiresAt: Int64?
 
     fileprivate init(access: GoogleDriveAccessToken,
                      refresh: PersonalGoogleDriveRefreshToken,
-                     accessExpiresAt: Int64) {
+                     observedAt: Int64,
+                     accessExpiresAt: Int64,
+                     refreshExpiresAt: Int64?) {
         self.access = access
         self.refresh = refresh
+        self.observedAt = observedAt
         self.accessExpiresAt = accessExpiresAt
+        self.refreshExpiresAt = refreshExpiresAt
     }
 
     public func accessToken(now: Int64) throws -> GoogleDriveAccessToken {
-        guard now >= 0, now < accessExpiresAt else {
+        guard now >= observedAt, now < accessExpiresAt else {
             throw PersonalGoogleDriveOAuthError.expired
         }
         return access
@@ -265,6 +271,9 @@ final class PersonalGoogleDriveTokenClient: Sendable {
 
     static func grant(_ data: Data, existingRefresh: PersonalGoogleDriveRefreshToken?,
                       now: Int64) throws -> PersonalGoogleDriveGrant {
+        guard (0...TeamAuthWire.maximumSafeTime).contains(now) else {
+            throw PersonalGoogleDriveOAuthError.invalidResponse
+        }
         let object: [String: Any]
         do { object = try TeamStrictJSON.object(data, maximumBytes: 32 * 1024) }
         catch { throw PersonalGoogleDriveOAuthError.invalidResponse }
@@ -292,16 +301,21 @@ final class PersonalGoogleDriveTokenClient: Sendable {
         } else {
             throw PersonalGoogleDriveOAuthError.invalidResponse
         }
+        let refreshExpiresAt: Int64?
         if let remaining = object["refresh_token_expires_in"] {
-            guard let seconds = remaining as? NSNumber,
-                  CFGetTypeID(seconds) != CFBooleanGetTypeID(),
-                  seconds.int64Value > 0,
-                  seconds.int64Value <= TeamAuthWire.maximumSafeTime / 1_000 else {
+            guard let refreshSeconds = remaining as? NSNumber,
+                  CFGetTypeID(refreshSeconds) != CFBooleanGetTypeID(),
+                  refreshSeconds.int64Value > 0,
+                  refreshSeconds.int64Value
+                    <= (TeamAuthWire.maximumSafeTime - now) / 1_000 else {
                 throw PersonalGoogleDriveOAuthError.invalidResponse
             }
-        }
+            refreshExpiresAt = now + refreshSeconds.int64Value * 1_000
+        } else { refreshExpiresAt = nil }
         return PersonalGoogleDriveGrant(access: access, refresh: refresh,
-                                        accessExpiresAt: now + seconds.int64Value * 1_000)
+                                        observedAt: now,
+                                        accessExpiresAt: now + seconds.int64Value * 1_000,
+                                        refreshExpiresAt: refreshExpiresAt)
     }
 
     private static func code(_ value: String) -> Bool {

@@ -5,6 +5,18 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest inactive personal Drive custody and revocation checkpoint
+
+The separate Pinbook QA app ran the complete personal Drive OAuth, protected
+credential and revocation suites on the physical **iPhone 16 Pro, iOS 26.6.1**:
+**16/16 PASS**, zero failures/skips. This includes a real Data Protection Keychain
+save/reopen/generation-bound delete and synthetic one-use revocation requests.
+Exact result:
+`/private/tmp/Pinbook-QA-Physical-Personal-Drive-Revoke-20260905.xcresult`.
+
+The QA app returned to a successful normal launch. No Google request, TestFlight
+app data or Android-device state changed.
+
 ## Latest inactive personal Drive OAuth checkpoint
 
 The separate Pinbook QA app ran the exact personal Drive OAuth/token suite on the

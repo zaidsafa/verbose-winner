@@ -1,5 +1,37 @@
 # Validation plan
 
+## 2026-09-05 inactive personal Drive credential custody and revocation
+
+- Added device-only Data Protection Keychain custody for the personal Drive
+  refresh token. Access tokens remain memory-only. Stored records contain a
+  hashed client binding, generation, connection time, optional bounded refresh
+  expiry and phase; diagnostics and reflection redact credentials.
+- Initial save requires consent. Refresh replacement and deletion use exact
+  Keychain generations. Disconnect persists a `revocationPending` fence before
+  network work, preventing refresh from rotating credentials during revocation.
+  Failure/cancellation keeps the fenced token for an explicit retry; only an
+  authoritative empty 200 or exact `invalid_token` result permits local deletion.
+- The revocation request is one-use, form-encoded, bounded, single-flight and sent
+  only to `https://oauth2.googleapis.com/revoke`. No client secret, cookie,
+  redirect, automatic retry or credential diagnostic is permitted.
+- Focused Swift personal-Drive boundary **15/15 PASS**. Clean complete Swift core
+  **361/361 PASS**, 34 suites, 16.400s. Two preceding complete runs executed all
+  361 tests successfully but returned nonzero because the generated SwiftPM build
+  database reported disk I/O errors; `swift package clean` removed only generated
+  artifacts, and the clean rebuild above is the acceptance result.
+- Signed iOS 26.5 Simulator focused **16/16 PASS**, including a real Keychain
+  reopen/delete cycle:
+  `/private/tmp/Pinbook-Personal-Drive-Revoke-Sim-20260905.xcresult`.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** focused
+  **16/16 PASS**, zero failures/skips, including real Keychain custody:
+  `/private/tmp/Pinbook-QA-Physical-Personal-Drive-Revoke-20260905.xcresult`.
+  The QA app returned to a successful normal launch afterward.
+- Exact-current ordinary unsigned production Release **BUILD SUCCEEDED**, bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- No allocated Google client/project, browser/callback controller, real token,
+  provider account, Drive request, production UI, Android-device operation,
+  source push or TestFlight action occurred.
+
 ## 2026-09-05 inactive personal Google Drive OAuth/token boundary
 
 - Added a separate personal-Drive OAuth configuration and AppAuth request. It

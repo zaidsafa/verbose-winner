@@ -61,9 +61,12 @@ checkboxes deliberately remain open until checked against the exact next candida
       exact metadata+bytes after a 409 retry. The separate personal OAuth/token
       boundary now requires a real iOS client, uses AppAuth PKCE with Drive-only
       offline consent, sends no client secret and strictly parses code/refresh
-      responses. Swift, signed Simulator and physical QA tests pass. Allocated
-      client configuration, browser/callback controller, protected refresh-token
-      custody, revocation, real Drive acceptance and UI activation remain open.
+      responses. Device-only Keychain custody now binds client hash, generation,
+      time/expiry and a durable revocation-pending phase. Explicit disconnect
+      fences refresh, performs one-use remote revocation, and deletes only its exact
+      generation after authoritative success. Swift, signed Simulator and physical
+      QA tests pass. Allocated dedicated client/project configuration,
+      browser/callback controller, real Drive acceptance and UI activation remain open.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
