@@ -17,6 +17,12 @@ Tests match RFC 7518 Appendix C and RFC 3394 section 4.6 exactly. Independent
 CryptoKit P-256 parties derive the same KEK and complete wrap/unwrap; changed
 wrapped bytes and unsupported bounds fail closed.
 
+The later agreement-possession contract also reuses the reviewed Concat KDF shape
+with algorithm `pinbook-agreement-confirm-v1`, PartyU challenge ID and PartyV
+agreement-key thumbprint. Its byte-identical Android/server vector and physical
+Secure Enclave evidence are documented separately in
+`TEAM_AGREEMENT_ENROLLMENT_IOS.md`.
+
 This is not an envelope, note encryption, key generation/custody, registration,
 network operation or sync activation. The protected header and recipient envelope
 remain unfrozen.

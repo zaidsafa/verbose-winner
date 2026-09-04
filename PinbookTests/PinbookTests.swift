@@ -60,16 +60,38 @@ func qaSecureEnclaveAgreementIdentityReopensAndMatchesSoftwarePeer() throws {
         .withUnsafeBytes { Data($0) }
     var peerKEK = try TeamDeliveryCryptoPrimitives.concatKDF(sharedSecret: peerSecret,
         algorithm: "ECDH-ES+A256KW", partyU: partyU, partyV: partyV, bits: 256)
+    let challengeID = Data(String(repeating: "A", count: 43).utf8)
+    let clientThumbprint = Data(retained.keyThumbprint.utf8)
+    var retainedConfirmationKey = try custody.derive(peer: peer,
+        algorithm: TeamAgreementPossession.algorithm,
+        partyU: challengeID, partyV: clientThumbprint)
+    var peerConfirmationKey = try TeamDeliveryCryptoPrimitives.concatKDF(sharedSecret: peerSecret,
+        algorithm: TeamAgreementPossession.algorithm,
+        partyU: challengeID, partyV: clientThumbprint, bits: 256)
+    var requestMessage = Data("[\"pinbook-device-request-v1\",\"physical-qa\"]".utf8)
+    var retainedConfirmation = try TeamAgreementPossession.confirmation(key: retainedConfirmationKey,
+        requestMessage: requestMessage, agreementKeyThumbprint: retained.keyThumbprint,
+        serverKeyThumbprint: peer.keyThumbprint)
+    var peerConfirmation = try TeamAgreementPossession.confirmation(key: peerConfirmationKey,
+        requestMessage: requestMessage, agreementKeyThumbprint: retained.keyThumbprint,
+        serverKeyThumbprint: peer.keyThumbprint)
     var contentKey = Data((0..<32).map(UInt8.init))
     defer {
         retainedKEK.resetBytes(in: retainedKEK.startIndex..<retainedKEK.endIndex)
         peerSecret.resetBytes(in: peerSecret.startIndex..<peerSecret.endIndex)
         peerKEK.resetBytes(in: peerKEK.startIndex..<peerKEK.endIndex)
+        retainedConfirmationKey.resetBytes(in: retainedConfirmationKey.startIndex..<retainedConfirmationKey.endIndex)
+        peerConfirmationKey.resetBytes(in: peerConfirmationKey.startIndex..<peerConfirmationKey.endIndex)
+        requestMessage.resetBytes(in: requestMessage.startIndex..<requestMessage.endIndex)
+        retainedConfirmation.resetBytes(in: retainedConfirmation.startIndex..<retainedConfirmation.endIndex)
+        peerConfirmation.resetBytes(in: peerConfirmation.startIndex..<peerConfirmation.endIndex)
         contentKey.resetBytes(in: contentKey.startIndex..<contentKey.endIndex)
     }
     #expect(retainedKEK == peerKEK)
     let wrapped = try TeamDeliveryCryptoPrimitives.wrapA256(kek: retainedKEK, key: contentKey)
     #expect(try TeamDeliveryCryptoPrimitives.unwrapA256(kek: peerKEK, wrapped: wrapped) == contentKey)
+    #expect(retainedConfirmationKey == peerConfirmationKey)
+    #expect(retainedConfirmation == peerConfirmation)
 }
 
 @Test func personalBackupReaderChecksActualBytesAndShortReads() throws {

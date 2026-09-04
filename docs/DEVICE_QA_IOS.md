@@ -5,14 +5,30 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
-## Latest source-only agreement-enrollment checkpoint
+## Latest agreement-possession and outgoing-store checkpoint
+
+The frozen Android/server possession contract now runs through the separate QA
+app on the physical iPhone. Signed QA build-for-testing succeeded; the corrected
+full run passed **346/346** app-host tests,3.962s, with zero failures/skips. It
+explicitly includes the byte-identical shared vector and the named real Secure
+Enclave agreement/reopen/software-peer KDF/HMAC confirmation test. The durable
+outgoing draft/event store is included in the same physical suite. Ordinary
+unsigned Release passes and QA returned to a normal launch. Exact artifacts are
+in `VALIDATION.md`.
+
+No Android phone or live endpoint was used: encrypted transport, submit/fetch/
+archive-before-ACK and real two-device notes sync do not exist yet. The ordinary
+TestFlight app was not replaced and no build was uploaded.
+
+## Historical source-only agreement-enrollment checkpoint
 
 The exact signed agreement-enrollment routes/owner and mandatory dual-key audience
 contract compile and pass **307/307** clean core tests plus unsigned generic-iOS
 app/test and Release builds. This exact checkpoint was deliberately not installed
 or run on either phone; the prior physical **330/330** belongs to the preceding
 agreement-custody commit. See `TEAM_AGREEMENT_ENROLLMENT_IOS.md` and
-`VALIDATION.md`.
+`VALIDATION.md`. This historical limitation is superseded by the newer physical
+possession result above.
 
 ## Latest separate agreement-key checkpoint
 

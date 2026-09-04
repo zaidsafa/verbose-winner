@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "note": "Public RFC7518 Appendix C keys; d values are published test material, never production credentials.",
+  "signingPublicKey": {
+    "kty": "EC",
+    "x": "9w4UcolDLLmksR6-syCTWK_KqU6JMlDnnWnHCNB31u4",
+    "y": "AZULLyea-GZdDc7ouxBT0DZS8ueG_emyRMiu-8wVpB0",
+    "crv": "P-256"
+  },
+  "clientAgreementJwk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "weNJy2HscCSM6AEDTDg04biOvhFhyyWvOHQfeF_PxMQ",
+    "y": "e8lnCO-AlStT-NJVX-crhB7QRYhiix03illJOVAOyck",
+    "d": "VEmDZpDXXK8p8N0Cndsxs924q6nS1RXFASRl6BfUqdw"
+  },
+  "serverEphemeralJwk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "gI0GAILBdu7T53akrFmMyGcsF3n5dO7MmwNBHKW5SV0",
+    "y": "SLW_xSffzlPWrHEVI30DHM_4egVwt3NQqeUD7nMFpps",
+    "d": "0_NxaRPUMQoAJt50Gz8YiTr8gRTwyEaCumd-MToTmIo"
+  },
+  "clientAgreementKeyThumbprint": "Vy57XrArUrW0NbpI12tEzDHABxMwrTh6HHXRenSpnCo",
+  "serverEphemeralKeyThumbprint": "_GK0r6GCoJt9zcssg9lay4obIxgCq05ntiRymRHADSU",
+  "challenge": {
+    "audience": "https://pinbook.example.test",
+    "authorityEpoch": "epoch_fixture",
+    "accountId": "account_fixture",
+    "sessionId": "session_fixture",
+    "deviceId": "device_fixture",
+    "enrollmentId": "enrollment_fixture",
+    "keyThumbprint": "Xu68k1x6xnyCG9Jwk-3aY42P3SHQKyICD6TC-wpi3ss",
+    "operation": "agreement-enroll",
+    "teamId": "team_fixture",
+    "requestId": "agreement_fixture",
+    "bodySha256": "8961f5b5c215d8103229fa7d694072db976ee1516c38c223f573778f05642f75",
+    "challengeId": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    "nonce": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
+    "expiresAt": 1800000060000
+  },
+  "bodyBase64url": "eyJhZ3JlZW1lbnRLZXkiOnsiY3J2IjoiUC0yNTYiLCJrdHkiOiJFQyIsIngiOiJ3ZU5KeTJIc2NDU002QUVEVERnMDRiaU92aEZoeXlXdk9IUWZlRl9QeE1RIiwieSI6ImU4bG5DTy1BbFN0VC1OSlZYLWNyaEI3UVJZaGlpeDAzaWxsSk9WQU95Y2sifSwibWVtYmVyc2hpcFJldmlzaW9uIjoyfQ",
+  "requestMessageUtf8": "[\"pinbook-device-request-v1\",\"https://pinbook.example.test\",\"epoch_fixture\",\"account_fixture\",\"session_fixture\",\"device_fixture\",\"enrollment_fixture\",\"Xu68k1x6xnyCG9Jwk-3aY42P3SHQKyICD6TC-wpi3ss\",\"agreement-enroll\",\"team_fixture\",\"agreement_fixture\",\"8961f5b5c215d8103229fa7d694072db976ee1516c38c223f573778f05642f75\",\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI\",1800000060000]",
+  "sharedSecretBase64url": "nlbZHYFxNdNyg0KDv4QmnPsxbqPagGpI9tqneYz-kMQ",
+  "confirmationKeyBase64url": "LR5XAi3Mv8PCsqVA5yE-IcBKlN6Ir4LbWokS7ibnZXs",
+  "possessionMessageUtf8": "[\"pinbook-agreement-possession-v1\",\"WyJwaW5ib29rLWRldmljZS1yZXF1ZXN0LXYxIiwiaHR0cHM6Ly9waW5ib29rLmV4YW1wbGUudGVzdCIsImVwb2NoX2ZpeHR1cmUiLCJhY2NvdW50X2ZpeHR1cmUiLCJzZXNzaW9uX2ZpeHR1cmUiLCJkZXZpY2VfZml4dHVyZSIsImVucm9sbG1lbnRfZml4dHVyZSIsIlh1NjhrMXg2eG55Q0c5SndrLTNhWTQyUDNTSFFLeUlDRDZUQy13cGkzc3MiLCJhZ3JlZW1lbnQtZW5yb2xsIiwidGVhbV9maXh0dXJlIiwiYWdyZWVtZW50X2ZpeHR1cmUiLCI4OTYxZjViNWMyMTVkODEwMzIyOWZhN2Q2OTQwNzJkYjk3NmVlMTUxNmMzOGMyMjNmNTczNzc4ZjA1NjQyZjc1IiwiQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRSIsIkFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0kiLDE4MDAwMDAwNjAwMDBd\",\"Vy57XrArUrW0NbpI12tEzDHABxMwrTh6HHXRenSpnCo\",\"_GK0r6GCoJt9zcssg9lay4obIxgCq05ntiRymRHADSU\"]",
+  "confirmation": "b-BBlN6S0NytLl1e1QeNy-Mtd5gVlL8S1tCk9l6RJe4"
+}

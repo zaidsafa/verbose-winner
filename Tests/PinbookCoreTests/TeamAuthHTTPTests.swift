@@ -422,8 +422,15 @@ struct TeamOnboardingHTTPTests {
         defer { AuthStubProtocol.state.clear(host) }
         let signer = P256.Signing.PrivateKey()
         let signingKey = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
-        let agreementKey = try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
+        let agreementPrivate = P256.KeyAgreement.PrivateKey()
+        let agreementSigningPublic = try P256.Signing.PublicKey(
+            x963Representation: agreementPrivate.publicKey.x963Representation)
+        let agreementKey = try TeamDeviceEnrollmentWire.publicKey(agreementSigningPublic)
         let agreement = TeamAgreementPublic(keyThumbprint: agreementKey.thumbprint, publicKey: agreementKey)
+        let serverPrivate = P256.KeyAgreement.PrivateKey()
+        let serverSigningPublic = try P256.Signing.PublicKey(
+            x963Representation: serverPrivate.publicKey.x963Representation)
+        let serverKey = try TeamDeviceEnrollmentWire.publicKey(serverSigningPublic)
         let request = try TeamAgreementEnrollmentRequest(membershipRevision: 7, agreement: agreement)
         let binding = TeamDeviceRequestWire.Binding(audience: "https://\(host)", authorityEpoch: "public-epoch",
             accountID: session.accountID, sessionID: session.sessionID, deviceID: "public-device",
@@ -435,7 +442,9 @@ struct TeamOnboardingHTTPTests {
             "enrollmentId": binding.enrollmentID, "keyThumbprint": binding.keyThumbprint,
             "operation": binding.operation.rawValue, "teamId": binding.teamID, "requestId": binding.requestID,
             "bodySha256": try TeamDeviceRequestWire.bodySHA256(request.body), "challengeId": tokenB,
-            "nonce": tokenC, "expiresAt": 9_000]
+            "nonce": tokenC, "expiresAt": 9_000,
+            "agreementServerKeyThumbprint": serverKey.thumbprint,
+            "agreementServerPublicKey": serverKey.jwk]
         let registration: [String: Any] = ["teamId": binding.teamID,
             "membershipRevision": request.membershipRevision, "enrollmentId": binding.enrollmentID,
             "agreementKeyThumbprint": agreement.keyThumbprint, "agreementPublicKey": agreement.publicKey.jwk]
@@ -445,16 +454,39 @@ struct TeamOnboardingHTTPTests {
         let ticket = try TeamAccountAccessTicket(snapshot: session)
         let prepared = try await client.agreementRequestChallenge(expected: binding,
             publicKey: signingKey, request: request, ticket: ticket)
-        let signature = try signer.signature(for: prepared.message(expected: binding,
-            publicKey: signingKey, request: request, now: 1_000)).rawRepresentation
+        let message = try prepared.message(expected: binding,
+            publicKey: signingKey, request: request, now: 1_000)
+        let signature = try signer.signature(for: message).rawRepresentation
+        var secret = try agreementPrivate.sharedSecretFromKeyAgreement(with: serverPrivate.publicKey)
+            .withUnsafeBytes { Data($0) }
+        defer { secret.resetBytes(in: secret.startIndex..<secret.endIndex) }
+        var confirmationKey = try TeamDeliveryCryptoPrimitives.concatKDF(sharedSecret: secret,
+            algorithm: TeamAgreementPossession.algorithm, partyU: Data(prepared.challengeID.utf8),
+            partyV: Data(agreement.keyThumbprint.utf8), bits: 256)
+        defer { confirmationKey.resetBytes(in: confirmationKey.startIndex..<confirmationKey.endIndex) }
+        let confirmation = try TeamAgreementPossession.confirmation(key: confirmationKey,
+            requestMessage: message, agreementKeyThumbprint: agreement.keyThumbprint,
+            serverKeyThumbprint: prepared.server.keyThumbprint)
+        for size in [0, 31, 33] {
+            await #expect(throws: TeamAuthHTTPError.invalidRequest) {
+                try await client.executeAgreementRequest(challenge: prepared, signature: signature,
+                    confirmation: Data(repeating: 0, count: size), expected: binding,
+                    publicKey: signingKey, request: request, ticket: ticket)
+            }
+        }
+        #expect(AuthStubProtocol.state.requests(host).count == 1)
         let result = try await client.executeAgreementRequest(challenge: prepared, signature: signature,
+            confirmation: confirmation,
             expected: binding, publicKey: signingKey, request: request, ticket: ticket)
         #expect(result.teamID == binding.teamID && result.membershipRevision == 7)
         #expect(result.enrollmentID == binding.enrollmentID)
         #expect(result.agreementKeyThumbprint == agreement.keyThumbprint)
         try check(host, paths: ["device-agreements/challenge", "device-agreements/execute"],
-            fields: [["enrollmentId", "binding"], ["challengeId", "signature", "body"]])
+            fields: [["enrollmentId", "binding", "agreementPublicKey"],
+                     ["challengeId", "signature", "body", "confirmation"]])
         let sent = AuthStubProtocol.state.requests(host)
+        let begin = try TeamStrictJSON.object(sent[0].body)
+        #expect(begin["agreementPublicKey"] as? [String: String] == agreement.publicKey.jwk)
         let execute = try TeamStrictJSON.object(sent[1].body)
         let encoded = try #require(execute["body"] as? String)
         let padded = encoded.replacingOccurrences(of: "-", with: "+")
@@ -474,6 +506,7 @@ struct TeamOnboardingHTTPTests {
             AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(wrong)])])
             await #expect(throws: TeamAuthHTTPError.invalidResponse) {
                 try await client.executeAgreementRequest(challenge: prepared, signature: signature,
+                    confirmation: confirmation,
                     expected: binding, publicKey: signingKey, request: request, ticket: ticket)
             }
         }

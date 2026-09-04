@@ -51,6 +51,6 @@ launch. Exact artifacts and corrected build attempts are listed in
 Transport tests are intercepted and identities are synthetic. No live endpoint,
 provider login, recipient trust, encryption envelope, durable submit/fetch,
 archive-before-ACK, Android/iPhone note sync, production route, release archive or
-TestFlight update was added. The next safe layer is the reviewed shared crypto
-primitive and a separate agreement-key custody identity; signing-key reuse is
-forbidden and the delivery envelope remains unfrozen.
+TestFlight update was added. The later checkpoints now provide reviewed crypto,
+separate agreement custody, enrollment and possession confirmation; signing-key
+reuse remains forbidden. The multi-recipient delivery envelope is still unfrozen.

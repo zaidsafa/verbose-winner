@@ -1,7 +1,15 @@
-# Agreement private-key confirmation proposal — review required
+# Agreement private-key confirmation proposal — superseded
 
-Status: design only, September 5, 2026. Do not implement or stage until the
-Android/server owners review the exact bytes and publish a shared checkpoint.
+Status: historical design only. Superseded September 5, 2026 by the reviewed
+Android/server contract `TEAM_AGREEMENT_POSSESSION_V1.md` at
+`fdfa0a883af409d0fd02a47aaeeaed15b66e1400` and the byte-identical public vector
+`team-agreement-possession-v1.json`. Do not implement the proposed bytes below.
+
+The accepted contract uses `agreementServerPublicKey` plus
+`agreementServerKeyThumbprint`, PartyU=`challengeId`,
+PartyV=`agreementKeyThumbprint`, and HMAC purpose
+`pinbook-agreement-possession-v1`. iOS parity and evidence are documented in
+`TEAM_AGREEMENT_ENROLLMENT_IOS.md` and `VALIDATION.md`.
 
 ## Threat and goal
 

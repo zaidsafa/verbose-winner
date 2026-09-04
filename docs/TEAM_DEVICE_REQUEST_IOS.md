@@ -60,5 +60,6 @@ rechecks the pinned account session inside the custody operation. See
 `TEAM_AUDIENCE_LOOKUP_IOS.md`. There is still no generic transaction callback or
 raw PostgreSQL client. Separate agreement custody and the closed signed
 agreement-enrollment coordinator are now implemented as inactive source; see
-`TEAM_AGREEMENT_ENROLLMENT_IOS.md`. ECDH confirmation, submit/fetch, encrypted
-delivery and archive-before-ACK remain separate gates.
+`TEAM_AGREEMENT_ENROLLMENT_IOS.md`. The frozen ECDH possession confirmation is
+now implemented and validated inactive. Submit/fetch, encrypted delivery and
+archive-before-ACK remain separate gates.

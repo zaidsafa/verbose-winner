@@ -1,6 +1,71 @@
 # Validation plan
 
+## 2026-09-05 agreement private-key possession parity (inactive)
+
+- Implemented exact iOS parity with the frozen Android/server checkpoint
+  `fdfa0a883af409d0fd02a47aaeeaed15b66e1400`. The challenge sends the proposed
+  public agreement JWK, strictly parses the one-use server P-256 JWK/thumbprint,
+  derives ECDH plus `pinbook-agreement-confirm-v1` Concat KDF, and executes with
+  the exact `pinbook-agreement-possession-v1` HMAC while retaining the separate
+  registered-device signature. Missing/malformed/private/reflected server keys
+  and wrong confirmation sizes fail closed. No runtime route was activated.
+- The copied public fixture is byte-identical to Android/server, SHA-256
+  `946a6bfda62b193c23a38a53e6a3f4293fdc725545e3deefd99c567c63c763c2`.
+  Independent CryptoKit rebuild reproduces the public JWK thumbprints, ECDH
+  secret, request bytes, KDF output, possession message and HMAC, and rejects a
+  changed thumbprint. Focused agreement/custody/enrollment **13/13 PASS** plus
+  focused HTTP route **1/1 PASS**:
+  `/private/tmp/pinbook-ios-agreement-possession-focused-final-20260905.log` and
+  `/private/tmp/pinbook-ios-agreement-possession-http-focused-final-20260905.log`.
+- Clean complete Swift core **318/318 PASS**,25 suites,15.838s:
+  `/private/tmp/pinbook-ios-agreement-possession-full-core-20260905.log`.
+  Signed dedicated-Simulator app-host **346/346 PASS**,26 suites,9.848s:
+  `/private/tmp/Pinbook-Agreement-Possession-Signed.xcresult` and
+  `/private/tmp/pinbook-ios-agreement-possession-app-host-20260905.log`.
+- The initial unsigned Simulator app-host run compiled and executed but failed
+  exactly three real-Keychain checks because an unsigned test host has no
+  Keychain entitlement. It is not counted as a pass:
+  `/private/tmp/Pinbook-Outgoing-Local.xcresult` and
+  `/private/tmp/pinbook-ios-outgoing-app-host-20260905.log`.
+- Signed separate QA build-for-testing **SUCCEEDED**:
+  `/private/tmp/pinbook-ios-device-qa-possession-build-20260905.log`. The first
+  individual physical selector matched zero Swift Testing cases and is not
+  counted: `/private/tmp/Pinbook-QA-Physical-Agreement-Possession-20260905.xcresult`.
+  The corrected complete physical iPhone run explicitly passed the named Secure
+  Enclave agreement/reopen/software-peer possession test, the shared vector, and
+  all app-host tests: **346/346 PASS**,26 suites,3.962s, zero failures/skips:
+  `/private/tmp/Pinbook-QA-Physical-Agreement-Possession-Full-20260905.xcresult`
+  and `/private/tmp/pinbook-qa-physical-agreement-possession-full-20260905.log`.
+  QA returned to a normal launch:
+  `/private/tmp/pinbook-qa-post-possession-normal-launch-20260905.json`.
+- Ordinary unsigned Release **BUILD SUCCEEDED** with production bundle defaults:
+  `/private/tmp/pinbook-ios-agreement-possession-release-20260905.log`.
+  No live server, Android device, real account, encrypted delivery, submit/fetch/
+  ACK, TestFlight upload, release archive or production activation was used.
+
+## 2026-09-05 durable outgoing drafts and distinct events (inactive)
+
+- Added a dedicated, backup-excluded/protected local SQLite outbox with editable
+  draft compare-and-swap and atomic explicit finalization into immutable note,
+  correction, approval or changes-requested events. Exact embedded-NUL UTF-8 is
+  preserved. Reading/saving never approves; stale edits/finalization cannot
+  overwrite current work; event retry is exact-ID idempotent; replacement
+  enrollments cannot adopt old queues. No event retirement exists without a
+  future authenticated response. See `TEAM_OUTGOING_IOS.md`.
+- Focused **9/9 PASS**:
+  `/private/tmp/pinbook-ios-outgoing-focused-20260905.log`. An initial sandboxed
+  run failed existing and new backup-exclusion metadata checks with SQLite code3;
+  the same focused tests passed outside that file sandbox. This was an execution
+  permission issue, not an app-code correction.
+- This slice is included in the clean **318/318** core, signed Simulator
+  **346/346**, physical QA **346/346**, and ordinary unsigned Release results in
+  the section above. No normal UI, encrypted wire event, server revision,
+  transmission, remote retry/reconciliation, Android transfer or live sync exists.
+
 ## 2026-09-05 signed agreement-key enrollment and strict audience (inactive)
+
+Historical checkpoint; the possession gap described here is closed by the newer
+inactive parity/evidence section above.
 
 - Updated to corrected Android/server contract
   `0011c1d4f9719ab0137632ecd3485676c6a54cad`. Added the literal
@@ -35,8 +100,9 @@
   either connected phone. The prior physical **330/330** applies to the preceding
   crypto/custody commit, not this newer source. Prior UI **29/29** remains source-
   applicable because UI did not change, but is not a run of this exact checkpoint.
-- Signing authorization alone is not proof of agreement-private-key possession by
-  a hostile client. ECDH confirmation remains required before staging. No live
+- At this historical checkpoint signing authorization alone was not proof of
+  agreement-private-key possession; the newer frozen ECDH confirmation now closes
+  that source/vector/physical-iPhone gap. No live
   provider/TLS, encryption envelope, submit/fetch/ACK, two-device note sync,
   release archive, production activation or TestFlight readiness was established.
 

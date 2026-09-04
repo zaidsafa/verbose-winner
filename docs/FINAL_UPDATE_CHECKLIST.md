@@ -58,24 +58,30 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
-- The separate agreement public key now has an inactive, registered-device-signed
-  enrollment route and one-flight current-authority owner. Every audience target
-  must include distinct valid signing and agreement credentials; missing fields
-  reject the whole snapshot. Clean core and unsigned iOS builds pass, but this
-  exact source-only checkpoint has no phone/live endpoint evidence. ECDH private-
-  key confirmation is explicitly required before staging. See
-  `TEAM_AGREEMENT_ENROLLMENT_IOS.md`.
+- The frozen Android/server agreement-possession contract now has inactive exact
+  iOS parity. The separate agreement key is registered-device signed and also
+  proves its private-key possession through fresh-server-ephemeral P-256 ECDH,
+  frozen Concat KDF and canonical HMAC. The public vector is byte-identical;
+  clean core, signed Simulator, physical QA iPhone and ordinary unsigned Release
+  pass. Every audience target still requires distinct valid signing/agreement
+  credentials. This closes the prior source/physical possession gap, not live
+  server staging or encrypted delivery. See `TEAM_AGREEMENT_ENROLLMENT_IOS.md`.
 
-- A fresh-server-ephemeral ECDH/HMAC private-key confirmation design is drafted in
-  `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md`. It is review-only and must receive a
-  shared Android/server contract plus independent vectors before implementation;
-  it does not close the staging or encryption gate.
+- Durable local outgoing drafts now use version compare-and-swap and atomically
+  finalize into immutable, distinct note/correction/approval/changes-requested
+  events. Reading/saving does not approve, exact enrollment owns its queue and no
+  unauthenticated event-retirement path exists. This remains inactive and has no
+  encrypted wire/submission/reconciliation UI. See `TEAM_OUTGOING_IOS.md`.
+
+- `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md` is superseded historical design. Its
+  proposed bytes must not replace the accepted shared possession contract.
 
 - Reviewed standard ECDH-ES Concat KDF/A256KW vectors and a separate non-exported
   Secure Enclave agreement identity now pass locally and in the isolated physical
   QA app. The key is exact enrollment scoped and cannot reuse the signing API.
-  This is still inactive: agreement-key registration, required audience fields,
-  canonical envelope, delivery and two-device sync remain open. See
+  This is still inactive: the later checkpoint now supplies agreement-key
+  registration/required audience/possession, while canonical envelope, delivery
+  and two-device sync remain open. See
   `TEAM_DELIVERY_CRYPTO_IOS.md` and `TEAM_AGREEMENT_KEY_CUSTODY_IOS.md`.
 
 - A one-flight current team-audience lookup now pins one reviewed account, exact

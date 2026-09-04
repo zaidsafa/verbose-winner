@@ -2,6 +2,19 @@
 
 Date: 2026-09-04. Branch: `codex/team-delivery-foundation`.
 
+## Durable outgoing drafts and distinct events
+
+`TeamOutgoingStore` now provides a separate backup-excluded/protected SQLite
+outbox for exact account/team/device/enrollment-scoped drafts. Edits/discards use
+version compare-and-swap. Only explicit atomic finalization creates one immutable
+pending note submission, correction, review approval or changes-requested event;
+reading or saving cannot become approval. Exact-ID finalization retry is
+idempotent, while stale/capacity/storage failure preserves the draft. Pending
+events have no deletion/retirement API until a future exact authenticated server
+result exists. Embedded-NUL UTF-8 text is preserved by explicit byte-length
+binding. This remains local-only and payload/wire agnostic. Full details:
+`TEAM_OUTGOING_IOS.md`.
+
 ## Received-text recovery UI continuation (inactive)
 
 `TeamArchiveRecoverySession` serializes local preview/confirmation away from the UI

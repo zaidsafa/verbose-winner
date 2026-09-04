@@ -88,6 +88,51 @@ struct TeamPreparedDeviceRequestChallenge: TeamOnboardingDiagnostic {
     }
 }
 
+struct TeamPreparedAgreementRequestChallenge: TeamOnboardingDiagnostic {
+    let request: TeamPreparedDeviceRequestChallenge
+    let server: TeamAgreementPublic
+    fileprivate let wire: Data
+    var challengeID: String { request.challengeID }
+    var expiresAt: Int64 { request.expiresAt }
+
+    init(validating wire: Data, expected: TeamDeviceRequestWire.Binding,
+         publicKey: TeamDeviceEnrollmentWire.PublicKey,
+         request: TeamAgreementEnrollmentRequest, now: Int64) throws {
+        let extra: Set<String> = ["agreementServerKeyThumbprint", "agreementServerPublicKey"]
+        _ = try TeamDeviceRequestWire.message(challenge: wire, expected: expected,
+            publicKey: publicKey, body: request.body, now: now, additionalChallengeKeys: extra)
+        let object = try TeamAuthWire.object(wire, keys: ["audience", "authorityEpoch", "accountId", "sessionId",
+            "deviceId", "enrollmentId", "keyThumbprint", "operation", "teamId", "requestId", "bodySha256",
+            "challengeId", "nonce", "expiresAt", "agreementServerKeyThumbprint", "agreementServerPublicKey"])
+        guard let jwk = object["agreementServerPublicKey"] as? [String: String] else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        let key: TeamDeviceEnrollmentWire.PublicKey
+        do { key = try TeamDeviceEnrollmentWire.publicKey(jwk) }
+        catch { throw TeamAuthHTTPError.invalidResponse }
+        let thumbprint = try TeamAuthWire.string(object, "agreementServerKeyThumbprint", secret: true)
+        guard key.thumbprint == thumbprint, thumbprint != request.agreement.keyThumbprint else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        var base = object
+        base.removeValue(forKey: "agreementServerKeyThumbprint")
+        base.removeValue(forKey: "agreementServerPublicKey")
+        let baseWire = try JSONSerialization.data(withJSONObject: base, options: [.withoutEscapingSlashes])
+        self.request = try TeamPreparedDeviceRequestChallenge(validating: baseWire,
+            expected: expected, publicKey: publicKey, request: request, now: now)
+        server = .init(keyThumbprint: thumbprint, publicKey: key)
+        self.wire = wire
+    }
+
+    func message(expected: TeamDeviceRequestWire.Binding,
+                 publicKey: TeamDeviceEnrollmentWire.PublicKey,
+                 request: TeamAgreementEnrollmentRequest, now: Int64) throws -> Data {
+        try TeamDeviceRequestWire.message(challenge: wire, expected: expected,
+            publicKey: publicKey, body: request.body, now: now,
+            additionalChallengeKeys: ["agreementServerKeyThumbprint", "agreementServerPublicKey"])
+    }
+}
+
 private enum TeamDeviceRequestHTTPWire {
     static func audience(_ data: Data, expected: TeamDeviceRequestWire.Binding,
                          request: TeamAudienceRevisionRequest) throws -> TeamAudience {
@@ -205,7 +250,7 @@ extension TeamAuthHTTPClient {
     func agreementRequestChallenge(expected: TeamDeviceRequestWire.Binding,
                                    publicKey: TeamDeviceEnrollmentWire.PublicKey,
                                    request: TeamAgreementEnrollmentRequest,
-                                   ticket: TeamAccountAccessTicket) async throws -> TeamPreparedDeviceRequestChallenge {
+                                   ticket: TeamAccountAccessTicket) async throws -> TeamPreparedAgreementRequestChallenge {
         guard acceptsDeviceRequestBinding(expected, key: publicKey, ticket: ticket),
               expected.operation == .agreementEnroll else { throw TeamAuthHTTPError.invalidRequest }
         let digest: String
@@ -214,7 +259,8 @@ extension TeamAuthHTTPClient {
         let reply = try await onboarding(.agreementChallenge, fields: [
             "enrollmentId": expected.enrollmentID,
             "binding": ["operation": expected.operation.rawValue, "teamId": expected.teamID,
-                        "requestId": expected.requestID, "bodySha256": digest]
+                        "requestId": expected.requestID, "bodySha256": digest],
+            "agreementPublicKey": request.agreement.publicKey.jwk
         ], ticket: ticket)
         do {
             return try .init(validating: reply.data, expected: expected,
@@ -222,13 +268,14 @@ extension TeamAuthHTTPClient {
         } catch { throw TeamAuthHTTPError.invalidResponse }
     }
 
-    func executeAgreementRequest(challenge: TeamPreparedDeviceRequestChallenge,
-                                 signature: Data, expected: TeamDeviceRequestWire.Binding,
+    func executeAgreementRequest(challenge: TeamPreparedAgreementRequestChallenge,
+                                 signature: Data, confirmation: Data,
+                                 expected: TeamDeviceRequestWire.Binding,
                                  publicKey: TeamDeviceEnrollmentWire.PublicKey,
                                  request: TeamAgreementEnrollmentRequest,
                                  ticket: TeamAccountAccessTicket) async throws -> TeamAgreementRegistration {
         guard acceptsDeviceRequestBinding(expected, key: publicKey, ticket: ticket),
-              expected.operation == .agreementEnroll, signature.count == 64,
+              expected.operation == .agreementEnroll, signature.count == 64, confirmation.count == 32,
               let parsed = try? P256.Signing.ECDSASignature(rawRepresentation: signature) else {
             throw TeamAuthHTTPError.invalidRequest
         }
@@ -242,7 +289,8 @@ extension TeamAuthHTTPClient {
         let reply = try await onboarding(.agreementExecute, fields: [
             "challengeId": challenge.challengeID,
             "signature": TeamDeviceEnrollmentWire.encode(signature),
-            "body": TeamDeviceEnrollmentWire.encode(request.body)
+            "body": TeamDeviceEnrollmentWire.encode(request.body),
+            "confirmation": TeamDeviceEnrollmentWire.encode(confirmation)
         ], ticket: ticket)
         return try TeamDeviceRequestHTTPWire.agreement(reply.data, expected: expected, request: request)
     }

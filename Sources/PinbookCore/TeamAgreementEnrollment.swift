@@ -10,6 +10,8 @@ protocol TeamAgreementIdentity: Sendable {
     var scope: TeamAgreementScope { get }
     func prepare() throws -> TeamAgreementPublic
     func current() throws -> TeamAgreementPublic
+    func derive(peer: TeamAgreementPublic, algorithm: String, partyU: Data,
+                partyV: Data, bits: Int) throws -> Data
 }
 extension TeamAgreementKeyCustody: TeamAgreementIdentity {}
 
@@ -21,9 +23,10 @@ protocol TeamAgreementEnrollmentTransport: Sendable {
     func agreementRequestChallenge(expected: TeamDeviceRequestWire.Binding,
                                    publicKey: TeamDeviceEnrollmentWire.PublicKey,
                                    request: TeamAgreementEnrollmentRequest,
-                                   ticket: TeamAccountAccessTicket) async throws -> TeamPreparedDeviceRequestChallenge
-    func executeAgreementRequest(challenge: TeamPreparedDeviceRequestChallenge,
-                                 signature: Data, expected: TeamDeviceRequestWire.Binding,
+                                   ticket: TeamAccountAccessTicket) async throws -> TeamPreparedAgreementRequestChallenge
+    func executeAgreementRequest(challenge: TeamPreparedAgreementRequestChallenge,
+                                 signature: Data, confirmation: Data,
+                                 expected: TeamDeviceRequestWire.Binding,
                                  publicKey: TeamDeviceEnrollmentWire.PublicKey,
                                  request: TeamAgreementEnrollmentRequest,
                                  ticket: TeamAccountAccessTicket) async throws -> TeamAgreementRegistration
@@ -162,7 +165,7 @@ actor TeamAgreementEnrollment {
             operation: .agreementEnroll, teamID: teamID, requestID: stableID,
             accessExpiresAt: account.accessExpiresAt)
 
-        let challenge: TeamPreparedDeviceRequestChallenge
+        let challenge: TeamPreparedAgreementRequestChallenge
         do { challenge = try await transport.agreementRequestChallenge(expected: binding,
             publicKey: signingKey, request: request, ticket: account) }
         catch {
@@ -176,7 +179,7 @@ actor TeamAgreementEnrollment {
             request: request, now: received.wallTime)
         let proofDeadline = received.instant.advanced(by:
             .milliseconds(challenge.expiresAt - received.wallTime))
-        try checkProof(challenge, deadline: proofDeadline, now: received)
+        try checkProof(challenge.request, deadline: proofDeadline, now: received)
         let authority: @Sendable () throws -> Void = { [account, sessions, clock] in
             try Task.checkCancellation()
             let current = clock()
@@ -188,15 +191,49 @@ actor TeamAgreementEnrollment {
             try sessions.requireCurrentAccess(account, now: current.wallTime)
             try Task.checkCancellation()
         }
-        var signature = try await devices.signRequest(device, challenge: challenge,
+        var signature = try await devices.signRequest(device, challenge: challenge.request,
             binding: binding, request: request, checkAuthority: authority)
         defer { signature.resetBytes(in: signature.startIndex..<signature.endIndex) }
+        var requestMessage: Data
+        do { requestMessage = try challenge.message(expected: binding,
+            publicKey: signingKey, request: request, now: received.wallTime) }
+        catch { throw TeamAgreementEnrollmentError.invalidResponse }
+        defer { requestMessage.resetBytes(in: requestMessage.startIndex..<requestMessage.endIndex) }
+        var confirmationKey: Data
+        do {
+            let identity = agreement
+            let server = challenge.server
+            let challengeIDString = challenge.challengeID
+            let agreementThumbprintString = publicIdentity.keyThumbprint
+            confirmationKey = try await teamAgreementIdentityIO {
+                var challengeID = Data(challengeIDString.utf8)
+                var agreementThumbprint = Data(agreementThumbprintString.utf8)
+                defer {
+                    challengeID.resetBytes(in: challengeID.startIndex..<challengeID.endIndex)
+                    agreementThumbprint.resetBytes(in: agreementThumbprint.startIndex..<agreementThumbprint.endIndex)
+                }
+                return try identity.derive(peer: server,
+                    algorithm: TeamAgreementPossession.algorithm,
+                    partyU: challengeID, partyV: agreementThumbprint, bits: 256)
+            }
+        } catch {
+            _ = try await checkpoint(id, start: start, accessDeadline: accessDeadline,
+                device: device, agreement: publicIdentity)
+            throw TeamAgreementEnrollmentError.agreementUnavailable
+        }
+        defer { confirmationKey.resetBytes(in: confirmationKey.startIndex..<confirmationKey.endIndex) }
+        var confirmation: Data
+        do { confirmation = try TeamAgreementPossession.confirmation(key: confirmationKey,
+            requestMessage: requestMessage, agreementKeyThumbprint: publicIdentity.keyThumbprint,
+            serverKeyThumbprint: challenge.server.keyThumbprint) }
+        catch { throw TeamAgreementEnrollmentError.invalidResponse }
+        defer { confirmation.resetBytes(in: confirmation.startIndex..<confirmation.endIndex) }
         let beforeExecute = try await checkpoint(id, start: start, accessDeadline: accessDeadline,
             device: device, agreement: publicIdentity)
-        try checkProof(challenge, deadline: proofDeadline, now: beforeExecute)
+        try checkProof(challenge.request, deadline: proofDeadline, now: beforeExecute)
         let result: TeamAgreementRegistration
         do { result = try await transport.executeAgreementRequest(challenge: challenge,
-            signature: signature, expected: binding, publicKey: signingKey,
+            signature: signature, confirmation: confirmation, expected: binding, publicKey: signingKey,
             request: request, ticket: account) }
         catch {
             _ = try await checkpoint(id, start: start, accessDeadline: accessDeadline,
@@ -205,7 +242,7 @@ actor TeamAgreementEnrollment {
         }
         let finished = try await checkpoint(id, start: start, accessDeadline: accessDeadline,
             device: device, agreement: publicIdentity)
-        try checkProof(challenge, deadline: proofDeadline, now: finished)
+        try checkProof(challenge.request, deadline: proofDeadline, now: finished)
         guard result.teamID == membership.teamID,
               result.membershipRevision == membership.revision,
               result.enrollmentID == enrollmentID,

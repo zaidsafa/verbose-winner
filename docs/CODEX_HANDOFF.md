@@ -45,26 +45,32 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
-- Corrected agreement-enrollment contract
-  `0011c1d4f9719ab0137632ecd3485676c6a54cad` now has iOS source parity: two
-  closed routes, canonical signed agreement body, one-flight exact current
-  account/device/membership/agreement owner, exact response rebound, and required
-  distinct signing+agreement credentials on every audience target without silent
-  shrink. Clean focused **43/43**, full core **307/307**, unsigned generic-iOS
-  app/test and Release builds PASS. Source-only: no phone, runtime, endpoint or
-  TestFlight action. ECDH confirmation remains a pre-staging requirement because
-  registered-device authorization alone does not prove a hostile client owns the
-  agreement private key. See `TEAM_AGREEMENT_ENROLLMENT_IOS.md` and
-  `VALIDATION.md`. NEXT: review/design cross-platform ECDH key confirmation before
-  freezing any envelope or delivery handler.
+- Frozen Android/server agreement-possession checkpoint
+  `fdfa0a883af409d0fd02a47aaeeaed15b66e1400` now has exact inactive iOS parity.
+  The challenge sends the proposed agreement JWK, validates the server ephemeral
+  P-256 JWK/thumbprint, derives ECDH plus the frozen Concat KDF and sends the exact
+  HMAC confirmation while preserving registered-device signing and separate key
+  custody. The public fixture is byte-identical, SHA-256
+  `946a6bfda62b193c23a38a53e6a3f4293fdc725545e3deefd99c567c63c763c2`.
+  Focused agreement **13/13** plus HTTP **1/1**, clean core **318/318**, signed
+  Simulator **346/346**, and separate physical QA iPhone **346/346 PASS**. The
+  named Secure Enclave possession test passes; ordinary unsigned Release and QA
+  normal relaunch pass. No runtime/live endpoint/Android sync/TestFlight action.
+  See `TEAM_AGREEMENT_ENROLLMENT_IOS.md` and `VALIDATION.md`. NEXT: freeze the
+  reviewed canonical multi-recipient JWE General JSON envelope, then fixed
+  submit/fetch/archive-before-ACK owners.
 
-- A concrete review-only ECDH confirmation proposal is now recorded in
-  `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md`: fresh server ephemeral P-256 per
-  pending challenge, agreement-key ECDH, reviewed Concat KDF, canonical HMAC
-  context, and existing registered-device signature. It deliberately changes no
-  source/route and is not a shared contract until Android/server owners review and
-  publish exact vectors. Cross-task disclosure and GitHub push are currently held
-  by safety review, so do not claim coordination completed.
+- Durable outgoing local work now separates editable drafts from immutable note
+  submissions, corrections, approvals and changes-requested events. Draft edits
+  use compare-and-swap; explicit finalization is atomic/idempotent; reads/saves
+  never approve; exact sender enrollment owns its capped queue; and there is no
+  unauthenticated event-retirement API. Focused **9/9 PASS**, included in the same
+  **318/318** core and both **346/346** app-host results above. It remains inactive
+  and payload/wire agnostic. See `TEAM_OUTGOING_IOS.md`.
+
+- The earlier bytes in `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md` are superseded
+  historical design and must not be implemented. The accepted shared contract is
+  the possession checkpoint above.
 
 - Standard RFC 7518 Concat KDF and RFC 3394 A256KW now match Android/RFC vectors.
   A completely separate Secure Enclave P-256 agreement identity is bound to exact

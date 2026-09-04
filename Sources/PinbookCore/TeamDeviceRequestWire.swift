@@ -48,12 +48,14 @@ enum TeamDeviceRequestWire {
     /// locally selected account, device and request binding plus the actual body.
     static func message(challenge data: Data, expected: Binding,
                         publicKey: TeamDeviceEnrollmentWire.PublicKey,
-                        body: Data, now: Int64) throws -> Data {
+                        body: Data, now: Int64,
+                        additionalChallengeKeys: Set<String> = []) throws -> Data {
         let fields: [String: Any]
         do {
-            fields = try TeamAuthWire.object(data, keys: ["audience", "authorityEpoch", "accountId", "sessionId",
+            let baseKeys: Set<String> = ["audience", "authorityEpoch", "accountId", "sessionId",
                 "deviceId", "enrollmentId", "keyThumbprint", "operation", "teamId", "requestId", "bodySha256",
-                "challengeId", "nonce", "expiresAt"])
+                "challengeId", "nonce", "expiresAt"]
+            fields = try TeamAuthWire.object(data, keys: baseKeys.union(additionalChallengeKeys))
         } catch { throw TeamDeviceRequestWireError.invalidChallenge }
 
         guard TeamDeviceEnrollmentWire.canonicalAudience(expected.audience),

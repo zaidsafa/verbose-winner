@@ -54,12 +54,23 @@ private final class EnrollmentAgreement: TeamAgreementIdentity, @unchecked Senda
     let scope: TeamAgreementScope
     private let lock = NSLock()
     private var value: TeamAgreementPublic
+    private let privateKey: P256.KeyAgreement.PrivateKey
     private(set) var prepares = 0
-    init(scope: TeamAgreementScope, publicKey: TeamDeviceEnrollmentWire.PublicKey) {
-        self.scope = scope; value = .init(keyThumbprint: publicKey.thumbprint, publicKey: publicKey)
+    init(scope: TeamAgreementScope, privateKey: P256.KeyAgreement.PrivateKey) throws {
+        let signingPublic = try P256.Signing.PublicKey(x963Representation: privateKey.publicKey.x963Representation)
+        let publicKey = try TeamDeviceEnrollmentWire.publicKey(signingPublic)
+        self.scope = scope; self.privateKey = privateKey
+        value = .init(keyThumbprint: publicKey.thumbprint, publicKey: publicKey)
     }
     func prepare() -> TeamAgreementPublic { lock.withLock { prepares += 1; return value } }
     func current() -> TeamAgreementPublic { lock.withLock { value } }
+    func derive(peer: TeamAgreementPublic, algorithm: String, partyU: Data,
+                partyV: Data, bits: Int) throws -> Data {
+        let peerKey = try P256.KeyAgreement.PublicKey(x963Representation: peer.publicKey.key.x963Representation)
+        let secret = try privateKey.sharedSecretFromKeyAgreement(with: peerKey).withUnsafeBytes { Data($0) }
+        return try TeamDeliveryCryptoPrimitives.concatKDF(sharedSecret: secret,
+            algorithm: algorithm, partyU: partyU, partyV: partyV, bits: bits)
+    }
 }
 private actor EnrollmentTransport: TeamAgreementEnrollmentTransport {
     enum Hook { case none, session, device }
@@ -68,6 +79,7 @@ private actor EnrollmentTransport: TeamAgreementEnrollmentTransport {
     private let account: TeamAccountAccessTicket
     private let local: TeamDeviceSnapshot
     private let signingKey: TeamDeviceEnrollmentWire.PublicKey
+    private let serverPrivate = P256.KeyAgreement.PrivateKey()
     private var lookupHook = Hook.none, executeHook = Hook.none
     private var wrongResult = false
     private var gate: EnrollmentGate?
@@ -103,8 +115,10 @@ private actor EnrollmentTransport: TeamAgreementEnrollmentTransport {
     func agreementRequestChallenge(expected: TeamDeviceRequestWire.Binding,
                                    publicKey: TeamDeviceEnrollmentWire.PublicKey,
                                    request: TeamAgreementEnrollmentRequest,
-                                   ticket: TeamAccountAccessTicket) async throws -> TeamPreparedDeviceRequestChallenge {
+                                   ticket: TeamAccountAccessTicket) async throws -> TeamPreparedAgreementRequestChallenge {
         calls.append("challenge")
+        let serverSigning = try P256.Signing.PublicKey(x963Representation: serverPrivate.publicKey.x963Representation)
+        let serverKey = try TeamDeviceEnrollmentWire.publicKey(serverSigning)
         let object: [String: Any] = ["audience": expected.audience,
             "authorityEpoch": expected.authorityEpoch, "accountId": expected.accountID,
             "sessionId": expected.sessionID, "deviceId": expected.deviceID,
@@ -113,12 +127,15 @@ private actor EnrollmentTransport: TeamAgreementEnrollmentTransport {
             "requestId": expected.requestID,
             "bodySha256": try TeamDeviceRequestWire.bodySHA256(request.body),
             "challengeId": String(repeating: "A", count: 43),
-            "nonce": String(repeating: "B", count: 42) + "A", "expiresAt": 9_000]
+            "nonce": String(repeating: "B", count: 42) + "A", "expiresAt": 9_000,
+            "agreementServerKeyThumbprint": serverKey.thumbprint,
+            "agreementServerPublicKey": serverKey.jwk]
         return try .init(validating: JSONSerialization.data(withJSONObject: object),
             expected: expected, publicKey: publicKey, request: request, now: 1_000)
     }
-    func executeAgreementRequest(challenge: TeamPreparedDeviceRequestChallenge,
-                                 signature: Data, expected: TeamDeviceRequestWire.Binding,
+    func executeAgreementRequest(challenge: TeamPreparedAgreementRequestChallenge,
+                                 signature: Data, confirmation: Data,
+                                 expected: TeamDeviceRequestWire.Binding,
                                  publicKey: TeamDeviceEnrollmentWire.PublicKey,
                                  request: TeamAgreementEnrollmentRequest,
                                  ticket: TeamAccountAccessTicket) async throws -> TeamAgreementRegistration {
@@ -129,6 +146,19 @@ private actor EnrollmentTransport: TeamAgreementEnrollmentTransport {
         guard signingKey.key.isValidSignature(parsed, for: message) else {
             throw TeamAgreementEnrollmentError.invalidResponse
         }
+        let clientKey = try P256.KeyAgreement.PublicKey(x963Representation:
+            request.agreement.publicKey.key.x963Representation)
+        var secret = try serverPrivate.sharedSecretFromKeyAgreement(with: clientKey)
+            .withUnsafeBytes { Data($0) }
+        defer { secret.resetBytes(in: secret.startIndex..<secret.endIndex) }
+        var key = try TeamDeliveryCryptoPrimitives.concatKDF(sharedSecret: secret,
+            algorithm: TeamAgreementPossession.algorithm, partyU: Data(challenge.challengeID.utf8),
+            partyV: Data(request.agreement.keyThumbprint.utf8), bits: 256)
+        defer { key.resetBytes(in: key.startIndex..<key.endIndex) }
+        let expectedConfirmation = try TeamAgreementPossession.confirmation(key: key,
+            requestMessage: message, agreementKeyThumbprint: request.agreement.keyThumbprint,
+            serverKeyThumbprint: challenge.server.keyThumbprint)
+        guard confirmation == expectedConfirmation else { throw TeamAgreementEnrollmentError.invalidResponse }
         if let gate { await gate.wait() }
         await apply(executeHook)
         return .init(teamID: wrongResult ? "other-team" : expected.teamID,
@@ -167,11 +197,12 @@ struct TeamAgreementEnrollmentTests {
             generation: UUID(), phase: .registered, observedAt: 1_000,
             publicKey: signingKey, proofExpiresAt: nil, enrollmentID: "enrollment")
         let sessions = EnrollmentSession(), devices = EnrollmentDevices(local, signer: signer)
-        let agreementKey = reuseSigningKey ? signingKey
-            : try TeamDeviceEnrollmentWire.publicKey(P256.Signing.PrivateKey().publicKey)
+        let agreementPrivate = reuseSigningKey
+            ? try P256.KeyAgreement.PrivateKey(rawRepresentation: signer.rawRepresentation)
+            : P256.KeyAgreement.PrivateKey()
         let agreementScope = try TeamAgreementScope(origin: deviceScope.audience,
             accountID: "account", authorityEpoch: "epoch", enrollmentID: "enrollment")
-        let agreement = EnrollmentAgreement(scope: agreementScope, publicKey: agreementKey)
+        let agreement = try EnrollmentAgreement(scope: agreementScope, privateKey: agreementPrivate)
         let transport = EnrollmentTransport(session: sessions, devices: devices,
             account: account, local: local, signingKey: signingKey)
         let owner = try TeamAgreementEnrollment(account: account, authorityEpoch: "epoch",
