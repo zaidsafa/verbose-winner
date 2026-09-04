@@ -23,12 +23,21 @@
   `/private/tmp/pinbook-journal-event-apphost-3-20260905.log`. The first app-host
   attempt omitted `-sdk iphonesimulator`, failed before tests by selecting a macOS
   host path, and is not counted.
+- The same exact source then passed the separate physical **iPhone 16 Pro,
+  iOS 26.6.1** QA app-host: **361/361 PASS**, 30 suites, 9.106s, zero skips or
+  failures. This closes the four Simulator hardware skips for this source:
+  `/private/tmp/Pinbook-QA-Physical-Journal-Event-20260905.xcresult` and
+  `/private/tmp/pinbook-qa-physical-journal-event-20260905.log`. The isolated QA
+  app returned to a successful normal launch recorded at
+  `/private/tmp/pinbook-qa-journal-event-normal-launch-20260905.json`.
 - Ordinary unsigned production Release **BUILD SUCCEEDED**, bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`:
   `/private/tmp/pinbook-journal-event-release-20260905.log`.
 - Later server checkpoint `12137d2` retains this event contract and adds inactive
-  lease/recovery fencing. No iOS provider write, journal, network route, Android
-  sync, archive-before-ACK, staging, archive/upload or TestFlight action occurred.
+  lease/recovery fencing. The connected Samsung was detected but deliberately
+  untouched because no authenticated sync route exists. No iOS provider write,
+  journal, network route, Android sync, archive-before-ACK, staging, archive/upload
+  or TestFlight action occurred.
   See `TEAM_DELIVERY_JOURNAL_EVENT_IOS.md`.
 
 ## 2026-09-05 installed widgets and authoritative cross-route presentation

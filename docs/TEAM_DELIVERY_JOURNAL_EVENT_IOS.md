@@ -40,6 +40,8 @@ The canonical submit-intent digest inside that event is
 - Complete Swift core: **332/332 PASS**, 29 suites.
 - Signed iOS 26.5 Simulator app-host: **357 PASS + 4 expected physical-only
   SKIPS**, 361 total, 0 failures.
+- Separate physical iPhone 16 Pro QA app-host on iOS 26.6.1: **361/361 PASS**,
+  30 suites, zero skips or failures; QA then returned to a normal launch.
 - Ordinary unsigned production Release: **BUILD SUCCEEDED** with unchanged bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
 

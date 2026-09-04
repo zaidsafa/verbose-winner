@@ -35,6 +35,10 @@ Updated: 2026-09-05 (Asia/Shanghai)
 - Keep build `0.1.0 (3)` available. Do not upload or distribute further interim
   TestFlight builds. The next update must contain the complete agreed feature set
   and pass final integration/regression checks before publication.
+- Remote `origin/codex/team-delivery-foundation` was independently verified at
+  exact commit `4651e45` after the Pinbook Android task reported pushing that
+  already-tested commit. No later documentation-only evidence is pushed, and no
+  archive, TestFlight build or live service changed with that source push.
 - Continue local implementation and validation. Reconcile the agreed scope with
   a feature acceptance checklist before declaring the final candidate ready;
   inactive foundations do not count as completed user-facing features.
@@ -53,9 +57,11 @@ Updated: 2026-09-05 (Asia/Shanghai)
   ACCEPT bytes match at 1,079 bytes, SHA-256
   `253037999a2c6122c96de38e1123f7b3923202670e98c418575d34f9f23a4a7f`.
   Focused **4/4**, core **332/332**, signed Simulator **357 PASS + 4 expected
-  physical-only SKIPS** (361 total, 0 failures), and unsigned production Release
-  pass. Later server `12137d2` keeps this event contract and hardens inactive
-  lease/recovery behavior. No provider/journal/network route, Android sync,
+  physical-only SKIPS** (361 total, 0 failures), physical iPhone 16 Pro QA
+  **361/361 PASS** with zero skips/failures, and unsigned production Release pass.
+  QA returned to a normal launch. Later server `12137d2` keeps this event contract
+  and hardens inactive lease/recovery behavior. No provider/journal/network route,
+  Android sync,
   archive-before-ACK, staging or TestFlight action. See
   `TEAM_DELIVERY_JOURNAL_EVENT_IOS.md` and `VALIDATION.md`.
 

@@ -5,6 +5,22 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest ACCEPT/ACK/CANCEL journal-event checkpoint
+
+The exact canonical event source at commit `4651e45` passed the complete app-host
+suite on the separate physical **iPhone 16 Pro, iOS 26.6.1** QA app:
+**361/361 PASS**, 30 suites, 9.106s, zero skips or failures. This includes the
+real Secure Enclave and file-protection cases skipped in Simulator plus the four
+new canonical journal-event tests. Exact result and log:
+`/private/tmp/Pinbook-QA-Physical-Journal-Event-20260905.xcresult` and
+`/private/tmp/pinbook-qa-physical-journal-event-20260905.log`.
+
+The QA app returned to a successful normal launch, recorded at
+`/private/tmp/pinbook-qa-journal-event-normal-launch-20260905.json`. The connected
+Samsung SM-S9180 was detected but deliberately untouched because the authenticated
+submit/fetch/save-before-ACK service is not active. No live sync or TestFlight
+change occurred.
+
 ## Latest delivery submit-intent checkpoint
 
 The byte-identical canonical submit-intent vector and complete app-host suite pass
