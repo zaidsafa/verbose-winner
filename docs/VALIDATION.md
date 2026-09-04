@@ -16,8 +16,11 @@
   --deep --strict` passed. App/widget identifiers and build 3 verified. No public
   test vectors or test bundles are embedded in the app archive.
 - Preserved archive: `build/releases/0.1.0-3/Pinbook.xcarchive` (Git-ignored).
-  Local IPA export and TestFlight upload are recorded in `CODEX_HANDOFF.md` when
-  completed; archive success alone does not prove distribution or installation.
+  Local IPA export and TestFlight upload succeeded; exact hash and paths are in
+  `CODEX_HANDOFF.md`. App Store Connect processing completed. Build details showed
+  both existing groups; each group's Builds tab independently showed build 3 as
+  **Testing** after external submission with automatic notification enabled.
+  This proves TestFlight availability, not physical installation of processed build 3.
 
 ## 2026-09-04 inactive portable encrypted archive/restore
 

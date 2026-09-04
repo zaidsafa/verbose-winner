@@ -2,12 +2,18 @@
 
 Updated: September 4, 2026
 
-## Build 3 candidate
+## Build 3 published to TestFlight
 
 Owner authorized TestFlight publication and source export. Build 2 was freshly
-verified as Testing with both existing groups. Build 3 is being prepared with the
+verified as Testing with both existing groups. Build 3 was published with the
 same user-facing functionality and inactive internal team/archive foundations.
 No sign-in, cloud service, team sharing or recovery-key UI is enabled.
+
+Build `0.1.0 (3)`, Apple ID `c43396a3-4fbd-4475-bbf9-6fcc819ee3c2`, uploaded
+September 4 at 15:47 Asia/Shanghai and completed processing. Both existing internal
+and external Zaid testing groups show **Testing**. External submission used
+automatic notification; no new testers or public links were created. The text
+below is saved in What to Test. No re-upload or re-submission is needed.
 
 Suggested build 3 What to Test:
 

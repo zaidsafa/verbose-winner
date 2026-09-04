@@ -2,7 +2,7 @@
 
 Updated: 2026-09-04 (Asia/Shanghai)
 
-## Authorized TestFlight build 3 preparation
+## Current TestFlight build 3 publication — complete
 
 - Owner explicitly approved the additional archive source export and continuing
   through TestFlight. Push of `ce246cf` and `0183278` succeeded; remote exact tip
@@ -11,7 +11,7 @@ Updated: 2026-09-04 (Asia/Shanghai)
   existing internal and external Zaid testing groups assigned. This closes the
   prior locked-screen status gap, not proof of tester installation.
 - Build 3 increments app and widget together, keeping version `0.1.0`, identifiers
-  and signing team unchanged. Preparing signed archive and full Simulator tests.
+  and signing team unchanged. Signed archive and full Simulator tests passed.
   No app/widget entry point invokes team inbox or encrypted archive code; team
   sharing and recovery UI remain disabled until the documented activation gates.
 - Publication target is TestFlight and the existing groups only, not public
@@ -26,11 +26,23 @@ Updated: 2026-09-04 (Asia/Shanghai)
   Cloud Managed Apple Distribution signing and get-task-allow=false.
 - Local IPA is a separate export from the same archive, not a byte-equality claim
   about Apple's upload package. Upload succeeded on 2026-09-04 at 15:47:36
-  Asia/Shanghai (`EXPORT SUCCEEDED`); Apple processing/group assignment pending.
+  Asia/Shanghai (`EXPORT SUCCEEDED`); Apple processing completed successfully.
   Do not duplicate the upload.
   Log: `/private/tmp/pinbook-testflight-3-upload.log`. Beta review notes were saved
   and explicitly disclose that team features are inactive. Existing contact and
   no-sign-in configuration were preserved.
+- Apple build ID: `c43396a3-4fbd-4475-bbf9-6fcc819ee3c2`, app `6807481054`.
+  Both existing Zaid testing groups are attached: internal
+  `6178030b-38c6-4016-868a-5ee48376d920` and external
+  `efe63df8-e238-4717-9921-a37d9a715993`, each with three testers.
+  Saved build-specific What to Test, submitted external review with automatic
+  tester notification enabled, then independently opened each group's Builds tab:
+  **0.1.0 (3) is Testing in both internal and external groups**.
+- No public App Store release, new testers, public-link creation/change, phone
+  connection, personal-data reset or team activation. The external group already
+  had a public invitation link; it was not created, changed or redistributed here.
+  No installation of Apple's processed build 3 is claimed. Owner may open
+  TestFlight and update Pinbook; no account action is required for publication.
 
 ## Current isolated team-delivery workstream
 
@@ -90,7 +102,7 @@ Updated: 2026-09-04 (Asia/Shanghai)
   complete durable media handling and deployment admission remain prerequisites.
   No E2EE, public activation, physical deletion, or worldwide compliance claim.
 
-## Current TestFlight publication
+## Prior TestFlight build 2 publication
 
 - Owner authorized publishing build 2 to all existing internal and external test groups.
 - `Pinbook: Expense Ledger`, app ID `6807481054`, version `0.1.0 (2)` uploaded
