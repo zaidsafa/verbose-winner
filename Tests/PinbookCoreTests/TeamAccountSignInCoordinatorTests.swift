@@ -57,6 +57,24 @@ private actor SignInFixtureIdentity: TeamNativeIdentityAuthorizing {
     }
 }
 
+/// Injects a competing account change exactly after the login CAS succeeds,
+/// before completeLogin can return its committed snapshot to the caller.
+private struct SignInCommitRaceKeychain: TeamAccountSessionKeychain {
+    let backing: SessionMemoryKeychain
+    let afterCommit: @Sendable () throws -> Void
+    func add(_ attributes: [String: Any]) -> OSStatus { backing.add(attributes) }
+    func copy(_ query: [String: Any]) -> (OSStatus, CFTypeRef?) { backing.copy(query) }
+    func delete(_ query: [String: Any]) -> OSStatus { backing.delete(query) }
+    func update(_ query: [String: Any], _ attributes: [String: Any]) -> OSStatus {
+        let result = backing.update(query, attributes)
+        if result == errSecSuccess {
+            do { try afterCommit() }
+            catch { Issue.record("Synthetic competing account change failed"); return errSecNotAvailable }
+        }
+        return result
+    }
+}
+
 struct TeamAccountSignInCoordinatorTests {
     private var pair: TeamAuthSessionPair {
         TeamAuthSessionPair(accountID: "public-account", sessionID: "public-session",
@@ -185,5 +203,38 @@ struct TeamAccountSignInCoordinatorTests {
             else { #expect(try store.loginReservation(scope: scope) != nil) }
             #expect(await transport.exchanges == 1)
         }
+    }
+
+    @Test func accessHandoffCannotAdoptReplacementAfterCommitEvenWithIdenticalTokens() async throws {
+        let scope = try TeamAccountSessionScope(origin: URL(string: "https://auth.invalid")!, providerID: "public-ios")
+        let backend = SessionMemoryKeychain(), clock = SignInFixtureClock()
+        let competing = TeamAccountSessionStore(testService: "signin-commit-race", keychain: backend)
+        let expectedPair = pair
+        let race = SignInCommitRaceKeychain(backing: backend, afterCommit: {
+            try competing.removeCurrent(scope: scope, consent: true)
+            _ = try competing.saveInitial(expectedPair, scope: scope, now: 1_000, consent: true)
+        })
+        let store = TeamAccountSessionStore(testService: "signin-commit-race", keychain: race)
+        let transport = SignInFixtureTransport(pair: expectedPair)
+        let owner = TeamAccountSignInCoordinator(provider: .apple, scope: scope, store: store,
+            identity: SyntheticAppleIdentity(), transport: transport, clock: { clock.now() })
+        await #expect(throws: TeamAccountSessionError.staleOperation) { try await owner.signInAccess(consent: true) }
+        #expect(try competing.load(scope: scope)?.usablePair(now: 1_000) == expectedPair)
+        #expect(await transport.exchanges == 1)
+        #expect(backend.writes == 4) // Reserve, commit, competing removal and replacement.
+    }
+
+    @Test func accessHandoffRechecksExpiryAfterSuccessfulCommitWithoutErasingAccount() async throws {
+        let scope = try TeamAccountSessionScope(origin: URL(string: "https://auth.invalid")!, providerID: "public-ios")
+        let backend = SessionMemoryKeychain(), clock = SignInFixtureClock()
+        let race = SignInCommitRaceKeychain(backing: backend, afterCommit: { clock.advance(wall: 10_000, elapsed: .seconds(10)) })
+        let store = TeamAccountSessionStore(testService: "signin-commit-expiry", keychain: race)
+        let transport = SignInFixtureTransport(pair: pair)
+        let owner = TeamAccountSignInCoordinator(provider: .apple, scope: scope, store: store,
+            identity: SyntheticAppleIdentity(), transport: transport, clock: { clock.now() })
+        await #expect(throws: TeamAccountSessionError.reauthenticationRequired) { try await owner.signInAccess(consent: true) }
+        #expect(try store.load(scope: scope) != nil)
+        #expect(await transport.exchanges == 1)
+        #expect(backend.writes == 2)
     }
 }

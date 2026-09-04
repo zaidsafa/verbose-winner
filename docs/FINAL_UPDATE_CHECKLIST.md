@@ -79,7 +79,12 @@ checkboxes deliberately remain open until checked against the exact next candida
   custody now implements protected reservation/pending/recovery with same-key
   preservation and synthetic fault/race tests. A current access-only ticket and
   session/device-generation-bound registration owner now enforce wall/monotonic
-  checks and fresh lookup/recovery without proof replay. Consent/join UI, real
+  checks and fresh lookup/recovery without proof replay. Invitation account access
+  now has read-only preview, exact committed/current account handoff and one-use
+  wall/monotonic consent, tested synthetically and over private localhost TLS.
+  It returns a memory-only intent, not membership authority; durable join/recovery
+  and separate membership consent remain next. See TEAM_INVITATION_CONSENT_IOS.md.
+  Consent/join UI, real
   hardware/protection/provider acceptance and live enrollment remain open.
   See TEAM_DEVICE_REGISTRATION_IOS.md; one older localhostTLS test failed once
   and has not reproduced with added mandatory cases/diagnostics. Keep that caveat

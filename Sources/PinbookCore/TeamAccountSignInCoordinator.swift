@@ -34,7 +34,7 @@ public actor TeamAccountSignInCoordinator {
     private struct Pending {
         let id: UUID
         let reservation: TeamAccountLoginReservation
-        let task: Task<TeamAuthSessionPair, Error>
+        let task: Task<TeamAccountSessionSnapshot, Error>
         var invalidated = false
     }
     private let provider: TeamNativeSignInProvider
@@ -61,6 +61,21 @@ public actor TeamAccountSignInCoordinator {
     }
 
     public func signIn(consent: Bool) async throws -> TeamAuthSessionPair {
+        let saved = try await signInSnapshot(consent: consent)
+        return try saved.usablePair(now: saved.observedAt)
+    }
+    /// Returns only the exact generation committed by this attempt, never a
+    /// later account read that might have replaced it before the caller resumed.
+    func signInAccess(consent: Bool) async throws -> TeamAccountAccessTicket {
+        let saved = try await signInSnapshot(consent: consent)
+        try Task.checkCancellation()
+        let ticket = try TeamAccountAccessTicket(snapshot: saved)
+        try store.requireCurrentAccess(ticket, now: moment().wallTime)
+        _ = try ticket.usableToken(now: moment().wallTime)
+        try Task.checkCancellation()
+        return ticket
+    }
+    private func signInSnapshot(consent: Bool) async throws -> TeamAccountSessionSnapshot {
         try Task.checkCancellation()
         guard pending == nil else { throw TeamAccountSignInError.busy }
         let start = try moment()
@@ -94,7 +109,7 @@ public actor TeamAccountSignInCoordinator {
     }
 
     private func perform(id: UUID, reservation: TeamAccountLoginReservation,
-                         start: TeamSignInMoment) async throws -> TeamAuthSessionPair {
+                         start: TeamSignInMoment) async throws -> TeamAccountSessionSnapshot {
         _ = try checkpoint(id, reservation, start)
         let challenge: TeamAuthChallenge
         do { challenge = try await transport.challenge(providerID: scope.providerID) }
@@ -133,7 +148,7 @@ public actor TeamAccountSignInCoordinator {
                 throw TeamAccountSignInError.expired
             }
             let saved = try store.completeLogin(reservation, pair: pair, now: completedAt.wallTime)
-            return try saved.usablePair(now: completedAt.wallTime)
+            return saved
         } catch {
             await flow.cancel(attemptID: context.id)
             throw error

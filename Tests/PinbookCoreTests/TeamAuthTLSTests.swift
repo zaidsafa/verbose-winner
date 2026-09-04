@@ -147,6 +147,42 @@ struct TeamAuthTLSTests {
         #expect(try TeamStrictJSON.object(Data(raw.utf8))["token"] as? String == invitation)
     }
 
+    @Test func invitationConsentUsesActualTLSWithoutImplicitMembershipOrSavedCode() async throws {
+        let fixture = try await Fixture(mode: "success"), client = try fixture.client()
+        let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
+        let backend = SessionMemoryKeychain()
+        let store = TeamAccountSessionStore(testService: "invitation-consent-tls", keychain: backend)
+        let instant = ContinuousClock.now
+        let owner = TeamInvitedSignIn(provider: .apple, scope: scope, sessions: store,
+            identity: SyntheticAppleIdentity(), transport: client,
+            clock: { .init(wallTime: 1_000, instant: instant) })
+        let code = String(repeating: "E", count: 42) + "A"
+        let display = try await owner.preview(code: code)
+        #expect(backend.writes == 0)
+        let consent = try await owner.confirmAccountAccess(display, agreed: true)
+        let intent = try await owner.signIn(consent)
+        try store.requireCurrentAccess(intent.account, now: 1_000)
+        #expect(intent.teamID == "public-team" && intent.role == .member && intent.token == code)
+        let requests = try fixture.records("attempts")
+        #expect(requests.compactMap { $0["path"] as? String } == ["/api/v1/invitations/preview",
+            "/api/v1/auth/invited-challenge", "/api/v1/auth/invited-exchange"])
+        #expect(requests.allSatisfy { $0["authorization"] is NSNull })
+        let bodies = try fixture.records("bodies")
+        #expect(bodies.count == 3)
+        let decoded = try bodies.map { row in
+            try TeamStrictJSON.object(Data((try #require(row["body"] as? String)).utf8))
+        }
+        #expect(decoded.allSatisfy { $0["token"] as? String == code })
+        #expect(decoded.dropFirst().allSatisfy { $0["teamId"] as? String == "public-team" && $0["role"] as? String == "MEMBER" })
+        let exchanged = try #require(decoded.last)
+        #expect(Set(exchanged.keys) == ["providerId", "token", "teamId", "role", "challengeId", "idToken"])
+        #expect(exchanged["idToken"] as? String == "public.header.signature")
+        let saved = try #require(backend.bytes)
+        #expect(!String(decoding: saved, as: UTF8.self).contains(code))
+        await #expect(throws: TeamInvitationAccountError.staleConsent) { try await owner.signIn(consent) }
+        #expect(try fixture.records("attempts").count == 3)
+    }
+
     @Test func ambiguousOnboardingNeverAutomaticallyReplaysOrMutatesSavedAccount() async throws {
         for mode in ["503", "drop"] {
             let fixture = try await Fixture(mode: mode)

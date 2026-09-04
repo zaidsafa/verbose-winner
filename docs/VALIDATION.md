@@ -1,5 +1,32 @@
 # Validation plan
 
+## 2026-09-04 invitation account consent and exact committed-account handoff (inactive)
+
+- Existing native sign-in compatibility after the snapshot refactor: **7/7 PASS**,
+  `/private/tmp/pinbook-ios-invitation-signin-compile.log`.
+- Initial new test compilation found two actor-property reads inside a nonisolated
+  `&&` assertion autoclosure. Split assertions and corrected the synthetic challenge
+  expiry to the fixture's current clock; no production policy was weakened.
+- Eleven invitation cases **11/11 PASS**,0.008s:
+  `/private/tmp/pinbook-ios-invitation-consent-tests.log`.
+- Invitation plus expanded native-owner race cases **20/20 PASS**,0.035s:
+  `/private/tmp/pinbook-ios-invitation-account-race-tests.log`. Exact after-commit
+  replacement and expiry are injected through a synthetic Keychain forwarding
+  adapter, with no production hook or real stored credential modification.
+- Full core with composed actual private localhost TLS invitation flow:
+  **177/177 PASS**,16.755s,14suites:
+  `/private/tmp/pinbook-ios-invitation-full-core.log`. All three mandatory older TLS
+  sign-in cases also passed. The earlier intermittent transport failure remains
+  undiagnosed; this is not a claim that its underlying cause was fixed.
+- Simulator build-for-testing **PASS**:
+  `/private/tmp/pinbook-ios-invitation-test-build.log`. Compilation only, not new
+  app-host/UI execution, real provider issuance or physical Keychain proof.
+- Unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-invitation-release.log`. Not a signed release artifact.
+- No normal navigation, automatic join, financial record/key change, shared
+  infrastructure, source push, release signing/version or TestFlight change.
+  TEAM_INVITATION_CONSENT_IOS.md records lifecycle obligations and open gates.
+
 ## 2026-09-04 current-session/monotonic device registration owner (inactive)
 
 - Existing onboarding compatibility **8/8 PASS** after access-only ticket support:

@@ -27,6 +27,20 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Invitation account consent now has read-only preview, exact current-account
+  display, opaque single-use five-minute wall/monotonic confirmation, bound native
+  challenge/exchange, cancellation ownership and a memory-only join intent. The
+  native owner returns only its exact committed generation, rejecting a competing
+  replacement even with identical tokens. No implicit device registration or team
+  accept. See TEAM_INVITATION_CONSENT_IOS.md. Full core **177/177 PASS**,16.755s:
+  `/private/tmp/pinbook-ios-invitation-full-core.log`; Simulator build-for-testing
+  PASS: `/private/tmp/pinbook-ios-invitation-test-build.log`. No new app-host/UI run.
+  Unsigned iPhone Release PASS: `/private/tmp/pinbook-ios-invitation-release.log`.
+  Next: bounded durable join intent, separate membership consent/current-team
+  recovery, then localized screens/host lifecycle. Read Android's membership/join
+  UI contracts locally; do not resume blocked outbound coordination without owner
+  approval. Keep every remaining feature and external activation gate below.
+
 - Coordination-only approval pending: sending the cee0f3c status to the separate
   Pinbook Android (studious-potato) task was rejected by security review. Read_thread
   verified it is Zaid's local Pinbook/studious-potato task, but a narrowed retry was
@@ -46,7 +60,8 @@ Updated: 2026-09-04 (Asia/Shanghai)
   failed once in initial full regression; isolated and subsequent full runs pass,
   but root cause is unproven. Added bounded test diagnostics and three mandatory
   fresh TLS cases, not retry-on-failure. Preserve caveat for final validation.
-  Next: invitation account consent/exact account handoff, then durable membership
+  Subsequent invitation account consent/exact account handoff is recorded above;
+  next is durable membership
   intent and separate join consent/current-membership recovery. Android invitation
   consent and join-recovery documents have been read; use persisted team/enrollment
   IDs for unknown accept, not re-preview of a consumed link. All release gates stay.
