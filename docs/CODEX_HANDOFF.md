@@ -27,6 +27,29 @@ Updated: 2026-09-04 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Refresh integration checkpoint `ea03850` committed locally. New sign-in
+  coordinator adds consented durable login reservations, native callback ownership,
+  wall+monotonic deadlines around awaits/custody reads, single exchange and a
+  generation-bound session commit. Existing sessions cannot be overwritten; stale
+  callbacks cannot install after cancellation/new reservation. Public unbound
+  initial-save removed (internal fixture seeding only). Concrete provider adapters
+  and configuration/UI still pending; see TEAM_SIGN_IN_COORDINATOR_IOS.md.
+- Latest validation: core103/103, iPhone app-host124 passes plus one hardware skip,
+  unsigned Release/Simulator build pass. A macOS core rerun hung in test-fixture
+  Process.waitUntilExit after its TLS child had already exited. Live stack sample
+  located it in Fixture.deinit; that exact test helper was terminated, evidence kept.
+  Bounded termination-handler synchronization replaces waitUntilExit. Full rerun
+  then passed103/103. Not an app/network failure or a silently counted green run.
+- Final review also replaced a two-read sign-out fallback with one union-record
+  read plus exact-generation deletion, preventing false success during concurrent
+  login commit. Final core103/103, app-host124+one hardware skip and unsignedRelease
+  pass after that fix. Next concrete native step: retained Apple authorization
+  controller/anchor adapter and cancellation quarantine (SDK confirms cancel() on
+  iOS16+ reports through its delegate), plus Google identity/Drive isolation review.
+  Android enrollment contract now available at its `a629647e` checkpoint in
+  docs/TEAM_DEVICE_ENROLLMENT.md; exact P256/canonical-byte interoperability and
+  dedicated key custody still need client review before adopting that flow.
+
 - Session custody checkpoint `e0ff1c3` is committed locally. New follow-up actor
   connects custody to one-dispatch refresh: durable marker first, busy until actual
   transport settlement, cancellation/late-result rejection, generation-bound commit,

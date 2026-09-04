@@ -47,7 +47,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
         status = 200
         fields = {"challengeId": token("A"), "nonce": token("B"), "expiresAt": 121000}
-        if self.path.endswith("/refresh"):
+        if self.path.endswith(("/refresh", "/exchange")):
             fields = {"accountId": "public-account", "sessionId": "public-session",
                       "accessToken": token("C"), "refreshToken": token("D"),
                       "accessExpiresAt": 10000, "sessionExpiresAt": 30000}

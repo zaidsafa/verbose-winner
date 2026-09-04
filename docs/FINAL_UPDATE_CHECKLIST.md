@@ -63,8 +63,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   session custody uses durable pending markers and generation-bound atomic pair
   replacement. Neither low-level foundation is a complete sign-in/session feature:
   Single-dispatch refresh orchestration is implemented/tested locally; remaining
-  gates include provider/controller ownership, real client
-  configuration/origin, revocation/enrollment and physical acceptance remain open.
+  gates include concrete provider/controller adapters and UI, real client
+  configuration/origin, revocation/enrollment and physical acceptance.
+  Durable native sign-in orchestration (reservation→challenge→callback→exchange→
+  generation-bound commit) is implemented/tested with synthetic identity and local
+  TLS, not real provider issuance. No feature acceptance checkbox is closed by this.
 
 - Personal Files import now coordinates/read-checks off-main, is cancellable and
   bounds actual file bytes to 128 MiB. Export uses the same limit. Legacy backups

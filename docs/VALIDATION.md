@@ -1,5 +1,48 @@
 # Validation plan
 
+## 2026-09-04 durable native sign-in coordinator (inactive)
+
+- Seven new sign-in/reservation tests **PASS7/7** in0.029s:
+  `/private/tmp/pinbook-ios-signin-coordinator-tests.log`. Consent and pre-cancelled
+  callers do not contact the provider; existing sessions are not replaced; late
+  callbacks/abandoned reservations cannot commit; wall/monotonic/state/provider
+  failures never exchange; ambiguous storage never triggers a second exchange.
+- Real localhost TLS challenge→synthetic provider callback→exchange→protected
+  reservation commit test passed with exact route/field assertions. Initial full
+  core103/103 passed at `/private/tmp/pinbook-ios-signin-coordinator-full-core.log`.
+- After tighter per-challenge monotonic checks, a rerun stalled in test cleanup:
+  `/private/tmp/pinbook-ios-signin-coordinator-final-core.log` is NOT passing evidence.
+  Live sample `/private/tmp/pinbook-signin-core-stall.sample.txt` showed the test
+  helper in Fixture.deinit→NSConcreteTask.waitUntilExit, although the Python child
+  had exited. Sampled the still-live helper before explicitly terminating PID75035;
+  parent exited1. Replaced all fixture waitUntilExit calls with a preinstalled
+  termination handler and bounded semaphore wait, retaining failed cleanup evidence.
+- Final full core **103/103 PASS** in12.764s:
+  `/private/tmp/pinbook-ios-signin-coordinator-verified-core.log`.
+- Review then fixed a two-read local-sign-out race between a login reservation
+  and a concurrently committed session. `removeCurrent` reads the union once and
+  deletes that exact generation; a concurrent replacement fails stale rather than
+  returning false success. Full core rerun **103/103 PASS** in12.279s:
+  `/private/tmp/pinbook-ios-signin-owner-final-core.log`; final unsigned Release
+  **PASS**: `/private/tmp/pinbook-ios-signin-owner-final-release.log`.
+- Exact final Simulator rebuild **PASS**:
+  `/private/tmp/pinbook-ios-signin-owner-final-test-build.log`; app-host rerun
+  **124 passes, one hardware skip, zero failures**:
+  `/private/tmp/Pinbook-SignIn-Owner-Final-App.xcresult`, finish Unix1788523839.278;
+  `/private/tmp/pinbook-ios-signin-owner-final-app.log`.
+- Unsigned iPhone Release **PASS**:
+  `/private/tmp/pinbook-ios-signin-coordinator-release.log`; Simulator test build
+  **PASS**: `/private/tmp/pinbook-ios-signin-coordinator-test-build.log`.
+- iPhone app-host **124 passed, one hardware file-protection skip, zero failures**:
+  `/private/tmp/Pinbook-SignIn-Coordinator-App.xcresult`, finish Unix1788523458.477;
+  `/private/tmp/pinbook-ios-signin-coordinator-app.log`. Actual isolated Keychain
+  test includes login reservation commit/read/stale cancellation and rotation.
+  macOS-only TLS fixture cleanup change is not part of the iPhone target.
+- No UI source changed; UI13/13 remains prior-checkpoint evidence, not newly rerun.
+  No real provider/credential/URL/navigation activation, source push or upload.
+  `TEAM_SIGN_IN_COORDINATOR_IOS.md` distinguishes native orchestration from the
+  still-required concrete Apple/Google controller/SDK adapters and live acceptance.
+
 ## 2026-09-04 one-owner rotating-refresh integration (inactive)
 
 - Six coordinator tests pass for durable marker before dispatch, busy serialization,

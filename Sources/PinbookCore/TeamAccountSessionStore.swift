@@ -3,7 +3,7 @@ import Security
 
 public enum TeamAccountSessionError: Error, Equatable {
     case consentRequired, alreadyExists, scopeMismatch, invalidStoredItem
-    case staleOperation, reauthenticationRequired, invalidTime, invalidSession
+    case staleOperation, reauthenticationRequired, loginPending, invalidTime, invalidSession
     case unavailable(OSStatus)
 }
 
@@ -22,6 +22,50 @@ public struct TeamAccountSessionScope: Sendable, Equatable {
 }
 
 public enum TeamAccountSessionPhase: String, Sendable { case active, refreshPending }
+
+/// Durable ownership only, never an account identity or provider credential.
+public struct TeamAccountLoginReservation: Sendable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public let scope: TeamAccountSessionScope
+    public let expiresAt: Int64
+    let generation: UUID
+    let createdAt: Int64
+    public var description: String { "TeamAccountLoginReservation(<redacted>)" }
+    public var debugDescription: String { description }
+    public var customMirror: Mirror { Mirror(self, children: [:]) }
+}
+
+private enum TeamStoredAccountRecord {
+    case session(TeamAccountSessionSnapshot), login(TeamAccountLoginReservation)
+    var scope: TeamAccountSessionScope {
+        switch self { case .session(let value): value.scope; case .login(let value): value.scope }
+    }
+    var generation: UUID {
+        switch self { case .session(let value): value.generation; case .login(let value): value.generation }
+    }
+}
+
+enum TeamAccountLoginCodec {
+    static func encode(_ value: TeamAccountLoginReservation) throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["version": 1, "phase": "loginPending",
+            "origin": value.scope.origin.absoluteString, "providerId": value.scope.providerID,
+            "generation": value.generation.uuidString, "createdAt": value.createdAt,
+            "expiresAt": value.expiresAt], options: [.sortedKeys])
+    }
+    static func decode(_ data: Data) throws -> TeamAccountLoginReservation {
+        do {
+            let fields = try TeamAuthWire.object(data, keys: ["version", "phase", "origin", "providerId", "generation", "createdAt", "expiresAt"])
+            guard try TeamAuthWire.time(fields, "version") == 1, fields["phase"] as? String == "loginPending",
+                  let rawOrigin = fields["origin"] as? String, let origin = URL(string: rawOrigin),
+                  let rawGeneration = fields["generation"] as? String, let generation = UUID(uuidString: rawGeneration),
+                  generation.uuidString == rawGeneration else { throw TeamAccountSessionError.invalidStoredItem }
+            let scope = try TeamAccountSessionScope(origin: origin, providerID: TeamAuthWire.string(fields, "providerId"))
+            let createdAt = try TeamAuthWire.time(fields, "createdAt"), expiresAt = try TeamAuthWire.time(fields, "expiresAt")
+            guard scope.origin.absoluteString == rawOrigin, expiresAt > createdAt,
+                  expiresAt - createdAt <= 120_000 else { throw TeamAccountSessionError.invalidStoredItem }
+            return TeamAccountLoginReservation(scope: scope, expiresAt: expiresAt, generation: generation, createdAt: createdAt)
+        } catch { throw TeamAccountSessionError.invalidStoredItem }
+    }
+}
 
 /// A pending record deliberately contains NO old credential. It is a durable
 /// reauthentication barrier, not an instruction to retry the previous refresh.
@@ -195,8 +239,11 @@ public struct TeamAccountSessionStore: Sendable {
          kSecUseDataProtectionKeychain as String: true]
     }
     private func matching(_ value: TeamAccountSessionSnapshot) -> [String: Any] {
+        matching(generation: value.generation)
+    }
+    private func matching(generation: UUID) -> [String: Any] {
         var query = base
-        query[kSecAttrGeneric as String] = Data(value.generation.uuidString.utf8)
+        query[kSecAttrGeneric as String] = Data(generation.uuidString.utf8)
         query[kSecAttrAccessible as String] = accessibility
         return query
     }
@@ -204,7 +251,7 @@ public struct TeamAccountSessionStore: Sendable {
         [kSecValueData as String: try TeamAccountSessionCodec.encode(value),
          kSecAttrGeneric as String: Data(value.generation.uuidString.utf8)]
     }
-    public func load(scope: TeamAccountSessionScope) throws -> TeamAccountSessionSnapshot? {
+    private func loadRecord(scope: TeamAccountSessionScope) throws -> TeamStoredAccountRecord? {
         try Task.checkCancellation()
         var query = base
         query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -217,17 +264,77 @@ public struct TeamAccountSessionStore: Sendable {
               fields[kSecAttrAccount as String] as? String == account,
               fields[kSecAttrSynchronizable as String] as? Bool == false,
               fields[kSecAttrAccessible as String] as? String == accessibility,
-              let data = fields[kSecValueData as String] as? Data else {
+              let data = fields[kSecValueData as String] as? Data,
+              data.count <= TeamAccountSessionCodec.maximumBytes,
+              let shape = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw TeamAccountSessionError.invalidStoredItem
         }
-        let value = try TeamAccountSessionCodec.decode(data)
+        let value: TeamStoredAccountRecord
+        if shape["phase"] as? String == "loginPending" { value = .login(try TeamAccountLoginCodec.decode(data)) }
+        else { value = .session(try TeamAccountSessionCodec.decode(data)) }
         guard fields[kSecAttrGeneric as String] as? Data == Data(value.generation.uuidString.utf8) else {
             throw TeamAccountSessionError.invalidStoredItem
         }
         guard value.scope == scope else { throw TeamAccountSessionError.scopeMismatch }
         return value
     }
-    public func saveInitial(_ pair: TeamAuthSessionPair, scope: TeamAccountSessionScope,
+    public func load(scope: TeamAccountSessionScope) throws -> TeamAccountSessionSnapshot? {
+        switch try loadRecord(scope: scope) {
+        case .none: return nil
+        case .session(let value): return value
+        case .login: throw TeamAccountSessionError.loginPending
+        }
+    }
+    public func loginReservation(scope: TeamAccountSessionScope) throws -> TeamAccountLoginReservation? {
+        switch try loadRecord(scope: scope) {
+        case .login(let value): return value
+        case .session, .none: return nil
+        }
+    }
+
+    /// Reserves an empty session slot before challenge/provider work. An existing
+    /// account or pending operation is NEVER silently replaced. A user must first
+    /// explicitly sign out/abandon an earlier operation if they want to replace it.
+    public func beginLogin(scope: TeamAccountSessionScope, now: Int64, consent: Bool) throws -> TeamAccountLoginReservation {
+        try Task.checkCancellation()
+        guard consent else { throw TeamAccountSessionError.consentRequired }
+        try TeamAccountSessionCodec.checkClock(now)
+        guard now <= TeamAuthWire.maximumSafeTime - 120_000 else { throw TeamAccountSessionError.invalidTime }
+        let value = TeamAccountLoginReservation(scope: scope, expiresAt: now + 120_000, generation: UUID(), createdAt: now)
+        var fields = base
+        fields[kSecValueData as String] = try TeamAccountLoginCodec.encode(value)
+        fields[kSecAttrGeneric as String] = Data(value.generation.uuidString.utf8)
+        fields[kSecAttrAccessible as String] = accessibility
+        let status = keychain.add(fields)
+        if status == errSecDuplicateItem { throw TeamAccountSessionError.alreadyExists }
+        guard status == errSecSuccess else { throw TeamAccountSessionError.unavailable(status) }
+        return value
+    }
+    /// Only the matching live reservation may install the server-issued pair.
+    /// No add-on-missing fallback: cancellation/sign-out makes late callbacks stale.
+    public func completeLogin(_ reservation: TeamAccountLoginReservation, pair: TeamAuthSessionPair,
+                              now: Int64) throws -> TeamAccountSessionSnapshot {
+        try Task.checkCancellation()
+        try TeamAccountSessionCodec.checkClock(now, since: reservation.createdAt)
+        guard now < reservation.expiresAt else { throw TeamAccountSessionError.reauthenticationRequired }
+        let value = try TeamAccountSessionCodec.active(pair: pair, scope: reservation.scope, now: now)
+        let status = keychain.update(matching(generation: reservation.generation), try attributes(value))
+        if status == errSecItemNotFound { throw TeamAccountSessionError.staleOperation }
+        guard status == errSecSuccess else { throw TeamAccountSessionError.unavailable(status) }
+        return value
+    }
+    /// Remove only this reservation, never a newer reservation or active session.
+    /// Used for explicit cancellation/teardown of the already-consented login.
+    public func cancelLogin(_ reservation: TeamAccountLoginReservation) throws {
+        try Task.checkCancellation()
+        let status = keychain.delete(matching(generation: reservation.generation))
+        if status == errSecItemNotFound { throw TeamAccountSessionError.staleOperation }
+        guard status == errSecSuccess else { throw TeamAccountSessionError.unavailable(status) }
+    }
+
+    // Synthetic fixture seeding only. Real login installation requires the
+    // generation-bound reservation above; no public unbound initial-save API.
+    func saveInitial(_ pair: TeamAuthSessionPair, scope: TeamAccountSessionScope,
                             now: Int64, consent: Bool) throws -> TeamAccountSessionSnapshot {
         try Task.checkCancellation()
         guard consent else { throw TeamAccountSessionError.consentRequired }
@@ -270,6 +377,17 @@ public struct TeamAccountSessionStore: Sendable {
         // A single SecItemUpdate changes payload+generation atomically. Query the
         // old generation; never read-then-unconditionally-write a rotating pair.
         let status = keychain.update(matching(expected), try attributes(next))
+        if status == errSecItemNotFound { throw TeamAccountSessionError.staleOperation }
+        guard status == errSecSuccess else { throw TeamAccountSessionError.unavailable(status) }
+    }
+    /// Explicit local sign-out/account replacement only. Not server revocation.
+    /// Read either record variant ONCE, then delete its generation. A two-read
+    /// pending-login fallback could otherwise miss a concurrently committed pair.
+    public func removeCurrent(scope: TeamAccountSessionScope, consent: Bool) throws {
+        try Task.checkCancellation()
+        guard consent else { throw TeamAccountSessionError.consentRequired }
+        guard let value = try loadRecord(scope: scope) else { return }
+        let status = keychain.delete(matching(generation: value.generation))
         if status == errSecItemNotFound { throw TeamAccountSessionError.staleOperation }
         guard status == errSecSuccess else { throw TeamAccountSessionError.unavailable(status) }
     }

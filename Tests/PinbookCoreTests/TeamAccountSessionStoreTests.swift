@@ -206,7 +206,10 @@ struct TeamAccountSessionStoreTests {
         let scope = try scope()
         var cleanup: TeamAccountSessionSnapshot?
         defer { if let cleanup { try? custody.remove(cleanup, consent: true) } }
-        let saved = try custody.saveInitial(pair(), scope: scope, now: 1_000, consent: true)
+        let reservation = try custody.beginLogin(scope: scope, now: 1_000, consent: true)
+        #expect(try custody.loginReservation(scope: scope)?.generation == reservation.generation)
+        let saved = try custody.completeLogin(reservation, pair: pair(), now: 1_001)
+        #expect(throws: TeamAccountSessionError.staleOperation) { try custody.cancelLogin(reservation) }
         cleanup = saved
         let lease = try custody.beginRefresh(saved, now: 2_000)
         cleanup = try custody.load(scope: scope)

@@ -7,11 +7,31 @@ import Testing
 /// system trust. Certificates exist only in a fresh temporary fixture directory.
 @Suite(.serialized)
 struct TeamAuthTLSTests {
+    private final class ProcessExit: @unchecked Sendable {
+        private let lock = NSLock()
+        private let signal = DispatchSemaphore(value: 0)
+        private var exited = false
+        func observe(_ process: Process) {
+            process.terminationHandler = { [self] _ in
+                lock.withLock { exited = true }; signal.signal()
+            }
+        }
+        func wait(seconds: Double) -> Bool {
+            if lock.withLock({ exited }) { return true }
+            return signal.wait(timeout: .now() + seconds) == .success
+        }
+        func stop(_ process: Process) -> Bool {
+            if lock.withLock({ exited }) { return true }
+            if process.isRunning { process.terminate() }
+            return wait(seconds: 5)
+        }
+    }
     private final class Fixture {
         let directory: URL
         let server: Process
         let origin: URL
         let anchor: Data
+        private let serverExit = ProcessExit()
 
         init(mode: String) async throws {
             let directory = FileManager.default.temporaryDirectory.appendingPathComponent("pinbook-auth-tls-\(UUID())", isDirectory: true)
@@ -22,6 +42,8 @@ struct TeamAuthTLSTests {
             self.server = server
             do {
                 let openssl = Process()
+                let opensslExit = ProcessExit()
+                opensslExit.observe(openssl)
                 openssl.executableURL = URL(fileURLWithPath: "/usr/bin/openssl")
                 openssl.arguments = ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-sha256", "-days", "1",
                     "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost",
@@ -30,7 +52,10 @@ struct TeamAuthTLSTests {
                     "-keyout", directory.appendingPathComponent("private.pem").path,
                     "-out", directory.appendingPathComponent("certificate.pem").path]
                 openssl.standardOutput = FileHandle.nullDevice; openssl.standardError = FileHandle.nullDevice
-                try openssl.run(); openssl.waitUntilExit()
+                try openssl.run()
+                guard opensslExit.wait(seconds: 10) else {
+                    _ = opensslExit.stop(openssl); throw FixtureError.setup
+                }
                 guard openssl.terminationStatus == 0 else { throw FixtureError.setup }
                 let pem = try String(contentsOf: directory.appendingPathComponent("certificate.pem"), encoding: .utf8)
                 let base64 = pem.components(separatedBy: .newlines).filter { !$0.hasPrefix("---") }.joined()
@@ -39,6 +64,7 @@ struct TeamAuthTLSTests {
                 server.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
                 server.arguments = [script.path, directory.path, mode]
                 server.standardOutput = FileHandle.nullDevice; server.standardError = FileHandle.nullDevice
+                serverExit.observe(server)
                 try server.run()
                 let portURL = directory.appendingPathComponent("port")
                 for _ in 0..<150 {
@@ -49,14 +75,13 @@ struct TeamAuthTLSTests {
                 let port = try String(contentsOf: portURL, encoding: .utf8)
                 origin = try #require(URL(string: "https://localhost:\(port)"))
             } catch {
-                if server.isRunning { server.terminate(); server.waitUntilExit() }
-                try? FileManager.default.removeItem(at: directory)
+                if !server.isRunning || serverExit.stop(server) { try? FileManager.default.removeItem(at: directory) }
                 throw error
             }
         }
         deinit {
-            if server.isRunning { server.terminate(); server.waitUntilExit() }
-            try? FileManager.default.removeItem(at: directory)
+            if serverExit.stop(server) { try? FileManager.default.removeItem(at: directory) }
+            else { Issue.record("Synthetic TLS server did not confirm exit; retained its private fixture directory") }
         }
         func client() throws -> TeamAuthHTTPClient {
             try TeamAuthHTTPClient(origin: origin, protocolClasses: nil, localTestAnchor: anchor)
@@ -155,6 +180,27 @@ struct TeamAuthTLSTests {
             #expect(try fixture.records("attempts").count == 1)
             #expect(try fixture.records("bodies").count == 1)
         }
+    }
+
+    @Test func signInCoordinatorUsesActualTLSChallengeExchangeAndBoundReservation() async throws {
+        let fixture = try await Fixture(mode: "success")
+        let scope = try TeamAccountSessionScope(origin: fixture.origin, providerID: "public-ios")
+        let store = TeamAccountSessionStore(testService: "local-tls-signin", keychain: SessionMemoryKeychain())
+        let instant = ContinuousClock.now
+        let owner = TeamAccountSignInCoordinator(provider: .apple, scope: scope, store: store,
+            identity: SyntheticAppleIdentity(), transport: try fixture.client(),
+            clock: { TeamSignInMoment(wallTime: 1_000, instant: instant) })
+        let result = try await owner.signIn(consent: true)
+        #expect(try store.load(scope: scope)?.usablePair(now: 2_000) == result)
+        let requests = try fixture.records("attempts")
+        #expect(requests.compactMap { $0["path"] as? String } == ["/api/v1/auth/challenge", "/api/v1/auth/exchange"])
+        let bodies = try fixture.records("bodies")
+        #expect(bodies.count == 2)
+        let exchangeBody = try #require(bodies.last?["body"] as? String)
+        let fields = try #require(JSONSerialization.jsonObject(with: Data(exchangeBody.utf8)) as? [String: String])
+        #expect(Set(fields.keys) == ["providerId", "challengeId", "idToken"])
+        #expect(fields["providerId"] == "public-ios")
+        #expect(fields["idToken"] == "public.header.signature")
     }
 }
 #endif

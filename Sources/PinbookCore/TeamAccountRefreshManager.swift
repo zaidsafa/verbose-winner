@@ -89,7 +89,7 @@ public actor TeamAccountRefreshManager {
         try Task.checkCancellation()
         guard consent else { throw TeamAccountSessionError.consentRequired }
         cancelPendingRefresh()
-        if let current = try store.load(scope: scope) { try store.remove(current, consent: true) }
+        try store.removeCurrent(scope: scope, consent: true)
     }
 
     private func now() throws -> Int64 {

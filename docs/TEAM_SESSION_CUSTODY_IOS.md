@@ -21,7 +21,9 @@ writes nothing. No account/provider/endpoint is invented.
   not a no-backup guarantee: same-device restores differ from migration. See
   [Apple's Keychain accessibility guidance](https://developer.apple.com/documentation/security/restricting-keychain-item-accessibility)
   and [Platform Security](https://support.apple.com/en-ie/guide/security/secb0694df1a/1/web/1).
-- Initial save requires explicit consent and uses atomic add-only semantics.
+- Real initial login requires an explicit-consent, add-only durable reservation,
+  followed by generation-bound session installation. Unbound initial-save remains
+  internal fixture seeding only. See `TEAM_SIGN_IN_COORDINATOR_IOS.md`.
   Existing sessions are not silently overwritten or switched. Missing, unavailable,
   corrupt, mismatched and expired are distinct failures. Local sign-out/removal
   requires explicit consent and an exact generation; it is NOT server revocation.
@@ -116,6 +118,8 @@ failures. An additional real localhost TLS test exercises manager→HTTP→custo
 success,503 and dropped response; reconstructing the manager cannot replay a pending
 token. Full core95/95 passed; this is local fixture acceptance, not a live provider.
 
-Still required: provider/challenge/exchange integration, explicit account switching and revocation,
+Provider/challenge/exchange orchestration with a durable login reservation is now
+implemented and tested; see `TEAM_SIGN_IN_COORDINATOR_IOS.md`. Concrete native
+controller/SDK adapters and normal UI remain required, along with account switching and revocation,
 current restore authority, enrollment/roles, locked/background UX, physical Keychain
 acceptance and approved staging. No normal navigation activation or TestFlight update.

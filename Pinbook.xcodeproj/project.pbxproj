@@ -40,6 +40,8 @@
 		B2000000000000000000000B /* TeamAuthHTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* TeamAuthHTTP.swift */; };
 		B2000000000000000000000C /* TeamAccountSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* TeamAccountSessionStore.swift */; };
 		B2000000000000000000000D /* TeamAccountRefreshManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* TeamAccountRefreshManager.swift */; };
+		B2000000000000000000000E /* TeamAccountSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* TeamAccountSignInCoordinator.swift */; };
+		B30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift */; };
 		B30000000000000000000008 /* TeamAccountRefreshManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000008 /* TeamAccountRefreshManagerTests.swift */; };
 		B30000000000000000000007 /* TeamAccountSessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000007 /* TeamAccountSessionStoreTests.swift */; };
 		B30000000000000000000006 /* TeamAuthHTTPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000006 /* TeamAuthHTTPTests.swift */; };
@@ -126,6 +128,8 @@
 		A2000000000000000000000B /* TeamAuthHTTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAuthHTTP.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* TeamAccountSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAccountSessionStore.swift; sourceTree = "<group>"; };
 		A2000000000000000000000D /* TeamAccountRefreshManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAccountRefreshManager.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* TeamAccountSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAccountSignInCoordinator.swift; sourceTree = "<group>"; };
+		A30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAccountSignInCoordinatorTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000008 /* TeamAccountRefreshManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAccountRefreshManagerTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000007 /* TeamAccountSessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAccountSessionStoreTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000006 /* TeamAuthHTTPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAuthHTTPTests.swift; sourceTree = "<group>"; };
@@ -230,6 +234,7 @@
 				A2000000000000000000000B /* TeamAuthHTTP.swift */,
 				A2000000000000000000000C /* TeamAccountSessionStore.swift */,
 				A2000000000000000000000D /* TeamAccountRefreshManager.swift */,
+				A2000000000000000000000E /* TeamAccountSignInCoordinator.swift */,
 			);
 			path = Sources/PinbookCore;
 			sourceTree = "<group>";
@@ -244,6 +249,7 @@
 				A30000000000000000000006 /* TeamAuthHTTPTests.swift */,
 				A30000000000000000000007 /* TeamAccountSessionStoreTests.swift */,
 				A30000000000000000000008 /* TeamAccountRefreshManagerTests.swift */,
+				A30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -474,6 +480,7 @@
 				B2000000000000000000000B /* TeamAuthHTTP.swift in Sources */,
 				B2000000000000000000000C /* TeamAccountSessionStore.swift in Sources */,
 				B2000000000000000000000D /* TeamAccountRefreshManager.swift in Sources */,
+				B2000000000000000000000E /* TeamAccountSignInCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -488,6 +495,7 @@
 				B30000000000000000000006 /* TeamAuthHTTPTests.swift in Sources */,
 				B30000000000000000000007 /* TeamAccountSessionStoreTests.swift in Sources */,
 				B30000000000000000000008 /* TeamAccountRefreshManagerTests.swift in Sources */,
+				B30000000000000000000009 /* TeamAccountSignInCoordinatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
