@@ -64,6 +64,25 @@ public struct PendingTeamOutgoingEvent: Equatable, Sendable, CustomStringConvert
     public var customMirror: Mirror { Mirror(self, children: [:]) }
 }
 
+/// Exact encrypted submission retained for retry. Re-encrypting a pending event
+/// would change its immutable JWE, so retries must reuse these exact bytes.
+public struct PendingTeamEncryptedSubmission: Equatable, Sendable, CustomStringConvertible,
+                                              CustomDebugStringConvertible, CustomReflectable {
+    public let accountId: String
+    public let teamId: String
+    public let deviceId: String
+    public let enrollmentId: String
+    public let eventId: String
+    let canonicalIntent: Data
+    let canonicalJWE: String
+    let bodySHA256: String
+    public let createdAt: Int64
+
+    public var description: String { "PendingTeamEncryptedSubmission(<redacted>)" }
+    public var debugDescription: String { description }
+    public var customMirror: Mirror { Mirror(self, children: [:]) }
+}
+
 /// Inactive local foundation. No production screen, transport, or crypto route instantiates it.
 /// Draft finalization atomically creates one immutable event and removes the editable draft.
 public final class TeamOutgoingStore: @unchecked Sendable {
@@ -136,7 +155,7 @@ public final class TeamOutgoingStore: @unchecked Sendable {
             try execute("PRAGMA temp_store=MEMORY")
             try transaction {
                 let version = try scalar("PRAGMA user_version")
-                guard version == 0 || version == 1 else { throw TeamOutgoingError.unsupportedSchema }
+                guard (0...2).contains(version) else { throw TeamOutgoingError.unsupportedSchema }
                 if version == 0 {
                     try execute("""
                     CREATE TABLE draft (
@@ -153,7 +172,25 @@ public final class TeamOutgoingStore: @unchecked Sendable {
                         note_id TEXT NOT NULL, kind TEXT NOT NULL, base_revision INTEGER,
                         body TEXT NOT NULL, created_at INTEGER NOT NULL,
                         PRIMARY KEY(account_id, team_id, event_id));
-                    PRAGMA user_version=1;
+                    CREATE TABLE encrypted_submission (
+                        account_id TEXT NOT NULL, team_id TEXT NOT NULL,
+                        device_id TEXT NOT NULL, enrollment_id TEXT NOT NULL,
+                        event_id TEXT NOT NULL, canonical_intent BLOB NOT NULL,
+                        canonical_jwe TEXT NOT NULL, body_sha256 TEXT NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        PRIMARY KEY(account_id, team_id, event_id));
+                    PRAGMA user_version=2;
+                    """)
+                } else if version == 1 {
+                    try execute("""
+                    CREATE TABLE encrypted_submission (
+                        account_id TEXT NOT NULL, team_id TEXT NOT NULL,
+                        device_id TEXT NOT NULL, enrollment_id TEXT NOT NULL,
+                        event_id TEXT NOT NULL, canonical_intent BLOB NOT NULL,
+                        canonical_jwe TEXT NOT NULL, body_sha256 TEXT NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        PRIMARY KEY(account_id, team_id, event_id));
+                    PRAGMA user_version=2;
                     """)
                 }
             }
@@ -297,6 +334,90 @@ public final class TeamOutgoingStore: @unchecked Sendable {
         }
     }
 
+    /// Atomically freezes the exact encrypted form for one already-durable event.
+    /// Exact repeats are idempotent; any changed encryption is rejected.
+    func saveEncryptedSubmission(event: PendingTeamOutgoingEvent,
+                                 intent: TeamDeliverySubmitIntent,
+                                 canonicalJWE: String,
+                                 createdAt: Int64) throws -> PendingTeamEncryptedSubmission {
+        guard event.accountId == sender.userId, event.teamId == teamId,
+              event.deviceId == sender.deviceId, event.enrollmentId == sender.enrollmentId,
+              event.eventId == intent.deliveryId, createdAt >= event.createdAt else {
+            throw TeamOutgoingError.invalidScope
+        }
+        let canonicalIntent = try TeamDeliverySubmitIntentCodec.encode(intent)
+        try intent.verifyCanonicalJWE(canonicalJWE)
+        return try lock.withLock {
+            try transaction {
+                guard try eventUnlocked(eventId: event.eventId) == event else {
+                    throw TeamOutgoingError.staleDraft
+                }
+                if let existing = try encryptedSubmissionUnlocked(eventId: event.eventId) {
+                    guard existing.canonicalIntent == canonicalIntent,
+                          existing.canonicalJWE == canonicalJWE else {
+                        throw TeamOutgoingError.immutableConflict
+                    }
+                    return
+                }
+                try execute("""
+                    INSERT INTO encrypted_submission VALUES (?,?,?,?,?,?,?,?,?)
+                    """, scopeValues + [.text(event.eventId), .blob(canonicalIntent),
+                                           .text(canonicalJWE),
+                                           .text(TeamDeliveryRules.textSHA256(event.body)),
+                                           .integer(createdAt)])
+            }
+            return try encryptedSubmissionUnlocked(eventId: event.eventId)
+                ?? { throw TeamOutgoingError.storage(SQLITE_CORRUPT) }()
+        }
+    }
+
+    func encryptedSubmission(eventId: String) throws -> PendingTeamEncryptedSubmission? {
+        try Self.validateID(eventId)
+        return try lock.withLock { try encryptedSubmissionUnlocked(eventId: eventId) }
+    }
+
+    /// Only exact authoritative ACCEPTED status may remove an outbox item.
+    func retireAcceptedSubmission(eventId: String, expectedJWESHA256: String) throws {
+        try Self.validateID(eventId)
+        guard expectedJWESHA256.utf8.count == 64,
+              expectedJWESHA256.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
+            throw TeamOutgoingError.invalidScope
+        }
+        try lock.withLock {
+            try transaction {
+                guard let submission = try encryptedSubmissionUnlocked(eventId: eventId),
+                      let event = try eventUnlocked(eventId: eventId) else {
+                    throw TeamOutgoingError.notFound
+                }
+                let intent = try TeamDeliverySubmitIntentCodec.decode(submission.canonicalIntent,
+                    expectedDeliveryId: eventId,
+                    expectedMembershipRevision: try TeamAuthWire.time(
+                        TeamStrictJSON.object(submission.canonicalIntent,
+                            maximumBytes: TeamDeliverySubmitIntentCodec.maximumIntentBytes),
+                        "membershipRevision"),
+                    expectedAudienceDigest: try TeamAuthWire.string(
+                        TeamStrictJSON.object(submission.canonicalIntent,
+                            maximumBytes: TeamDeliverySubmitIntentCodec.maximumIntentBytes),
+                        "audienceDigest"))
+                guard event.eventId == intent.deliveryId,
+                      submission.bodySHA256 == TeamDeliveryRules.textSHA256(event.body),
+                      intent.jweSha256 == expectedJWESHA256 else {
+                    throw TeamOutgoingError.immutableConflict
+                }
+                try execute("""
+                    DELETE FROM encrypted_submission WHERE account_id=? AND team_id=?
+                    AND device_id=? AND enrollment_id=? AND event_id=?
+                    """, scopeValues + [.text(eventId)])
+                guard sqlite3_changes(database) == 1 else { throw TeamOutgoingError.staleDraft }
+                try execute("""
+                    DELETE FROM pending_event WHERE account_id=? AND team_id=?
+                    AND device_id=? AND enrollment_id=? AND event_id=?
+                    """, scopeValues + [.text(eventId)])
+                guard sqlite3_changes(database) == 1 else { throw TeamOutgoingError.staleDraft }
+            }
+        }
+    }
+
     private static func validate(draftId: String, noteId: String, kind: TeamOutgoingEventKind,
                                  baseRevision: Int64?, body: String, time: Int64) throws {
         try validateID(draftId)
@@ -356,6 +477,30 @@ public final class TeamOutgoingStore: @unchecked Sendable {
         return try readEvent(statement)
     }
 
+    private func encryptedSubmissionUnlocked(eventId: String) throws -> PendingTeamEncryptedSubmission? {
+        let statement = try prepare("""
+            SELECT canonical_intent,canonical_jwe,body_sha256,created_at FROM encrypted_submission
+            WHERE account_id=? AND team_id=? AND device_id=? AND enrollment_id=? AND event_id=?
+            """, scopeValues + [.text(eventId)])
+        defer { sqlite3_finalize(statement) }
+        guard try step(statement) == SQLITE_ROW else { return nil }
+        let intent = try readData(statement, column: 0,
+            maximumBytes: TeamDeliverySubmitIntentCodec.maximumIntentBytes)
+        let jwe = try readText(statement, column: 1,
+            maximumBytes: TeamDeliveryJWE.maximumSerializedBytes)
+        let bodySHA256 = try readText(statement, column: 2, maximumBytes: 64)
+        let createdAt = sqlite3_column_int64(statement, 3)
+        guard createdAt >= 0, bodySHA256.utf8.count == 64,
+              bodySHA256.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
+            throw TeamOutgoingError.storage(SQLITE_CORRUPT)
+        }
+        return .init(accountId: sender.userId, teamId: teamId,
+            deviceId: sender.deviceId, enrollmentId: sender.enrollmentId,
+            eventId: eventId, canonicalIntent: intent, canonicalJWE: jwe,
+            bodySHA256: bodySHA256,
+            createdAt: createdAt)
+    }
+
     private func readDraft(_ statement: OpaquePointer) throws -> TeamOutgoingDraft {
         let kind = try readKind(statement, column: 2)
         let draftId = try readText(statement, column: 0)
@@ -411,6 +556,17 @@ public final class TeamOutgoingStore: @unchecked Sendable {
         return value
     }
 
+    private func readData(_ statement: OpaquePointer, column: Int32,
+                          maximumBytes: Int) throws -> Data {
+        let count = Int(sqlite3_column_bytes(statement, column))
+        guard sqlite3_column_type(statement, column) == SQLITE_BLOB,
+              (1...maximumBytes).contains(count),
+              let pointer = sqlite3_column_blob(statement, column) else {
+            throw TeamOutgoingError.storage(SQLITE_CORRUPT)
+        }
+        return Data(bytes: pointer, count: count)
+    }
+
     private func readOptionalInteger(_ statement: OpaquePointer, column: Int32) -> Int64? {
         sqlite3_column_type(statement, column) == SQLITE_NULL ? nil : sqlite3_column_int64(statement, column)
     }
@@ -427,6 +583,7 @@ public final class TeamOutgoingStore: @unchecked Sendable {
 
     private enum Value {
         case text(String)
+        case blob(Data)
         case integer(Int64)
         case null
     }
@@ -445,6 +602,9 @@ public final class TeamOutgoingStore: @unchecked Sendable {
                     sqlite3_bind_text(statement, index, $0, Int32(text.utf8.count), transient)
                 }
                 case .integer(let integer): result = sqlite3_bind_int64(statement, index, integer)
+                case .blob(let data): result = data.withUnsafeBytes {
+                    sqlite3_bind_blob(statement, index, $0.baseAddress, Int32(data.count), transient)
+                }
                 case .null: result = sqlite3_bind_null(statement, index)
                 }
                 guard result == SQLITE_OK else { throw TeamOutgoingError.storage(result) }

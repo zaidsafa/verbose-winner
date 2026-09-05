@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import CoreImage.CIFilterBuiltins
 
 struct PinbookCurrencyOption: Identifiable, Equatable {
     let code: String
@@ -90,6 +91,13 @@ struct OptionsView: View {
 
             Section("Data") {
                 NavigationLink {
+                    TeamWorkspaceView(invitation: nil)
+                } label: {
+                    OptionsRow(title: "Team workspace", subtitle: "Encrypted notes and invitations", symbol: "person.2.badge.key")
+                }
+                .accessibilityIdentifier("options-team-workspace")
+
+                NavigationLink {
                     BackupRecoveryView(personalDriveRuntime: personalDriveRuntime)
                 } label: {
                     OptionsRow(title: "Backup & Recovery", subtitle: "Local Files and restore history", symbol: "externaldrive.badge.timemachine")
@@ -142,6 +150,129 @@ struct OptionsView: View {
     private var languageSubtitle: Text {
         let language = PinbookLanguage(rawValue: languagePreference) ?? .system
         return language == .system ? Text("System Default") : Text(verbatim: language.nativeName)
+    }
+}
+
+private struct TeamWorkspaceView: View {
+    @Environment(\.pinbookSkin) private var skin
+    let invitation: TeamInvitationShareItem?
+    @State private var note = ""
+    @State private var acceptsTerms = false
+
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Image(systemName: "person.2.badge.key.fill")
+                        .font(.system(size: 34, weight: .semibold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, .indigo)
+                        .padding(12)
+                        .background(.indigo.gradient, in: .rect(cornerRadius: 16))
+                    Text("Private team notes")
+                        .font(.title3.weight(.semibold))
+                    Text("Notes are encrypted for the selected team devices. Pinbook archives a received note before acknowledging it.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 8)
+            }
+
+            Section("Connection") {
+                LabeledContent("Status", value: "Not connected")
+                Text("Open a valid team invitation to sign in, register this device, and review membership before sharing anything.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Invite members") {
+                if let invitation {
+                    TeamInvitationQRCode(payload: invitation.qrPayload)
+                    ShareLink(item: invitation.url) {
+                        Label("Share invitation", systemImage: "square.and.arrow.up")
+                    }
+                } else {
+                    Label("Invitation unavailable", systemImage: "qrcode")
+                        .foregroundStyle(.secondary)
+                    Text("Only a current team invitation can create a QR code or share link.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("Send a note") {
+                TextField("Write a short team note", text: $note, axis: .vertical)
+                    .lineLimit(3...7)
+                    .disabled(true)
+                Toggle("I accept the Team Terms", isOn: $acceptsTerms)
+                    .disabled(true)
+                Button("Encrypt and send", systemImage: "lock.paperclip") {}
+                    .disabled(true)
+                Text("Sending becomes available only after a verified team connection and one-time Terms acceptance. Failed deliveries stay in the protected outbox for manual retry.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Inbox") {
+                Button("Refresh now", systemImage: "arrow.clockwise") {}
+                    .disabled(true)
+                Text("Foreground refresh, import, and acknowledgements are explicit. Pinbook does not rely on push notifications for delivery safety.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Safety") {
+                Button("Report note", systemImage: "exclamationmark.bubble") {}
+                    .disabled(true)
+                Button("Report user", systemImage: "person.crop.circle.badge.exclamationmark") {}
+                    .disabled(true)
+                Button("Block user", systemImage: "person.crop.circle.badge.xmark") {}
+                    .disabled(true)
+            }
+
+            Section("Account") {
+                Button("Sign in with Apple", systemImage: "apple.logo") {}
+                    .disabled(true)
+                Button("Delete account", systemImage: "trash", role: .destructive) {}
+                    .disabled(true)
+                Text("Account actions remain unavailable until their authenticated server contracts and deletion cleanup are approved.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(skin.backdrop.ignoresSafeArea())
+        .navigationTitle("Team workspace")
+        .navigationBarTitleDisplayMode(.inline)
+        .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
+    }
+}
+
+private struct TeamInvitationQRCode: View {
+    let payload: Data
+
+    var body: some View {
+        if let image = Self.image(payload) {
+            Image(decorative: image, scale: 1)
+                .interpolation(.none)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 220)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(.white, in: .rect(cornerRadius: 20))
+                .accessibilityLabel("Team invitation QR code")
+        }
+    }
+
+    private static func image(_ payload: Data) -> CGImage? {
+        guard !payload.isEmpty, payload.count <= TeamInvitationLink.maximumURLBytes else { return nil }
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = payload
+        filter.correctionLevel = "M"
+        guard let output = filter.outputImage else { return nil }
+        return CIContext(options: [.useSoftwareRenderer: true])
+            .createCGImage(output, from: output.extent)
     }
 }
 

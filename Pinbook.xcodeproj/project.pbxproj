@@ -24,6 +24,8 @@
 		C70000000000000000000014 /* TeamAgreementEnrollment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000013 /* TeamAgreementEnrollment.swift */; };
 		C70000000000000000000016 /* TeamAgreementEnrollmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000015 /* TeamAgreementEnrollmentTests.swift */; };
 		C70000000000000000000018 /* TeamOutgoingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000017 /* TeamOutgoingStore.swift */; };
+		D80000000000000000000002 /* TeamWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80000000000000000000001 /* TeamWorkspace.swift */; };
+		D80000000000000000000004 /* TeamWorkspaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80000000000000000000003 /* TeamWorkspaceTests.swift */; };
 		C7000000000000000000001A /* TeamOutgoingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000000000000000000019 /* TeamOutgoingStoreTests.swift */; };
 		C7000000000000000000001C /* TeamAgreementPossession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7000000000000000000001B /* TeamAgreementPossession.swift */; };
 		C7000000000000000000001E /* TeamAgreementPossessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7000000000000000000001D /* TeamAgreementPossessionTests.swift */; };
@@ -191,6 +193,8 @@
 		C70000000000000000000013 /* TeamAgreementEnrollment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAgreementEnrollment.swift; sourceTree = "<group>"; };
 		C70000000000000000000015 /* TeamAgreementEnrollmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAgreementEnrollmentTests.swift; sourceTree = "<group>"; };
 		C70000000000000000000017 /* TeamOutgoingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamOutgoingStore.swift; sourceTree = "<group>"; };
+		D80000000000000000000001 /* TeamWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamWorkspace.swift; sourceTree = "<group>"; };
+		D80000000000000000000003 /* TeamWorkspaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamWorkspaceTests.swift; sourceTree = "<group>"; };
 		C70000000000000000000019 /* TeamOutgoingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamOutgoingStoreTests.swift; sourceTree = "<group>"; };
 		C7000000000000000000001B /* TeamAgreementPossession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamAgreementPossession.swift; sourceTree = "<group>"; };
 		C7000000000000000000001D /* TeamAgreementPossessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Tests/PinbookCoreTests/TeamAgreementPossessionTests.swift; sourceTree = "<group>"; };
@@ -423,6 +427,7 @@
 				C7000000000000000000000F /* TeamAgreementKeyCustody.swift */,
 				C70000000000000000000013 /* TeamAgreementEnrollment.swift */,
 				C70000000000000000000017 /* TeamOutgoingStore.swift */,
+				D80000000000000000000001 /* TeamWorkspace.swift */,
 				C7000000000000000000001B /* TeamAgreementPossession.swift */,
 				C80000000000000000000001 /* TeamDeliveryJWE.swift */,
 				C80000000000000000000005 /* TeamDeliveryPayload.swift */,
@@ -485,6 +490,7 @@
 				CF0000000000000000000003 /* PersonalGoogleDriveConnectionTests.swift */,
 				D60000000000000000000003 /* PersonalGoogleDriveAccessTests.swift */,
 				D70000000000000000000003 /* PersonalCloudSyncTests.swift */,
+				D80000000000000000000003 /* TeamWorkspaceTests.swift */,
 				A30000000000000000000003 /* Fixtures */,
 			);
 			path = PinbookTests;
@@ -748,6 +754,7 @@
 				C70000000000000000000010 /* TeamAgreementKeyCustody.swift in Sources */,
 				C70000000000000000000014 /* TeamAgreementEnrollment.swift in Sources */,
 				C70000000000000000000018 /* TeamOutgoingStore.swift in Sources */,
+				D80000000000000000000002 /* TeamWorkspace.swift in Sources */,
 				C7000000000000000000001C /* TeamAgreementPossession.swift in Sources */,
 				C80000000000000000000002 /* TeamDeliveryJWE.swift in Sources */,
 				C80000000000000000000006 /* TeamDeliveryPayload.swift in Sources */,
@@ -811,6 +818,7 @@
 				CF0000000000000000000004 /* PersonalGoogleDriveConnectionTests.swift in Sources */,
 				D60000000000000000000004 /* PersonalGoogleDriveAccessTests.swift in Sources */,
 				D70000000000000000000004 /* PersonalCloudSyncTests.swift in Sources */,
+				D80000000000000000000004 /* TeamWorkspaceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

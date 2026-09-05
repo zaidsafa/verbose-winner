@@ -49,6 +49,23 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- A default-off local Team workspace now appears under Options with connection,
+  exact invitation QR/ShareLink, manual encrypted-note, foreground inbox,
+  safety and account surfaces. Terms acceptance is versioned and account/team
+  scoped before any upload work. Outbox schema v2 freezes the exact canonical
+  JWE/intent/body binding so failures retry identical bytes; only authenticated
+  terminal success retires it. One explicit foreground inbox coordinator imports
+  to the protected archive before ACK and preserves failed ACK receipts. Report
+  note/user, block user and account deletion are injected interfaces only; no
+  unfrozen endpoint was invented. PrivacyInfo now declares linked non-tracking
+  user/device identifiers, while Apple sign-in remains safe disabled scaffolding
+  with no entitlement change. Focused workspace **6/6**, complete Swift
+  **392/392**, plist/project lint, `git diff --check` and unsigned Release iOS
+  Simulator build pass. Runtime controls remain disabled pending journal-v2 and
+  moderation/deletion contracts; new copy still needs full localization and
+  visual/accessibility acceptance. No phone/provider/server/TestFlight/release
+  action occurred. See `TEAM_WORKSPACE_IOS.md`.
+
 - Server commit `b88454bc37f7b30d2fb0df161e268fd6a901f8e6` now has the
   matching inactive iOS authenticated delivery relay transport. The client uses
   the shared operation-bound challenge endpoint and exact pending/fetch/ACK/status

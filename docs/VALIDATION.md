@@ -2167,3 +2167,20 @@ Simulator builds and static inspection alone do not prove physical-device behavi
   bundle identity remained `com.zaidsafa.pinbook.ios`.
 - Boundary: default-off until journal-v2. No runtime UI/refresh/retry/push,
   server/provider/device/TestFlight/archive upload or production action occurred.
+
+# 2026-09-05 — default-off local team workspace checkpoint
+
+- Added the Options Team workspace shell, canonical invitation QR/ShareLink,
+  versioned pre-upload Terms gate, exact encrypted outbox retries, one explicit
+  archive-before-ACK foreground refresh, and interface-only safety/deletion
+  controls.
+- Focused `TeamWorkspaceTests`: **6/6 pass**.
+- Complete isolated Swift package: **392 tests / 38 suites pass**, zero failures.
+- `plutil` validates `PrivacyInfo.xcprivacy` and `project.pbxproj`; the manifest
+  now declares linked non-tracking user/device identifiers for functionality.
+- Unsigned Release iOS Simulator build using
+  `/private/tmp/pinbook-workspace-derived`: **BUILD SUCCEEDED** for arm64/x86_64.
+- `git diff --check`: pass.
+- Boundary: runtime remains disabled. No unfrozen server endpoint, production
+  origin, phone, provider, TestFlight, archive upload or release action occurred.
+  Complete localization and visual/accessibility acceptance remain open.
