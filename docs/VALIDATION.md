@@ -91,9 +91,11 @@
   automatic sync and disconnect retention.
 - Independent remote-object download/revocation acceptance and the
   Android-to-iOS-to-Android synthetic-data round trip are still open gates. The
-  connected Samsung is reserved for that later compatible-build run and was not
-  used. No source push, archive, TestFlight upload or App Store Connect mutation
-  occurred.
+  connected Samsung now has the separate signer-matched `com.zaidsafa.pinbook.qa`
+  candidate installed in place as `0.5.0-qa` (9); it passed 479/479 tests plus
+  lint/build before installation. The normal `com.zaidsafa.pinbook` remained
+  untouched. Drive authorization still waits for the dedicated Android QA OAuth
+  client. No archive or TestFlight upload occurred.
 
 ## 2026-09-05 personal Drive OAuth client allocation and installed configuration
 

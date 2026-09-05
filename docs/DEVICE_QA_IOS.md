@@ -18,8 +18,12 @@ TestFlight app and its records were not used or changed.
 
 The connected iPhone was subsequently rechecked read-only: the separate app is
 still installed as bundle `com.zaidsafa.pinbook.ios.qa`, version `0.1.0`, build
-`3`. The connected Samsung remains untouched until the Android task supplies and
-clears a compatible isolated QA build.
+`3`. Android supplied a Drive-enabled isolated QA build at commit
+`8a3228b0edc066a4ec6e4f7760da3befb3452b21`. Its candidate and the already
+installed `com.zaidsafa.pinbook.qa` app had the same SHA-256 signing certificate,
+so it was installed in place as `0.5.0-qa` (9) without clearing data. The normal
+`com.zaidsafa.pinbook` app remained version `0.5.0` (9) with its prior update
+time. The Android QA OAuth client and live two-device round trip remain open.
 
 ## Latest active personal Drive sync checkpoint
 
