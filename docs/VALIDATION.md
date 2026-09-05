@@ -27,6 +27,10 @@
 - Scope-confirmation XCUITest: **1/1 PASS** on Simulator, exact evidence:
   `/private/tmp/Pinbook-Drive-Sync-UI-Sim-Retry-20260905.xcresult`. The initial
   attempt asserted the wrong shorter status label and is not acceptance evidence.
+- Complete Simulator UI regression: **30/30 PASS**, zero failures/skips, covering
+  onboarding, localization/RTL, themes, currencies, widgets, native Files and the
+  new Drive scope flow:
+  `/private/tmp/Pinbook-Full-UI-Sync-20260905.xcresult`.
 - Complete signed Simulator app-host regression: **404 PASS + 4 expected
   physical-only SKIPS**, 408 total, zero failures:
   `/private/tmp/Pinbook-Full-AppHost-Sync-20260905.xcresult`.

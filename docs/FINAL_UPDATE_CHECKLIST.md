@@ -44,7 +44,7 @@ checkboxes deliberately remain open until checked against the exact next candida
       bounded verified backup-v8 merge, pre-apply recovery and immutable idempotent
       snapshots. iCloud remains a possible later alternative; it must not become a
       simultaneous second automatic authority. Simulator and physical iPhone suites
-      pass 47/47, the scope UI test passes, and the full signed app-host regression
+      pass 47/47, complete UI passes 30/30, and the full signed app-host regression
       passes 404 + 4 expected physical-only skips. This checkbox stays open until
       live consent/token/revocation/remote-object acceptance, published privacy
       metadata, and Android -> iOS -> Android synthetic-data interoperability pass.
