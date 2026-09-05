@@ -1066,8 +1066,10 @@ Updated: 2026-09-05 (Asia/Shanghai)
   backup files.
 - Exact acceptance: focused Swift **5/5**, Simulator Drive **47/47**, physical
   iPhone QA Drive **47/47**, scope UI **1/1**, complete Simulator UI **30/30**,
-  full signed app-host **404 passed + 4 expected physical-only skips**, and the
-  unsigned production Release build passed.
+  Simplified Chinese Drive UI **1/1**, full signed app-host **404 passed + 4
+  expected physical-only skips**, and the unsigned production Release build
+  passed. A separate physical UI attempt ran zero tests after Apple's automation
+  mode timed out and is not acceptance evidence.
   Exact result paths are at the top of `VALIDATION.md`. The complete SwiftPM runner
   hung after compilation and was interrupted; it is not acceptance evidence.
 - App Privacy and the privacy manifest now disclose Other Financial Info, Other

@@ -738,6 +738,35 @@ final class PinbookUITests: XCTestCase {
     }
 
     @MainActor
+    func testSimplifiedChinesePrivateDriveScopeIsLocalized() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-PinbookFixture", "populated",
+            "-PinbookTab", "options",
+            "-PinbookLanguage", "zh-Hans",
+        ]
+        app.launch()
+
+        let backupLink = app.buttons.matching(NSPredicate(
+            format: "label CONTAINS %@", "备份与恢复"
+        )).firstMatch
+        XCTAssertTrue(backupLink.waitForExistence(timeout: 5))
+        backupLink.tap()
+        XCTAssertTrue(app.navigationBars["备份与恢复"].waitForExistence(timeout: 5))
+
+        let connect = app.buttons["连接 Google 云端硬盘"]
+        scrollToHittable(connect, in: app)
+        XCTAssertTrue(connect.isHittable)
+        XCTAssertTrue(app.staticTexts["未连接"].exists)
+        connect.tap()
+        XCTAssertTrue(app.staticTexts[
+            "Pinbook 只会请求访问其私密应用数据文件夹，无法读取您在 Google 云端硬盘中的其他文件。"
+        ].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["连接"].exists)
+        app.terminate()
+    }
+
+    @MainActor
     func testArabicBackupRecoveryCenterUsesRTLLocalizedCopy() throws {
         let app = XCUIApplication()
         app.launchArguments = [
