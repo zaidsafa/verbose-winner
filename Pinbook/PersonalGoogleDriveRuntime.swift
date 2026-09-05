@@ -20,8 +20,9 @@ struct PersonalGoogleDriveSyncResult: Equatable {
 }
 
 /// Production owner for the personal Drive callback and connection lifecycle.
-/// Construction is local-only; Google is contacted only by an explicit user
-/// action. All credential owners share the same device-only Keychain service.
+/// External requests require a previously consented connection and either a
+/// manual sync or the user's persisted automatic-sync choice. Ephemeral fixtures
+/// disable the complete external boundary even if a QA credential exists.
 @MainActor @Observable
 final class PersonalGoogleDriveRuntime {
     private(set) var state: PersonalGoogleDriveRuntimeState = .unavailable
@@ -34,8 +35,19 @@ final class PersonalGoogleDriveRuntime {
     private let accessOwner: PersonalGoogleDriveAccessOwner?
     private let store = PersonalGoogleDriveCredentialStore()
     private let uploadOwner = PersonalCloudUploadOwner()
+    private let allowsExternalRequests: Bool
 
-    init() {
+    init(allowsExternalRequests: Bool = true) {
+        self.allowsExternalRequests = allowsExternalRequests
+        guard allowsExternalRequests else {
+            configuration = nil
+            authorizer = nil
+            connection = nil
+            disconnectOwner = nil
+            accessOwner = nil
+            state = .disconnected
+            return
+        }
         do {
             let configuration = try PersonalGoogleDriveConfiguration.installed()
             let authorizer = PersonalGoogleDriveAuthorizer(
@@ -139,6 +151,10 @@ final class PersonalGoogleDriveRuntime {
     }
 
     func refreshState() {
+        guard allowsExternalRequests else {
+            state = .disconnected
+            return
+        }
         guard let configuration else {
             state = .unavailable
             return

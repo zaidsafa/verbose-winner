@@ -34,6 +34,18 @@
 - Separate Simplified Chinese Drive scope UI: **1/1 PASS**, including localized
   navigation, disconnected state, Connect action and private-folder explanation:
   `/private/tmp/Pinbook-Drive-Sync-Chinese-UI-Sim-20260905.xcresult`.
+- A later physical fixture retry revealed that an ephemeral UI store could still
+  observe the QA Keychain connection and potentially start the persisted automatic
+  sync path. The run was stopped immediately and is not acceptance evidence:
+  `/private/tmp/Pinbook-QA-Physical-Affected-UI-Retry2-20260905.xcresult`.
+  Ephemeral fixtures now disable the complete external Drive boundary, including
+  foreground refresh. The exact unit guard passed **1/1** and the English plus
+  Simplified Chinese scope flows passed **2/2** on both Simulator and the separate
+  physical QA app:
+  `/private/tmp/Pinbook-Fixture-Isolation-Unit-Final-20260905.xcresult`,
+  `/private/tmp/Pinbook-Drive-Fixture-UI-Simulator-Retry-20260905.xcresult`, and
+  `/private/tmp/Pinbook-QA-Physical-Drive-Fixture-Isolation-20260905.xcresult`.
+  No Google request or sync action was performed; QA was relaunched normally.
 - A four-case affected physical UI attempt compiled and signed but ran **0 tests**
   because Apple timed out while enabling device automation mode. It is a runner
   failure, not product evidence, and must not be counted:
@@ -41,6 +53,10 @@
 - Complete signed Simulator app-host regression: **404 PASS + 4 expected
   physical-only SKIPS**, 408 total, zero failures:
   `/private/tmp/Pinbook-Full-AppHost-Sync-20260905.xcresult`.
+- A post-change 409-test app-host run executed the new isolation case successfully,
+  but six unrelated system-Keychain cases received Apple Security error `-34018`;
+  therefore that complete run is diagnostic, not a replacement regression result:
+  `/private/tmp/Pinbook-Fixture-Isolation-Full-20260905.xcresult`.
 - Exact unsigned production Release **BUILD SUCCEEDED** at
   `/private/tmp/pinbook-personal-drive-active-release-derived`; bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`, production OAuth client,

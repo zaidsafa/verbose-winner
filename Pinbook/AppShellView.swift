@@ -180,7 +180,9 @@ struct AppShellView: View {
     init(launchConfiguration: PinbookLaunchConfiguration = .production) {
         self.launchConfiguration = launchConfiguration
         _selection = State(initialValue: launchConfiguration.initialTab)
-        _personalDriveRuntime = State(initialValue: PersonalGoogleDriveRuntime())
+        _personalDriveRuntime = State(initialValue: PersonalGoogleDriveRuntime(
+            allowsExternalRequests: !launchConfiguration.usesEphemeralStore
+        ))
     }
 
     private var skin: PinbookSkin {

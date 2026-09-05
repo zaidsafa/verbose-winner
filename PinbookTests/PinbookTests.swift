@@ -1183,6 +1183,20 @@ private func inMemoryContainer() throws -> ModelContainer {
     return try ModelContainer(for: schema, configurations: [configuration])
 }
 
+@MainActor
+@Test func ephemeralFixturePersonalDriveRuntimeCannotUseInstalledCredentials() async {
+    let runtime = PersonalGoogleDriveRuntime(allowsExternalRequests: false)
+    #expect(runtime.state == .disconnected)
+    runtime.refreshState()
+    #expect(runtime.state == .disconnected)
+    await #expect(throws: PersonalGoogleDriveOAuthError.self) {
+        try await runtime.connect()
+    }
+    await #expect(throws: PersonalGoogleDriveAccessError.self) {
+        try await runtime.accessToken()
+    }
+}
+
 private func contrastRatio(_ first: UIColor, _ second: UIColor) -> Double {
     let brighter = max(relativeLuminance(first), relativeLuminance(second))
     let darker = min(relativeLuminance(first), relativeLuminance(second))

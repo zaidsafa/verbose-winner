@@ -29,6 +29,23 @@ folder, restored five newer records, and later uploaded one clearly labeled
 synthetic CNY 1.23 round-trip record. The final iPhone read-back and explicit
 disconnect/revocation remain open.
 
+## Latest Drive fixture-isolation checkpoint
+
+A physical UI retry exposed that ephemeral UI fixtures could still observe the
+installed QA Keychain connection. The run was stopped immediately and is not
+acceptance evidence:
+`/private/tmp/Pinbook-QA-Physical-Affected-UI-Retry2-20260905.xcresult`.
+
+Ephemeral app fixtures now disable the complete personal-Drive external boundary,
+including foreground state refresh. The exact isolation unit test passed on the
+Simulator, and the English plus Simplified Chinese Drive scope flows passed
+**2/2** on both Simulator and the separate physical Pinbook QA app:
+`/private/tmp/Pinbook-Fixture-Isolation-Unit-Final-20260905.xcresult`,
+`/private/tmp/Pinbook-Drive-Fixture-UI-Simulator-Retry-20260905.xcresult`, and
+`/private/tmp/Pinbook-QA-Physical-Drive-Fixture-Isolation-20260905.xcresult`.
+These tests did not authorize, sync, revoke, or inspect Google Drive. QA was
+returned to a successful normal launch afterward.
+
 ## Latest active personal Drive sync checkpoint
 
 The separate Pinbook QA app ran the complete personal Drive transport, OAuth,

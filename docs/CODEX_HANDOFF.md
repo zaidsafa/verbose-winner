@@ -1072,6 +1072,16 @@ Updated: 2026-09-05 (Asia/Shanghai)
   mode timed out and is not acceptance evidence.
   Exact result paths are at the top of `VALIDATION.md`. The complete SwiftPM runner
   hung after compilation and was interrupted; it is not acceptance evidence.
+- Ephemeral UI fixtures now disable the complete Drive external boundary even
+  when the separate QA Keychain contains a live connection, including after a
+  foreground refresh. The exact isolation unit test passed **1/1**; English and
+  Simplified Chinese Drive fixture UI passed **2/2** on Simulator and **2/2** on
+  the physical QA iPhone. Exact results:
+  `/private/tmp/Pinbook-Fixture-Isolation-Unit-Final-20260905.xcresult`,
+  `/private/tmp/Pinbook-Drive-Fixture-UI-Simulator-Retry-20260905.xcresult`, and
+  `/private/tmp/Pinbook-QA-Physical-Drive-Fixture-Isolation-20260905.xcresult`.
+  The earlier affected physical run was stopped and is not evidence. No live
+  Drive action occurred, and QA was relaunched normally.
 - The isolated QA OAuth client also reached Google's fully loaded live sign-in
   page, which displayed **Sign in with Google** and **to continue to Pinbook**.
   Exact result: `/private/tmp/Pinbook-Live-Drive-Loaded-Inspect-Retry-20260905.xcresult`.
@@ -1134,10 +1144,11 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ### Superseding next actions
 
-1. Complete live Google consent and private-folder create/download/revocation on
-   the isolated iOS QA app without personal records.
-2. Wait for Android to confirm the same immutable backup-v8 contract, then run the
-   synthetic Android -> iOS -> Android conflict/receipt/note round trip.
+1. With explicit action-time authorization, run one live iPhone QA sync to read
+   back Android's synthetic `QA_ANDROID_ROUNDTRIP` record; the operation may also
+   append a QA-only snapshot to the private app data folder.
+2. With separate explicit authorization, complete disconnect/revocation acceptance
+   last because it removes the QA credential.
 3. Complete the remaining final UX, accessibility, widget and device matrix.
 4. Publish the privacy policy, update App Store Connect privacy answers, increment
    the build number, archive and upload exactly one final candidate, then verify
