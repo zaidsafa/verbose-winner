@@ -49,6 +49,24 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- The Team workspace now has complete human localization across English plus all
+  15 non-source catalogs, including app-level RTL for Arabic/Urdu and separate
+  Simplified/Traditional Chinese. The Release app compiles all 16 `.lproj`
+  catalogs. Its production runtime default is explicitly disabled; the new
+  injection-only composition maps Apple and Google into the same strict account
+  challenge/session path and binds every remote workspace call to the exact live
+  session generation. It embeds no origin, credential or guessed endpoint.
+  Account deletion is all-or-pending: a durable stable operation precedes the
+  idempotent authenticated remote call, rejection preserves all local material,
+  and accepted deletion cannot finish until injected idempotent cleanup covers
+  team cache/archive, agreement key, device signing identity, Terms and session.
+  Crashes resume from the last durable cleanup step. No incomplete built-in
+  custody deletion is presented as complete. Focused workspace **9/9**, complete
+  Swift **395/395**, catalog JSON validation, plist/project lint, `git diff --check`
+  and unsigned Release Simulator build pass. No device/provider/server/TestFlight/
+  release action occurred. Visual/accessibility and injected end-to-end acceptance
+  remain required. See `TEAM_WORKSPACE_IOS.md`.
+
 - A default-off local Team workspace now appears under Options with connection,
   exact invitation QR/ShareLink, manual encrypted-note, foreground inbox,
   safety and account surfaces. Terms acceptance is versioned and account/team
@@ -59,11 +77,11 @@ Updated: 2026-09-05 (Asia/Shanghai)
   note/user, block user and account deletion are injected interfaces only; no
   unfrozen endpoint was invented. PrivacyInfo now declares linked non-tracking
   user/device identifiers, while Apple sign-in remains safe disabled scaffolding
-  with no entitlement change. Focused workspace **6/6**, complete Swift
-  **392/392**, plist/project lint, `git diff --check` and unsigned Release iOS
+  with no entitlement change. Focused workspace **9/9**, complete Swift
+  **395/395**, plist/project lint, `git diff --check` and unsigned Release iOS
   Simulator build pass. Runtime controls remain disabled pending journal-v2 and
-  moderation/deletion contracts; new copy still needs full localization and
-  visual/accessibility acceptance. No phone/provider/server/TestFlight/release
+  moderation/deletion contracts; the copy is now fully localized while
+  visual/accessibility acceptance remains open. No phone/provider/server/TestFlight/release
   action occurred. See `TEAM_WORKSPACE_IOS.md`.
 
 - Server commit `b88454bc37f7b30d2fb0df161e268fd6a901f8e6` now has the

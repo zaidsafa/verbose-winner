@@ -2183,4 +2183,33 @@ Simulator builds and static inspection alone do not prove physical-device behavi
 - `git diff --check`: pass.
 - Boundary: runtime remains disabled. No unfrozen server endpoint, production
   origin, phone, provider, TestFlight, archive upload or release action occurred.
-  Complete localization and visual/accessibility acceptance remain open.
+  At this checkpoint localization and visual/accessibility acceptance remained
+  open; localization is resolved by the following checkpoint.
+
+# 2026-09-05 — Team localization and injected composition checkpoint
+
+- Added complete Team workspace, Terms, report/block, Apple sign-in and account-
+  deletion translations for all 15 non-source languages. English remains the
+  source catalog; Arabic and Urdu use the app's RTL environment, and both Chinese
+  variants have independent translations.
+- Release compilation produced all 16 expected `.lproj` catalogs. Direct compiled
+  checks returned the expected Team-workspace values for Arabic, Urdu,
+  Simplified Chinese and Traditional Chinese.
+- Added an explicitly disabled normal-runtime configuration, provider-neutral
+  Apple/Google sign-in composition, exact-session-bound injected workspace remote
+  wrapper, and connected coordinator factory. No origin, credential, transport
+  fallback or new endpoint is embedded.
+- Account deletion now persists one stable operation before its idempotent
+  authenticated server call. Rejection preserves all local material. Accepted
+  deletion durably advances through injected idempotent deletion of team cache/
+  archive, agreement identity, device signing identity, Terms and session; a
+  restart resumes without replaying an already accepted remote call, and no
+  incomplete cleanup can return success.
+- Focused `TeamWorkspaceTests`: **9/9 pass**. Complete Swift package:
+  **395 tests / 38 suites pass**, zero failures.
+- `jq` validates `Localizable.xcstrings`; `plutil` validates the privacy manifest
+  and Xcode project; `git diff --check` passes. Unsigned Release iOS Simulator
+  build using `/private/tmp/pinbook-composition-derived`: **BUILD SUCCEEDED**.
+- Boundary: no physical device, provider, server, TestFlight or release action.
+  Runtime remains default-off pending approved injected services and end-to-end
+  visual/accessibility behavior acceptance.

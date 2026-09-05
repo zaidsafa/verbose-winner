@@ -91,7 +91,7 @@ struct OptionsView: View {
 
             Section("Data") {
                 NavigationLink {
-                    TeamWorkspaceView(invitation: nil)
+                    TeamWorkspaceView(invitation: nil, runtime: .productionDefault)
                 } label: {
                     OptionsRow(title: "Team workspace", subtitle: "Encrypted notes and invitations", symbol: "person.2.badge.key")
                 }
@@ -156,6 +156,7 @@ struct OptionsView: View {
 private struct TeamWorkspaceView: View {
     @Environment(\.pinbookSkin) private var skin
     let invitation: TeamInvitationShareItem?
+    let runtime: TeamWorkspaceRuntimeConfiguration
     @State private var note = ""
     @State private var acceptsTerms = false
 
@@ -244,6 +245,8 @@ private struct TeamWorkspaceView: View {
         .background(skin.backdrop.ignoresSafeArea())
         .navigationTitle("Team workspace")
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier(runtime.isEnabled
+            ? "team-workspace-runtime-injected" : "team-workspace-runtime-disabled")
         .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
     }
 }
