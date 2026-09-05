@@ -49,6 +49,24 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Android/server commits
+  `6ac3ba802ab637ceb9eb9be7ecf8f424512f47e3` and
+  `52f35617a691f27fafbde9ba6ab1a26e319acda3` now have a matching inactive iOS
+  authenticated delivery-reservation boundary. It signs the exact canonical
+  submit intent, submits that intent with its exact multi-recipient JWE through
+  dedicated challenge/reserve routes, and accepts only an exact short-lived
+  reservation frozen to the same delivery, audience and hashes. Ordinary request
+  caps remain 20,000 bytes; reservation request/response caps are 140,000 bytes.
+  Focused reservation/crypto tests pass **8/8** and the complete authenticated
+  transport suite passes **23/23**. The complete app-host run recorded **442
+  passes + 4 expected physical-only skips** and one existing native Files picker
+  Simulator dismissal timing failure; that exact case passed **1/1** on isolated
+  retry. The unchanged-identity unsigned production Release passes. Server `429
+  capacity` is retry-later with no automatic retry and no replacement delivery
+  ID. This remains local and inactive: no origin/provider/runtime/UI,
+  server/Drive/phone/source-push or TestFlight effect. See
+  `TEAM_DELIVERY_RESERVATION_IOS.md` and `VALIDATION.md`.
+
 - Android/server commit
   `f11f6383665bb1489fb402272302137ef4c683f6` now has an exact inactive iOS
   authenticated delivery-fetch boundary. The canonical request is signed by the

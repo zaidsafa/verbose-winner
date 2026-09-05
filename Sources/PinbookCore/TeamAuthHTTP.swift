@@ -50,6 +50,8 @@ public struct TeamAuthAccountSession: Sendable, CustomStringConvertible, CustomD
 enum TeamAuthWire {
     static let maximumResponseBytes = 32 * 1024
     static let maximumDeliveryFetchResponseBytes = 140_000
+    static let maximumRequestBytes = 20_000
+    static let maximumDeliverySubmitRequestBytes = 140_000
     static let maximumSafeTime: Int64 = 9_007_199_254_740_991
 
     static func credential(_ value: String) -> Bool {
@@ -460,12 +462,16 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
         }
         let maximumResponseBytes: Int
         switch route {
-        case .deliveryFetch: maximumResponseBytes = TeamAuthWire.maximumDeliveryFetchResponseBytes
-        case .listInvitations, .deviceRequestExecute: maximumResponseBytes = TeamAuthWire.maximumResponseBytes
+        case .deliveryFetch, .deliverySubmitReserve:
+            maximumResponseBytes = TeamAuthWire.maximumDeliveryFetchResponseBytes
+        case .listInvitations, .deviceRequestExecute:
+            maximumResponseBytes = TeamAuthWire.maximumResponseBytes
         default: maximumResponseBytes = 4096
         }
+        let maximumRequestBytes = route == .deliverySubmitReserve
+            ? TeamAuthWire.maximumDeliverySubmitRequestBytes : TeamAuthWire.maximumRequestBytes
         let data = try await sendPath(route.rawValue, fields: fields, bearer: bearer, expectedStatus: 200,
-            maximumResponseBytes: maximumResponseBytes)
+            maximumResponseBytes: maximumResponseBytes, maximumRequestBytes: maximumRequestBytes)
         let end = clock()
         guard end >= start, end <= TeamAuthWire.maximumSafeTime else { throw TeamAuthHTTPError.invalidResponse }
         if let ticket { _ = try ticket.usableToken(now: end) }
@@ -488,7 +494,8 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
     }
 
     private func sendPath(_ path: String, fields: [String: Any]?, bearer: String?,
-                          expectedStatus: Int, maximumResponseBytes: Int) async throws -> Data {
+                          expectedStatus: Int, maximumResponseBytes: Int,
+                          maximumRequestBytes: Int = TeamAuthWire.maximumRequestBytes) async throws -> Data {
         try Task.checkCancellation()
         try slot.acquire()
         defer { slot.release() } // URL exchange does not return before native invalidation.
@@ -505,7 +512,8 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
         }
         if let fields {
             let body = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys, .withoutEscapingSlashes])
-            guard body.count <= 20_000 else { throw TeamAuthHTTPError.invalidRequest }
+            guard (1...TeamAuthWire.maximumDeliverySubmitRequestBytes).contains(maximumRequestBytes),
+                  body.count <= maximumRequestBytes else { throw TeamAuthHTTPError.invalidRequest }
             request.httpBodyStream = InputStream(data: body)
             request.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")

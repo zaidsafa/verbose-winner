@@ -79,9 +79,55 @@ struct TeamDeliveryJWE {
         return serialized
     }
 
+    /// Sender-side structural/audience validation. This does not decrypt or prove
+    /// that any recipient still controls its private agreement key.
+    func validate(_ serialized: String,
+                  expectedRecipients input: [TeamAgreementPublic]) throws {
+        _ = try validatedEnvelope(serialized, expectedRecipients: input)
+    }
+
     /// Returned plaintext is caller-owned and must be validated and cleared after durable import.
     func decrypt(_ serialized: String, custody: TeamAgreementKeyCustody,
                  expectedRecipients input: [TeamAgreementPublic]) throws -> Data {
+        let envelope = try validatedEnvelope(serialized, expectedRecipients: input)
+        let parsed = envelope.recipients
+
+        // Do not consult retained key custody until the untrusted envelope and the
+        // independently authenticated complete audience are both structurally valid.
+        let own = try custody.current()
+        guard let selected = parsed.first(where: { $0.kid == own.keyThumbprint }) else {
+            throw TeamDeliveryJWEError.invalidEnvelope
+        }
+
+        var kek = try custody.derive(peer: TeamAgreementPublic(
+            keyThumbprint: selected.ephemeralThumbprint, publicKey: selected.ephemeralPublic),
+            algorithm: Self.algorithm, partyU: Self.partyU, partyV: Data(selected.kid.utf8))
+        var cek: Data?
+        defer {
+            kek.resetBytes(in: kek.startIndex..<kek.endIndex)
+            if cek != nil { cek!.resetBytes(in: cek!.startIndex..<cek!.endIndex) }
+        }
+        do {
+            cek = try TeamDeliveryCryptoPrimitives.unwrapA256(kek: kek, wrapped: selected.encryptedKey)
+            guard cek?.count == 32 else { throw TeamDeliveryJWEError.integrityFailure }
+            let box = try AES.GCM.SealedBox(nonce: AES.GCM.Nonce(data: envelope.iv),
+                ciphertext: envelope.ciphertext, tag: envelope.tag)
+            let plaintext = try AES.GCM.open(box, using: SymmetricKey(data: cek!),
+                authenticating: Data(envelope.protectedValue.utf8))
+            guard (1...Self.maximumPlaintextBytes).contains(plaintext.count) else {
+                throw TeamDeliveryJWEError.integrityFailure
+            }
+            return plaintext
+        } catch let error as TeamDeliveryJWEError {
+            throw error
+        } catch {
+            throw TeamDeliveryJWEError.integrityFailure
+        }
+    }
+
+    private func validatedEnvelope(_ serialized: String,
+                                   expectedRecipients input: [TeamAgreementPublic]) throws
+        -> ValidatedEnvelope {
         guard (1...Self.maximumSerializedBytes).contains(serialized.utf8.count) else {
             throw TeamDeliveryJWEError.invalidEnvelope
         }
@@ -137,38 +183,16 @@ struct TeamDeliveryJWE {
               serialized == Self.serialize(protectedValue: protectedValue, iv: iv,
                   ciphertext: ciphertext, tag: tag, recipients: parsed)
         else { throw TeamDeliveryJWEError.invalidEnvelope }
+        return .init(protectedValue: protectedValue, iv: iv, ciphertext: ciphertext,
+            tag: tag, recipients: parsed)
+    }
 
-        // Do not consult retained key custody until the untrusted envelope and the
-        // independently authenticated complete audience are both structurally valid.
-        let own = try custody.current()
-        guard let selected = parsed.first(where: { $0.kid == own.keyThumbprint }) else {
-            throw TeamDeliveryJWEError.invalidEnvelope
-        }
-
-        var kek = try custody.derive(peer: TeamAgreementPublic(
-            keyThumbprint: selected.ephemeralThumbprint, publicKey: selected.ephemeralPublic),
-            algorithm: Self.algorithm, partyU: Self.partyU, partyV: Data(selected.kid.utf8))
-        var cek: Data?
-        defer {
-            kek.resetBytes(in: kek.startIndex..<kek.endIndex)
-            if cek != nil { cek!.resetBytes(in: cek!.startIndex..<cek!.endIndex) }
-        }
-        do {
-            cek = try TeamDeliveryCryptoPrimitives.unwrapA256(kek: kek, wrapped: selected.encryptedKey)
-            guard cek?.count == 32 else { throw TeamDeliveryJWEError.integrityFailure }
-            let box = try AES.GCM.SealedBox(nonce: AES.GCM.Nonce(data: iv),
-                ciphertext: ciphertext, tag: tag)
-            let plaintext = try AES.GCM.open(box, using: SymmetricKey(data: cek!),
-                authenticating: Data(protectedValue.utf8))
-            guard (1...Self.maximumPlaintextBytes).contains(plaintext.count) else {
-                throw TeamDeliveryJWEError.integrityFailure
-            }
-            return plaintext
-        } catch let error as TeamDeliveryJWEError {
-            throw error
-        } catch {
-            throw TeamDeliveryJWEError.integrityFailure
-        }
+    private struct ValidatedEnvelope {
+        let protectedValue: String
+        let iv: Data
+        let ciphertext: Data
+        let tag: Data
+        let recipients: [Recipient]
     }
 
     private struct Recipient {

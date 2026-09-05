@@ -252,6 +252,47 @@ private enum TeamDeviceRequestHTTPWire {
             jweBytes: Int(count), jweSHA256: digest, jwe: jwe)
     }
 
+    static func reservation(_ data: Data) throws -> TeamDeliverySubmissionReservation {
+        let object = try TeamAuthWire.object(data, keys: ["deliveryId", "state", "createdAt",
+            "reservationExpiresAt", "membershipRevision", "audienceDigest", "intentSha256",
+            "jweBytes", "jweSha256", "objectId", "targets"])
+        guard let rawState = object["state"] as? String,
+              let state = TeamDeliveryReservationState(rawValue: rawState),
+              let intentDigest = object["intentSha256"] as? String,
+              let jweDigest = object["jweSha256"] as? String,
+              let objectID = object["objectId"] as? String,
+              validHexDigest(intentDigest), validHexDigest(jweDigest), validHexDigest(objectID),
+              let rows = object["targets"] as? [[String: Any]],
+              (1...TeamDeliveryRules.maximumRecipients).contains(rows.count) else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        let count = try TeamAuthWire.time(object, "jweBytes")
+        guard (1...Int64(TeamDeliveryJWE.maximumSerializedBytes)).contains(count) else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        let targets: [TeamFrozenDeliveryTarget]
+        do {
+            targets = try rows.map { row in
+                guard Set(row.keys) == ["userId", "deviceId", "enrollmentId", "agreementKeyThumbprint"] else {
+                    throw TeamAuthHTTPError.invalidResponse
+                }
+                return try TeamFrozenDeliveryTarget(userId: TeamAuthWire.string(row, "userId"),
+                    deviceId: TeamAuthWire.string(row, "deviceId"),
+                    enrollmentId: TeamAuthWire.string(row, "enrollmentId"),
+                    agreementKeyThumbprint: TeamAuthWire.string(row, "agreementKeyThumbprint", secret: true))
+            }
+        } catch {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        return try .init(deliveryId: TeamAuthWire.string(object, "deliveryId"), state: state,
+            createdAt: TeamAuthWire.time(object, "createdAt"),
+            reservationExpiresAt: TeamAuthWire.time(object, "reservationExpiresAt"),
+            membershipRevision: TeamAuthWire.time(object, "membershipRevision"),
+            audienceDigest: TeamAuthWire.string(object, "audienceDigest", secret: true),
+            intentSha256: intentDigest, jweBytes: Int(count), jweSha256: jweDigest,
+            objectId: objectID, targets: targets)
+    }
+
     private static func decode(_ value: String, maximumBytes: Int) -> Data? {
         guard !value.isEmpty,
               value.utf8.count <= (maximumBytes * 4 + 2) / 3,
@@ -272,6 +313,12 @@ private enum TeamDeviceRequestHTTPWire {
             result.append(alphabet[Int(byte & 15)])
         }
         return String(decoding: result, as: UTF8.self)
+    }
+
+    private static func validHexDigest(_ value: String) -> Bool {
+        value.utf8.count == 64 && value.utf8.allSatisfy {
+            (48...57).contains($0) || (97...102).contains($0)
+        }
     }
 }
 
@@ -415,6 +462,66 @@ extension TeamAuthHTTPClient {
             "body": TeamDeviceEnrollmentWire.encode(request.body)
         ], ticket: ticket)
         return try TeamDeviceRequestHTTPWire.delivery(reply.data, expected: expected, request: request)
+    }
+
+    func deliverySubmitChallenge(expected: TeamDeviceRequestWire.Binding,
+                                 publicKey: TeamDeviceEnrollmentWire.PublicKey,
+                                 request: TeamDeliveryReservationRequest,
+                                 ticket: TeamAccountAccessTicket) async throws -> TeamPreparedDeviceRequestChallenge {
+        guard acceptsDeviceRequestBinding(expected, key: publicKey, ticket: ticket),
+              expected.operation == .deliverySubmit,
+              expected.requestID == request.intent.deliveryId else {
+            throw TeamAuthHTTPError.invalidRequest
+        }
+        let digest: String
+        do { digest = try TeamDeviceRequestWire.bodySHA256(request.body) }
+        catch { throw TeamAuthHTTPError.invalidRequest }
+        let reply = try await onboarding(.deliverySubmitChallenge, fields: [
+            "enrollmentId": expected.enrollmentID,
+            "binding": ["operation": expected.operation.rawValue, "teamId": expected.teamID,
+                        "requestId": expected.requestID, "bodySha256": digest]
+        ], ticket: ticket)
+        do {
+            return try .init(validating: reply.data, expected: expected,
+                publicKey: publicKey, request: request, now: reply.receivedAt)
+        } catch { throw TeamAuthHTTPError.invalidResponse }
+    }
+
+    func reserveDelivery(challenge: TeamPreparedDeviceRequestChallenge,
+                         signature: Data, expected: TeamDeviceRequestWire.Binding,
+                         publicKey: TeamDeviceEnrollmentWire.PublicKey,
+                         request: TeamDeliveryReservationRequest,
+                         expectedAudience: TeamAudience,
+                         ticket: TeamAccountAccessTicket) async throws -> TeamDeliverySubmissionReservation {
+        guard acceptsDeviceRequestBinding(expected, key: publicKey, ticket: ticket),
+              expected.operation == .deliverySubmit,
+              expected.requestID == request.intent.deliveryId,
+              signature.count == 64,
+              let parsed = try? P256.Signing.ECDSASignature(rawRepresentation: signature) else {
+            throw TeamAuthHTTPError.invalidRequest
+        }
+        let message: Data
+        do {
+            message = try challenge.message(expected: expected, publicKey: publicKey,
+                request: request, now: onboardingTime())
+        } catch { throw TeamAuthHTTPError.invalidRequest }
+        guard publicKey.key.isValidSignature(parsed, for: message) else {
+            throw TeamAuthHTTPError.invalidRequest
+        }
+        let reply = try await onboarding(.deliverySubmitReserve, fields: [
+            "challengeId": challenge.challengeID,
+            "signature": TeamDeviceEnrollmentWire.encode(signature),
+            "body": TeamDeviceEnrollmentWire.encode(request.body),
+            "jwe": TeamDeviceEnrollmentWire.encode(request.jwe)
+        ], ticket: ticket)
+        do {
+            return try TeamDeliveryReservationValidator.validate(
+                TeamDeviceRequestHTTPWire.reservation(reply.data),
+                expectedBinding: expected, request: request,
+                expectedAudience: expectedAudience, receivedAt: reply.receivedAt)
+        } catch {
+            throw TeamAuthHTTPError.invalidResponse
+        }
     }
 
     private func acceptsDeviceRequestBinding(_ binding: TeamDeviceRequestWire.Binding,

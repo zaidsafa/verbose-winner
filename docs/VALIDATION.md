@@ -1,5 +1,38 @@
 # Validation plan
 
+## 2026-09-05 inactive authenticated delivery reservation contract
+
+- Matched Android/server commits
+  `6ac3ba802ab637ceb9eb9be7ecf8f424512f47e3` and
+  `52f35617a691f27fafbde9ba6ab1a26e319acda3`: dedicated
+  `deliveries/submit/challenge` and `deliveries/submit/reserve` routes, exact
+  canonical intent/JWE submission and current account/device/enrollment proof.
+- Strict validation freezes the delivery identity, membership revision, complete
+  sorted audience, intent and JWE hashes/sizes, object identity, lifecycle state
+  and at-most-15-minute reservation lifetime. Unexpected fields and malformed or
+  confused bindings fail closed.
+- Ordinary authenticated requests remain capped at 20,000 bytes. Only the
+  reservation request/response use an independent 140,000-byte cap.
+- Server `429 capacity` is surfaced for retry later with exactly one HTTP request;
+  there is no automatic retry and no replacement delivery ID generation.
+- Reservation/crypto models passed **8/8**:
+  `/private/tmp/Pinbook-Delivery-Reservation-Focused-Retry-20260905.xcresult`.
+- The complete authenticated transport suite passed **23/23**:
+  `/private/tmp/Pinbook-Delivery-Reservation-HTTP-Acceptance-20260905.xcresult`.
+- Complete exact-current app-host regression executed 447 tests: **442 passed**,
+  **4 expected physical-only skips**, and one existing native Files picker case
+  hit a Simulator dismissal timing failure. The exact failed case subsequently
+  passed **1/1** on a clean isolated retry:
+  `/private/tmp/Pinbook-Delivery-Reservation-Full-AppHost-20260905.xcresult` and
+  `/private/tmp/Pinbook-Delivery-Reservation-Native-Files-Retry-20260905.xcresult`.
+- The unsigned production Release build passed with unchanged bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- Test bundle platform settings now explicitly target iPhone/iPad Simulator and
+  device builds with Mac Catalyst disabled, fixing fresh-DerivedData resolution.
+- Default remains off. No origin/provider/runtime/UI, server, Drive, physical
+  device, source push, archive or TestFlight state changed. See
+  `TEAM_DELIVERY_RESERVATION_IOS.md`.
+
 ## 2026-09-05 inactive authenticated delivery fetch contract
 
 - Matched the dedicated Android/server source checkpoint

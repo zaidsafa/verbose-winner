@@ -73,6 +73,21 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- The committed Android/server authenticated submission reservation and durable
+  admission-budget contracts now have an exact inactive iOS boundary. The current
+  registered device signs the canonical intent binding; the reserve call carries
+  that exact intent and JWE under a dedicated 140,000-byte cap; and the response is
+  accepted only when its lifecycle, short expiry, object identity, hashes and
+  sorted frozen recipients match independently authenticated inputs. Focused
+  reservation/crypto **8/8** and complete authenticated transport **23/23** pass;
+  the app-host run has **442 passes + 4 expected physical-only skips**, with its
+  one native Files Simulator timing failure passing **1/1** on isolated retry.
+  The unchanged-identity unsigned production Release passes. `429 capacity` is
+  retry-later with one request, the same durable delivery ID and no automatic
+  retry. This does not yet write an object, commit a journal event, activate
+  runtime/UI, reach a server or complete two-device sync. See
+  `TEAM_DELIVERY_RESERVATION_IOS.md`.
+
 - The committed Android/server delivery-fetch source contract now has a matching
   inactive iOS transport boundary. It signs the exact delivery ID/body through the
   current account/device/enrollment proof, uses dedicated challenge/fetch routes,
