@@ -1097,9 +1097,11 @@ Updated: 2026-09-05 (Asia/Shanghai)
   review phone and review email are now saved and verified after reload. Existing
   build 3 copy remains unchanged and accurately says Drive is unavailable there.
 - App Privacy is still unstarted and has no policy URL. The App Store 1.0 listing
-  remains incomplete, with no screenshots/copy/support URL/build/copyright and
-  its separate App Review sign-in checkbox selected. Do not confuse the completed
-  TestFlight contact fields with App Store submission readiness.
+  remains incomplete, with no uploaded screenshots/description/keywords/support
+  URL/build/copyright and its separate App Review sign-in checkbox selected. The
+  subtitle **Private expense notebook** and Finance/Productivity categories are
+  now saved and verified. Do not confuse those fields or completed TestFlight
+  contacts with App Store submission readiness.
 - The App Store product-page draft is labeled **1.0**, while all current/final-plan
   binaries are marketing version `0.1.0`. Correct the editable draft to `0.1.0`
   before build selection, unless the owner explicitly chooses a 1.0 binary release.

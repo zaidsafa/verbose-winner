@@ -71,10 +71,12 @@
   and review email were then saved and verified after reload. Build 3's accurate
   no-Drive description/review notes were deliberately left unchanged.
 - The same audit confirmed App Privacy is still at **Get Started** with no privacy
-  policy URL. The App Store 1.0 page still has no screenshots, description,
-  keywords, support URL, build or copyright, and its separate App Review form has
-  Sign-In required selected. These are observed open listing gates; no app-version
-  metadata, privacy answer, build assignment or review submission was changed.
+  policy URL. The App Store 1.0 page still has no uploaded screenshots,
+  description, keywords, support URL, build or copyright, and its separate App
+  Review form has Sign-In required selected. These remain observed open gates.
+  The factual subtitle **Private expense notebook** plus primary **Finance** and
+  secondary **Productivity** categories were saved and verified after reload;
+  no privacy answer, build assignment or review submission was changed.
 - Prepared six visually inspected English App Store screenshots from exact app and
   installed-widget evidence. Every PNG is **1242 x 2688**, with SHA-256 recorded
   beside the assets under `release/app-store/screenshots`. The set covers expenses,
