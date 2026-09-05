@@ -1091,6 +1091,15 @@ Updated: 2026-09-05 (Asia/Shanghai)
   public URL or Google Branding mutation exists yet. A GitHub Pages fallback must
   not be pushed without the owner's explicit approval; the public iOS source
   repository itself remains unchanged.
+- Live App Store Connect audit at **2026-09-05 10:09 CST** reconfirmed build 3 is
+  Testing in both existing groups, with three installs, one seven-day session and
+  no reported crashes/feedback. The owner's authorized TestFlight feedback email,
+  review phone and review email are now saved and verified after reload. Existing
+  build 3 copy remains unchanged and accurately says Drive is unavailable there.
+- App Privacy is still unstarted and has no policy URL. The App Store 1.0 listing
+  remains incomplete, with no screenshots/copy/support URL/build/copyright and
+  its separate App Review sign-in checkbox selected. Do not confuse the completed
+  TestFlight contact fields with App Store submission readiness.
 - Still open: independent Drive download/revocation, Android interoperability on
   synthetic data, full final
   candidate regression, archive/upload/processing, exact TestFlight install, and

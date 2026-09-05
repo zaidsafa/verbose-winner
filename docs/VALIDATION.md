@@ -64,6 +64,17 @@
   returning a transport failure, and no fallback GitHub Pages publication has
   been authorized. This is prepared local publication evidence only, not the
   owned HTTPS release gate.
+- Live App Store Connect read-only audit at **2026-09-05 10:09 CST** confirmed
+  build `0.1.0 (3)` remains **Testing** in both existing `Zaid testing` groups.
+  The page showed three installs, one seven-day session and no reported crashes
+  or feedback for build 3. The owner's authorized feedback email, review phone
+  and review email were then saved and verified after reload. Build 3's accurate
+  no-Drive description/review notes were deliberately left unchanged.
+- The same audit confirmed App Privacy is still at **Get Started** with no privacy
+  policy URL. The App Store 1.0 page still has no screenshots, description,
+  keywords, support URL, build or copyright, and its separate App Review form has
+  Sign-In required selected. These are observed open listing gates; no app-version
+  metadata, privacy answer, build assignment or review submission was changed.
 - Apple App Privacy guidance was re-audited for ongoing off-device sync. The
   manifest and submission guide now disclose Other Financial Info, Other User
   Content and Photos or Videos for App Functionality, linked to the user's Drive
