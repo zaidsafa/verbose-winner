@@ -5,6 +5,22 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest owner-observed live Google Drive checkpoint
+
+The installed **Pinbook QA 0.1.0 (3)** app on the physical iPhone reached
+Google's fully loaded authorization page, where the expected app identity was
+shown. The owner then completed Google sign-in and reported **backed up to Google
+Drive**. This is evidence of a live QA consent, token and upload path as observed
+by the owner; it is not independent proof of the downloaded remote bytes. The
+second unchanged `Sync now` read-back, explicit disconnect/revocation, and the
+Android -> iOS -> Android synthetic-data round trip remain open. The production
+TestFlight app and its records were not used or changed.
+
+The connected iPhone was subsequently rechecked read-only: the separate app is
+still installed as bundle `com.zaidsafa.pinbook.ios.qa`, version `0.1.0`, build
+`3`. The connected Samsung remains untouched until the Android task supplies and
+clears a compatible isolated QA build.
+
 ## Latest active personal Drive sync checkpoint
 
 The separate Pinbook QA app ran the complete personal Drive transport, OAuth,
@@ -14,11 +30,12 @@ credential, connection, access-refresh and merge suite on the physical **iPhone
 
 This proves the installed QA client/callback, real device-only Keychain boundary,
 and synthetic Drive/merge behavior. The app was relaunched normally afterward.
-It does not prove a live Google consent screen, token, remote Drive object or
-cross-device round trip. The connected Samsung SM-S9180 is authorized only for a
-later synthetic Pinbook compatibility run after the Android task confirms a
-matching backup-v8 immutable appDataFolder implementation; it was not opened or
-changed here. The TestFlight app and personal records remain untouched.
+It does not independently prove live remote bytes or a cross-device round trip;
+the later owner-observed live checkpoint above is kept separate. The connected
+Samsung SM-S9180 is authorized only for a later synthetic Pinbook compatibility
+run after the Android task confirms a matching backup-v8 immutable appDataFolder
+implementation; it was not opened or changed here. The TestFlight app and
+personal records remain untouched.
 
 ## Latest personal Drive installed-configuration checkpoint
 
