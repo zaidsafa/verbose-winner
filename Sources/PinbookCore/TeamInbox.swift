@@ -41,7 +41,15 @@ public struct PendingTeamReceipt: Equatable, Sendable {
     public let deliveryId: String
     public let deviceId: String
     public let enrollmentId: String
-    public let bodySha256: String
+    /// SHA-256 of the exact encrypted JWE bytes, never the plaintext body digest.
+    public let jweSHA256: String
+}
+
+public enum TeamReceiptRetirement: String, Equatable, Sendable {
+    case acknowledged = "ACKED"
+    case cancelled = "CANCELLED"
+    case expired = "EXPIRED"
+    case purged = "PURGED"
 }
 
 /// Inactive local foundation: no app entry point instantiates this store.
@@ -116,7 +124,7 @@ public final class TeamInboxStore: @unchecked Sendable {
             try execute("PRAGMA temp_store=MEMORY")
             try transaction {
                 let version = try scalar("PRAGMA user_version")
-                guard version == 0 || version == 1 else { throw TeamDeliveryError.unsupportedSchema }
+                guard (0...2).contains(version) else { throw TeamDeliveryError.unsupportedSchema }
                 if version == 0 {
                     try execute("""
                     CREATE TABLE archive (
@@ -126,11 +134,37 @@ public final class TeamInboxStore: @unchecked Sendable {
                         envelope BLOB NOT NULL, PRIMARY KEY(account_id, team_id, delivery_id));
                     CREATE TABLE receipt_outbox (
                         account_id TEXT NOT NULL, team_id TEXT NOT NULL, delivery_id TEXT NOT NULL,
-                        device_id TEXT NOT NULL, enrollment_id TEXT NOT NULL, body_sha256 TEXT NOT NULL,
+                        device_id TEXT NOT NULL, enrollment_id TEXT NOT NULL, jwe_sha256 TEXT NOT NULL,
                         PRIMARY KEY(account_id, team_id, delivery_id),
                         FOREIGN KEY(account_id, team_id, delivery_id)
                             REFERENCES archive(account_id, team_id, delivery_id));
-                    PRAGMA user_version=1;
+                    CREATE TABLE delivery_ciphertext_binding (
+                        account_id TEXT NOT NULL, team_id TEXT NOT NULL, delivery_id TEXT NOT NULL,
+                        jwe_sha256 TEXT NOT NULL,
+                        PRIMARY KEY(account_id, team_id, delivery_id),
+                        FOREIGN KEY(account_id, team_id, delivery_id)
+                            REFERENCES archive(account_id, team_id, delivery_id));
+                    PRAGMA user_version=2;
+                    """)
+                } else if version == 1 {
+                    // Version 1 receipts held a plaintext digest and are not wire-safe.
+                    // Preserve archives, discard those unsendable receipts, then require a
+                    // fresh authenticated fetch to establish the ciphertext binding.
+                    try execute("""
+                    DROP TABLE receipt_outbox;
+                    CREATE TABLE receipt_outbox (
+                        account_id TEXT NOT NULL, team_id TEXT NOT NULL, delivery_id TEXT NOT NULL,
+                        device_id TEXT NOT NULL, enrollment_id TEXT NOT NULL, jwe_sha256 TEXT NOT NULL,
+                        PRIMARY KEY(account_id, team_id, delivery_id),
+                        FOREIGN KEY(account_id, team_id, delivery_id)
+                            REFERENCES archive(account_id, team_id, delivery_id));
+                    CREATE TABLE delivery_ciphertext_binding (
+                        account_id TEXT NOT NULL, team_id TEXT NOT NULL, delivery_id TEXT NOT NULL,
+                        jwe_sha256 TEXT NOT NULL,
+                        PRIMARY KEY(account_id, team_id, delivery_id),
+                        FOREIGN KEY(account_id, team_id, delivery_id)
+                            REFERENCES archive(account_id, team_id, delivery_id));
+                    PRAGMA user_version=2;
                     """)
                 }
             }
@@ -155,9 +189,11 @@ public final class TeamInboxStore: @unchecked Sendable {
 
     /// Successful return means archive AND local receipt committed, not that any server ACK was sent.
     /// Allows a verified in-flight download to finish after expiry; the server decides ACK eligibility.
-    public func receive(_ envelope: TeamNoteEnvelope, savedAt: Int64) throws {
+    public func receive(_ envelope: TeamNoteEnvelope, jweSHA256: String,
+                        savedAt: Int64) throws {
         try envelope.validate(for: target, expectedTeamId: teamId)
         guard savedAt >= 0 else { throw TeamDeliveryError.invalidTime }
+        guard Self.validDigest(jweSHA256) else { throw TeamDeliveryError.invalidIdentifier }
         let data = try JSONEncoder().encode(envelope)
         try lock.withLock {
             try transaction {
@@ -166,6 +202,12 @@ public final class TeamInboxStore: @unchecked Sendable {
                     guard previous.envelope == envelope else { throw TeamDeliveryError.immutableConflict }
                 }
                 let key: [Value] = [.text(target.userId), .text(teamId), .text(envelope.deliveryId)]
+                let boundDigest = try textScalar(
+                    "SELECT jwe_sha256 FROM delivery_ciphertext_binding WHERE account_id=? AND team_id=? AND delivery_id=?",
+                    key)
+                if let boundDigest {
+                    guard boundDigest == jweSHA256 else { throw TeamDeliveryError.immutableConflict }
+                }
                 let alreadyQueued = try scalar(
                     "SELECT count(*) FROM receipt_outbox WHERE account_id=? AND team_id=? AND delivery_id=?", key
                 ) != 0
@@ -181,14 +223,28 @@ public final class TeamInboxStore: @unchecked Sendable {
                         .text(target.deviceId), .text(target.enrollmentId), .integer(envelope.acceptedAt), .integer(savedAt), .blob(data)
                     ])
                 }
+                if boundDigest == nil {
+                    try execute("INSERT INTO delivery_ciphertext_binding VALUES (?,?,?,?)",
+                        key + [.text(jweSHA256)])
+                }
                 if !alreadyQueued {
                     try execute("INSERT INTO receipt_outbox VALUES (?,?,?,?,?,?)", key + [
-                        .text(target.deviceId), .text(target.enrollmentId), .text(envelope.bodySha256)
+                        .text(target.deviceId), .text(target.enrollmentId), .text(jweSHA256)
                     ])
                 }
             }
         }
     }
+
+#if DEBUG
+    /// Test-fixture convenience only. Production receive paths must supply the fetched
+    /// ciphertext digest explicitly through the overload above.
+    func receive(_ envelope: TeamNoteEnvelope, savedAt: Int64) throws {
+        let digest = SHA256.hash(data: Data(("fixture-jwe:" + envelope.deliveryId).utf8))
+            .map { String(format: "%02x", $0) }.joined()
+        try receive(envelope, jweSHA256: digest, savedAt: savedAt)
+    }
+#endif
 
     public func archived(deliveryId: String) throws -> ArchivedTeamNote? {
         try TeamDeliveryRules.requireID(deliveryId)
@@ -322,7 +378,7 @@ public final class TeamInboxStore: @unchecked Sendable {
         guard (1...100).contains(limit) else { throw TeamDeliveryError.invalidLimit }
         return try lock.withLock {
             let statement = try prepare("""
-                SELECT delivery_id, body_sha256 FROM receipt_outbox
+                SELECT delivery_id, jwe_sha256 FROM receipt_outbox
                 WHERE account_id=? AND team_id=? AND device_id=? AND enrollment_id=? ORDER BY delivery_id LIMIT ?
                 """, [.text(target.userId), .text(teamId), .text(target.deviceId), .text(target.enrollmentId), .integer(Int64(limit))])
             defer { sqlite3_finalize(statement) }
@@ -330,16 +386,39 @@ public final class TeamInboxStore: @unchecked Sendable {
             while try step(statement) == SQLITE_ROW {
                 results.append(PendingTeamReceipt(accountId: target.userId, teamId: teamId,
                     deliveryId: String(cString: sqlite3_column_text(statement, 0)), deviceId: target.deviceId,
-                    enrollmentId: target.enrollmentId, bodySha256: String(cString: sqlite3_column_text(statement, 1))))
+                    enrollmentId: target.enrollmentId, jweSHA256: String(cString: sqlite3_column_text(statement, 1))))
             }
             return results
         }
     }
 
-    /// Call ONLY after future authenticated ACK acceptance or terminal response. Not authentication.
+    /// Exact local receipt lookup for a delivery that has already been archived.
+    /// This is local state only and does not imply that an ACK route exists.
+    public func pendingReceipt(deliveryId: String) throws -> PendingTeamReceipt? {
+        try TeamDeliveryRules.requireID(deliveryId)
+        return try lock.withLock {
+            let statement = try prepare("""
+                SELECT jwe_sha256 FROM receipt_outbox
+                WHERE account_id=? AND team_id=? AND delivery_id=?
+                AND device_id=? AND enrollment_id=? LIMIT 1
+                """, [.text(target.userId), .text(teamId), .text(deliveryId),
+                      .text(target.deviceId), .text(target.enrollmentId)])
+            defer { sqlite3_finalize(statement) }
+            guard try step(statement) == SQLITE_ROW else { return nil }
+            return PendingTeamReceipt(accountId: target.userId, teamId: teamId,
+                deliveryId: deliveryId, deviceId: target.deviceId,
+                enrollmentId: target.enrollmentId,
+                jweSHA256: String(cString: sqlite3_column_text(statement, 0)))
+        }
+    }
+
+    /// Call only after the caller has authenticated an exact ACKED or terminal
+    /// CANCELLED/EXPIRED/PURGED response for this receipt. This method is not authentication.
     /// Exact local receipt matching prevents stale/foreign responses from deleting other receipts.
     /// There is intentionally no archive deletion operation.
-    public func retireReceiptAfterAuthenticatedResponse(_ receipt: PendingTeamReceipt) throws {
+    public func retireReceipt(_ receipt: PendingTeamReceipt,
+                              after disposition: TeamReceiptRetirement) throws {
+        _ = disposition
         guard receipt.accountId == target.userId, receipt.teamId == teamId,
               receipt.deviceId == target.deviceId, receipt.enrollmentId == target.enrollmentId else {
             throw TeamDeliveryError.invalidScope
@@ -347,11 +426,17 @@ public final class TeamInboxStore: @unchecked Sendable {
         try lock.withLock {
             try execute("""
                 DELETE FROM receipt_outbox WHERE account_id=? AND team_id=? AND delivery_id=?
-                AND device_id=? AND enrollment_id=? AND body_sha256=?
+                AND device_id=? AND enrollment_id=? AND jwe_sha256=?
                 """, [.text(receipt.accountId), .text(receipt.teamId), .text(receipt.deliveryId),
-                      .text(receipt.deviceId), .text(receipt.enrollmentId), .text(receipt.bodySha256)])
+                      .text(receipt.deviceId), .text(receipt.enrollmentId), .text(receipt.jweSHA256)])
         }
     }
+
+#if DEBUG
+    func retireReceiptAfterAuthenticatedResponse(_ receipt: PendingTeamReceipt) throws {
+        try retireReceipt(receipt, after: .acknowledged)
+    }
+#endif
 
     private func archivedUnlocked(deliveryId: String, archiveTeamId: String? = nil) throws -> ArchivedTeamNote? {
         let teamId = archiveTeamId ?? self.teamId
@@ -425,6 +510,22 @@ public final class TeamInboxStore: @unchecked Sendable {
         defer { sqlite3_finalize(statement) }
         guard try step(statement) == SQLITE_ROW else { throw TeamDeliveryError.storage(SQLITE_ERROR) }
         return sqlite3_column_int64(statement, 0)
+    }
+
+    private func textScalar(_ sql: String, _ values: [Value] = []) throws -> String? {
+        let statement = try prepare(sql, values)
+        defer { sqlite3_finalize(statement) }
+        guard try step(statement) == SQLITE_ROW else { return nil }
+        guard let value = sqlite3_column_text(statement, 0) else {
+            throw TeamDeliveryError.storage(SQLITE_CORRUPT)
+        }
+        return String(cString: value)
+    }
+
+    private static func validDigest(_ value: String) -> Bool {
+        value.utf8.count == 64 && value.utf8.allSatisfy {
+            (48...57).contains($0) || (97...102).contains($0)
+        }
     }
 
     private func transaction(readOnly: Bool = false, _ body: () throws -> Void) throws {

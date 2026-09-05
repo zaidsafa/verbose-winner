@@ -5,6 +5,12 @@ TestFlight uploads. Next update must cover the complete agreed scope and final
 regression. This checklist distinguishes shipped capabilities from unfinished
 ones; neither compiled source nor a placeholder counts as a completed feature.
 
+Latest local-only progress: encrypted fetch now strictly decrypts and atomically
+archives each note with its ciphertext-bound pending receipt before any possible
+ACK. The exact ACK body is frozen and v1 plaintext-digest receipts migrate safely,
+but the outbox intentionally remains unsent until the authenticated server route
+and response land; this does not close live team-sync, two-device or publication gates.
+
 ## Preserve and revalidate in the final candidate
 
 - [x] Native Liquid Glass navigation, elegant motion, Reduce Motion and Dynamic

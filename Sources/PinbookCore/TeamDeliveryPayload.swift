@@ -1,4 +1,5 @@
 import CoreFoundation
+import CryptoKit
 import Foundation
 
 enum TeamDeliveryPayloadError: Error, Equatable {
@@ -151,5 +152,83 @@ enum TeamDeliveryPayloadCodec {
               body.count <= TeamDeliveryRules.maximumTextBytes,
               base64URL(body) == value else { return nil }
         return body
+    }
+}
+
+enum TeamDeliveryReceiveError: Error, Equatable {
+    case invalidFetch
+    case bindingMismatch
+    case missingReceipt
+}
+
+/// Inactive receive boundary. The caller must obtain `fetch` through the authenticated
+/// device request flow. Successful return means the plaintext note and its exact pending
+/// receipt are durable locally; it never performs or claims a server ACK.
+struct TeamDeliveryReceiveCoordinator {
+    private let profile = TeamDeliveryJWE()
+
+    func archiveFetched(_ fetch: TeamDeliveryFetchResult,
+                        expectedBinding: TeamDeviceRequestWire.Binding,
+                        expectedAuthorUserID: String,
+                        expectedRecipients: [TeamAgreementPublic],
+                        custody: TeamAgreementKeyCustody,
+                        inbox: TeamInboxStore,
+                        savedAt: Int64) throws -> PendingTeamReceipt {
+        guard expectedBinding.operation == .deliveryFetch,
+              expectedBinding.requestID == fetch.deliveryID,
+              expectedBinding.teamID == inbox.teamId,
+              expectedBinding.accountID == inbox.target.userId,
+              expectedBinding.deviceID == inbox.target.deviceId,
+              expectedBinding.enrollmentID == inbox.target.enrollmentId,
+              fetch.jweBytes == fetch.jwe.count,
+              (1...TeamDeliveryJWE.maximumSerializedBytes).contains(fetch.jwe.count),
+              fetch.jweSHA256 == Self.sha256(fetch.jwe),
+              fetch.expiresAt == (try? TeamDeliveryRules.expiresAt(acceptedAt: fetch.acceptedAt)),
+              savedAt >= 0,
+              let serialized = String(data: fetch.jwe, encoding: .utf8),
+              Data(serialized.utf8) == fetch.jwe else {
+            throw TeamDeliveryReceiveError.bindingMismatch
+        }
+        do { try TeamDeliveryRules.requireID(expectedAuthorUserID) }
+        catch { throw TeamDeliveryReceiveError.bindingMismatch }
+
+        var plaintext: Data
+        do {
+            plaintext = try profile.decrypt(serialized, custody: custody,
+                expectedRecipients: expectedRecipients)
+        } catch {
+            throw TeamDeliveryReceiveError.invalidFetch
+        }
+        defer { plaintext.resetBytes(in: plaintext.startIndex..<plaintext.endIndex) }
+
+        let payload: TeamDeliveryPayload
+        do {
+            payload = try TeamDeliveryPayloadCodec.decode(plaintext,
+                expectedTeamId: expectedBinding.teamID,
+                expectedDeliveryId: fetch.deliveryID,
+                expectedAuthorUserId: expectedAuthorUserID)
+        } catch {
+            throw TeamDeliveryReceiveError.invalidFetch
+        }
+        let envelope: TeamNoteEnvelope
+        do {
+            envelope = try payload.localEnvelope(target: inbox.target,
+                acceptedAt: fetch.acceptedAt, expiresAt: fetch.expiresAt)
+        } catch {
+            throw TeamDeliveryReceiveError.invalidFetch
+        }
+
+        // TeamInboxStore commits archive + receipt in one transaction. No ACK transport
+        // exists in this contract, so a failed write always leaves the receipt unsent.
+        try inbox.receive(envelope, jweSHA256: fetch.jweSHA256, savedAt: savedAt)
+        guard let receipt = try inbox.pendingReceipt(deliveryId: fetch.deliveryID),
+              receipt.jweSHA256 == fetch.jweSHA256 else {
+            throw TeamDeliveryReceiveError.missingReceipt
+        }
+        return receipt
+    }
+
+    private static func sha256(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
 }

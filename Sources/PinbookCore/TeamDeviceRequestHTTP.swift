@@ -55,6 +55,29 @@ struct TeamDeliveryFetchRequest: TeamDeviceRequestPayload {
     }
 }
 
+/// Frozen ACK request body only. No HTTP route is activated until the server
+/// publishes the complete authenticated response and idempotency contract.
+struct TeamDeliveryACKRequest: TeamDeviceRequestPayload {
+    static let type = "pinbook-delivery-ack-v1"
+    let deliveryID: String
+    let jweSHA256: String
+    let body: Data
+
+    init(receipt: PendingTeamReceipt) throws {
+        guard TeamAuthWire.identifier(receipt.deliveryId),
+              receipt.jweSHA256.utf8.count == 64,
+              receipt.jweSHA256.utf8.allSatisfy({
+                  (48...57).contains($0) || (97...102).contains($0)
+              }) else { throw TeamAuthHTTPError.invalidRequest }
+        deliveryID = receipt.deliveryId
+        jweSHA256 = receipt.jweSHA256
+        body = Data(("{\"deliveryId\":\"" + receipt.deliveryId +
+            "\",\"jweSha256\":\"" + receipt.jweSHA256 +
+            "\",\"type\":\"" + Self.type + "\"}").utf8)
+        guard body.count <= 256 else { throw TeamAuthHTTPError.invalidRequest }
+    }
+}
+
 struct TeamAudienceTarget: TeamOnboardingDiagnostic {
     let accountID: String
     let deviceID: String

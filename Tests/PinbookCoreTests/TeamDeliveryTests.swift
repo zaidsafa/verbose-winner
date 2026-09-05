@@ -219,7 +219,7 @@ private func rawSQL(_ url: URL, _ sql: String) throws {
         }
         let wrongHash = PendingTeamReceipt(accountId: envelope.recipient.userId, teamId: envelope.teamId,
             deliveryId: envelope.deliveryId, deviceId: envelope.recipient.deviceId,
-            enrollmentId: envelope.recipient.enrollmentId, bodySha256: "stale")
+            enrollmentId: envelope.recipient.enrollmentId, jweSHA256: String(repeating: "0", count: 64))
         try store.retireReceiptAfterAuthenticatedResponse(wrongHash)
         #expect(try store.pendingReceipts().count == 1)
         for limit in [-1, 0, 101] {
@@ -264,12 +264,39 @@ func teamHardwareFileProtectionRequiresPhysicalDevice() throws {
 @Test func teamFutureSchemaFailsClosedWithoutDestructiveMigration() throws {
     try withStore { store, root, envelope in
         try store.receive(envelope, savedAt: 2000)
-        try rawSQL(store.databaseURL, "PRAGMA user_version=2")
+        try rawSQL(store.databaseURL, "PRAGMA user_version=3")
         #expect(throws: TeamDeliveryError.unsupportedSchema) {
             try TeamInboxStore(applicationSupportDirectory: root, target: envelope.recipient, teamId: envelope.teamId)
         }
         #expect(try store.archived(deliveryId: envelope.deliveryId)?.envelope == envelope)
     }
+}
+
+@Test func teamVersionOneMigrationPreservesArchiveAndDropsUnsafePlaintextReceipts() throws {
+    let envelope = try vectors().validEnvelope
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("pinbook-team-v1-migration-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    do {
+        let store = try TeamInboxStore(applicationSupportDirectory: root,
+            target: envelope.recipient, teamId: envelope.teamId)
+        try store.receive(envelope, savedAt: 2_000)
+    }
+    let database = root.appendingPathComponent("PinbookTeamInbox/team-inbox.sqlite")
+    try rawSQL(database, """
+        DROP TABLE delivery_ciphertext_binding;
+        ALTER TABLE receipt_outbox RENAME COLUMN jwe_sha256 TO body_sha256;
+        PRAGMA user_version=1;
+        """)
+
+    let migrated = try TeamInboxStore(applicationSupportDirectory: root,
+        target: envelope.recipient, teamId: envelope.teamId)
+    #expect(try migrated.archived(deliveryId: envelope.deliveryId)?.envelope == envelope)
+    #expect(try migrated.pendingReceipts().isEmpty)
+    let newCiphertextHash = String(repeating: "b", count: 64)
+    try migrated.receive(envelope, jweSHA256: newCiphertextHash, savedAt: 3_000)
+    #expect(try migrated.pendingReceipt(deliveryId: envelope.deliveryId)?.jweSHA256
+        == newCiphertextHash)
 }
 
 @Test func teamMissingEnrollmentIsNotDefaultedAndReplacementCannotACKOldDelivery() throws {

@@ -2122,3 +2122,20 @@ The Simulator accessibility tree exposed the open-expense elements in logical or
 ## Release boundary
 
 Simulator builds and static inspection alone do not prove physical-device behavior, Apple signing, Home Screen widget installation, Google OAuth, Drive transfer, iCloud, successful Files-provider transfer, real notification delivery, successful transfer through a share extension, or App Store review readiness. Earlier signed development acceptance remains valid only for its exact prior build. The new onboarding/currency/theme/widget milestone is Simulator-validated and makes no new physical-device claim. Each implemented integration needs its own end-to-end acceptance before any release claim.
+# 2026-09-05 — encrypted receive, durable archive-before-ACK checkpoint
+
+- Added strict `TeamDeliveryReceiveCoordinator` coverage for authenticated fetch
+  rebinding, full-audience JWE decryption, canonical payload validation and atomic
+  `TeamInboxStore` archive + ciphertext binding + pending-receipt commit.
+- Receipt schema v2 uses the exact JWE SHA-256; migration preserves archives and
+  drops only unsafe v1 plaintext-digest receipts until authenticated refetch.
+  Local ACK bytes are frozen, but no network route is active.
+- Focused command `swift test --filter TeamDeliveryJWETests`: **6/6 pass**.
+- Focused migration test: **1/1 pass**.
+- Complete isolated command `swift test --scratch-path /private/tmp/pinbook-spm-ack`:
+  **382 tests / 37 suites pass**.
+- Unsigned Release iOS Simulator `xcodebuild` against SDK 26.5: **BUILD SUCCEEDED**
+  for arm64 and x86_64; bundle identity remained `com.zaidsafa.pinbook.ios`.
+- Boundary: server commit `33410b6c` has no authenticated ACK HTTP route. The
+  local receipt outbox is therefore unsent/default-off. No phone, provider,
+  server, TestFlight, archive or production action was performed.

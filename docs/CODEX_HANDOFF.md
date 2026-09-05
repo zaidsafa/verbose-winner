@@ -49,6 +49,22 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Server checkpoint `33410b6cdefb4fc2307a152d7de242650c61febb`
+  now has the matching inactive iOS encrypted receive boundary. A fetched result
+  is rebound to the exact signed delivery/team/account/device/enrollment, its JWE
+  size/hash/lifetime and independently authenticated audience are rechecked, and
+  canonical plaintext is decrypted and validated before the protected inbox
+  atomically commits the note, ciphertext hash binding and exact pending receipt.
+  The frozen ACK body uses `deliveryId` + JWE SHA-256; it is not routed to HTTP.
+  Schema v2 preserves v1 archives but drops plaintext-digest receipts until a
+  fresh authenticated fetch. Exact replay is idempotent; changed bindings,
+  author or ciphertext fail before archive/receipt. Focused receive/JWE **6/6**,
+  migration **1/1**, complete Swift core **382/382**, and unsigned
+  Release iOS Simulator build pass. No authenticated ACK server route is active yet,
+  so the receipt outbox remains durable and unsent/default-off. No provider,
+  phone, server, TestFlight or production action occurred. See
+  `TEAM_DELIVERY_RECEIVE_IOS.md` and `VALIDATION.md`.
+
 - Android/server commits
   `6ac3ba802ab637ceb9eb9be7ecf8f424512f47e3` and
   `52f35617a691f27fafbde9ba6ab1a26e319acda3` now have a matching inactive iOS
