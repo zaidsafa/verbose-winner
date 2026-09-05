@@ -241,6 +241,17 @@ final class TeamDeviceCustody: @unchecked Sendable {
         _ = try now(since: row.snapshot.observedAt)
         return row.snapshot
     }
+    func deleteAccount(audience: String, accountID: String,
+                       authorityEpoch: String) throws {
+        let scope = try TeamDeviceScope(audience: audience, accountID: accountID,
+                                        authorityEpoch: authorityEpoch)
+        let (raw, old) = try read()
+        var index = old
+        index.records.removeAll { $0.snapshot.scope == scope }
+        guard index.records.count != old.records.count else { return }
+        index.revision = UUID()
+        try storage.replace(expected: raw, next: index.encoded())
+    }
     func requireCurrent(_ expected: TeamDeviceSnapshot) throws { _ = try current(expected) }
     private func current(_ expected: TeamDeviceSnapshot) throws -> TeamDeviceRecord {
         let (_, index) = try read()

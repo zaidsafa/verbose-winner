@@ -169,6 +169,78 @@ private final class AuthStubProtocol: URLProtocol, @unchecked Sendable {
 }
 
 @Suite(.serialized)
+struct TeamStoreComplianceHTTPTests {
+    private func fixture(_ plans: [StubResponse]) throws
+        -> (TeamAuthHTTPClient, String, TeamAccountSessionSnapshot) {
+        let host = "compliance-\(UUID().uuidString.lowercased()).invalid"
+        let origin = URL(string: "https://\(host)")!
+        AuthStubProtocol.state.configure(host, plans)
+        let pair = try TeamAuthWire.pair(pairJSON())
+        let snapshot = try TeamAccountSessionCodec.active(pair: pair,
+            scope: .init(origin: origin, providerID: "public-ios"), now: 1_000)
+        return (try TeamAuthHTTPClient(origin: origin,
+            protocolClasses: [AuthStubProtocol.self], clock: { 1_000 }), host, snapshot)
+    }
+
+    @Test func termsAndReportUserUseExact027BodiesAndReceipts() async throws {
+        let terms = try json(["type": "pinbook-terms-acceptance-v1",
+            "acceptanceId": "request-terms", "accountId": "public-account",
+            "termsVersion": TeamStoreComplianceHTTPTransport.termsVersion,
+            "privacyVersion": TeamStoreComplianceHTTPTransport.privacyVersion,
+            "acceptedAt": 1_000, "retentionRule": "ACCOUNT_LIFETIME_PLUS_37_DAYS"])
+        let report = try json(["type": "pinbook-report-receipt-v1",
+            "reportId": "request-report", "reportKind": "USER",
+            "reporterAccountId": "public-account", "teamId": "public-team",
+            "targetId": "reported-account", "reasonCode": "SCAM", "state": "RECEIVED",
+            "receivedAt": 2_000, "metadataExpiresAt": 7_776_002_000])
+        let (http, host, snapshot) = try fixture([
+            .init(chunks: [terms]), .init(chunks: [report])
+        ])
+        defer { AuthStubProtocol.state.clear(host) }
+        let ticket = try TeamAccountAccessTicket(snapshot: snapshot)
+        let termsTransport = TeamStoreComplianceHTTPTransport(http: http,
+            ticket: ticket, requestID: { "request-report" })
+        let receipt = try await termsTransport.acceptTerms(requestID: "request-terms")
+        #expect(receipt == .init(acceptanceID: "request-terms",
+                                accountID: "public-account", acceptedAt: 1_000))
+        try await termsTransport.execute(accountID: "public-account", teamID: "public-team",
+            action: .reportUser(userID: "reported-account", reason: "SCAM"))
+        let requests = AuthStubProtocol.state.requests(host)
+        #expect(requests.map(\.path) == ["/api/v1/store/terms/accept",
+                                         "/api/v1/store/reports/user"])
+        #expect(requests.allSatisfy { $0.header("Authorization") == "Bearer \(tokenA)" })
+        let reportBody = try #require(JSONSerialization.jsonObject(with: requests[1].body)
+            as? [String: String])
+        #expect(reportBody == ["type": "pinbook-report-user-v1",
+            "requestId": "request-report", "teamId": "public-team",
+            "reportedAccountId": "reported-account", "reasonCode": "SCAM"])
+    }
+
+    @Test func deletionStatusIsCredentialBoundAndSendsNoBearer() async throws {
+        let response = try json(["type": "pinbook-account-deletion-status-v1",
+            "deletionId": "delete-1", "accountId": "public-account", "state": "COMPLETED",
+            "requestedAt": 1_000, "authorityRevokedAt": 2_000,
+            "cleanupScheduledAt": 3_000, "completedAt": 4_000,
+            "statusExpiresAt": 3_196_804_000])
+        let (http, host, snapshot) = try fixture([.init(chunks: [response])])
+        defer { AuthStubProtocol.state.clear(host) }
+        let origin = String(snapshot.scope.origin.absoluteString.dropLast())
+        let binding = try TeamAccountDeletionBinding(origin: origin,
+            providerID: "public-ios", authorityEpoch: "epoch-1",
+            accountID: "public-account", custodyID: "custody-1")
+        let credential = try TeamAccountDeletionStatusCredential(bytes: Data(repeating: 7, count: 32))
+        let request = try TeamAccountDeletionStatusRequest(deletionID: "delete-1",
+                                                            credential: credential)
+        let result = try await TeamStoreComplianceHTTPTransport(http: http)
+            .deletionStatus(binding: binding, request: request)
+        #expect(result.state == .completed)
+        let captured = try #require(AuthStubProtocol.state.requests(host).first)
+        #expect(captured.path == "/api/v1/account/deletion/status")
+        #expect(captured.header("Authorization") == nil)
+    }
+}
+
+@Suite(.serialized)
 struct TeamOnboardingHTTPTests {
     private func fixture(_ plans: [StubResponse], clock: @escaping @Sendable () -> Int64 = { 1_000 }) throws -> (TeamAuthHTTPClient, String, TeamAccountSessionSnapshot) {
         let host = "onboarding-\(UUID().uuidString.lowercased()).invalid"

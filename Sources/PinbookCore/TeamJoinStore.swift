@@ -174,6 +174,17 @@ final class TeamJoinStore: @unchecked Sendable {
         _ = try now(since: rows.map(\.checkedAt).max() ?? 0)
         return rows.sorted { $0.teamID < $1.teamID }
     }
+    func deleteAccount(audience: String, accountID: String,
+                       authorityEpoch: String) throws {
+        let scope = try TeamDeviceScope(audience: audience, accountID: accountID,
+                                        authorityEpoch: authorityEpoch)
+        let (raw, old) = try read()
+        var index = old
+        index.records.removeAll { $0.scope == scope }
+        guard index.records.count != old.records.count else { return }
+        index.revision = UUID()
+        try storage.replace(expected: raw, next: index.encoded())
+    }
     func load(scope: TeamDeviceScope, teamID: String) throws -> TeamJoinSnapshot? {
         guard TeamAuthWire.identifier(teamID) else { throw TeamJoinError.invalidInput }
         return try list(scope: scope).first { $0.teamID == teamID }

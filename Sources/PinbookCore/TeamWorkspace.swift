@@ -27,9 +27,14 @@ protocol TeamTermsStoring: Sendable {
     func remove(accountID: String, teamID: String) throws
 }
 
+protocol TeamAccountTermsDeleting: Sendable {
+    func removeAll(accountID: String) throws
+}
+
 /// Device-local, non-synchronizing consent record. It contains no invitation,
 /// session, note or provider credential.
-final class UserDefaultsTeamTermsStore: TeamTermsStoring, @unchecked Sendable {
+final class UserDefaultsTeamTermsStore: TeamTermsStoring, TeamAccountTermsDeleting,
+    @unchecked Sendable {
     private let defaults: UserDefaults
     private let lock = NSLock()
     init(suiteName: String = "com.zaidsafa.pinbook.team-terms.v1") throws {
@@ -59,6 +64,19 @@ final class UserDefaultsTeamTermsStore: TeamTermsStoring, @unchecked Sendable {
     func remove(accountID: String, teamID: String) throws {
         try validate(accountID, teamID)
         lock.withLock { defaults.removeObject(forKey: key(accountID, teamID)) }
+    }
+    func removeAll(accountID: String) throws {
+        guard TeamAuthWire.identifier(accountID) else { throw TeamWorkspaceError.invalidInput }
+        lock.withLock {
+            for (key, value) in defaults.dictionaryRepresentation()
+                where key.hasPrefix("terms.") {
+                guard let data = value as? Data,
+                      let acceptance = try? JSONDecoder().decode(
+                        TeamTermsAcceptance.self, from: data),
+                      acceptance.accountID == accountID else { continue }
+                defaults.removeObject(forKey: key)
+            }
+        }
     }
     private func key(_ accountID: String, _ teamID: String) -> String {
         let digest = SHA256.hash(data: Data((accountID + "\u{0}" + teamID).utf8))
@@ -356,6 +374,226 @@ enum TeamSafetyAction: Equatable, Sendable {
     case reportNote(noteID: String, authorID: String, reason: String)
     case reportUser(userID: String, reason: String)
     case blockUser(userID: String)
+    case unblockUser(userID: String)
+}
+
+enum TeamReportReason: String, CaseIterable, Codable, Sendable {
+    case spam = "SPAM"
+    case harassment = "HARASSMENT"
+    case scam = "SCAM"
+    case illegal = "ILLEGAL"
+    case other = "OTHER"
+}
+
+enum TeamStoreComplianceRoute: String, Sendable {
+    case acceptTerms = "store/terms/accept"
+    case reportNote = "store/reports/note"
+    case reportUser = "store/reports/user"
+    case blockUser = "store/blocks/block"
+    case unblockUser = "store/blocks/unblock"
+    case requestDeletion = "account/deletion/request"
+    case deletionStatus = "account/deletion/status"
+
+    var requiresSession: Bool { self != .deletionStatus }
+}
+
+struct TeamStoreTermsReceipt: Equatable, Sendable {
+    let acceptanceID: String
+    let accountID: String
+    let acceptedAt: Int64
+}
+
+protocol TeamStoreTermsTransport: Sendable {
+    func acceptTerms(requestID: String) async throws -> TeamStoreTermsReceipt
+}
+
+/// Exact migration-027 store-compliance wire adapter. Construction is inert;
+/// requests occur only from an explicit user action and only when a live ticket
+/// was deliberately injected. Deletion status is the sole unauthenticated route.
+struct TeamStoreComplianceHTTPTransport: TeamStoreTermsTransport,
+    TeamSafetyTransport, TeamAccountDeletionDispatchTransport,
+    TeamAccountDeletionStatusTransport, Sendable {
+    static let termsVersion = "pinbook-terms-2026-09-05-v1"
+    static let privacyVersion = "pinbook-privacy-2026-09-05-v1"
+    private let http: TeamAuthHTTPClient
+    private let ticket: TeamAccountAccessTicket?
+    private let requestID: @Sendable () -> String
+
+    init(http: TeamAuthHTTPClient, ticket: TeamAccountAccessTicket? = nil,
+         requestID: @escaping @Sendable () -> String = { UUID().uuidString }) {
+        self.http = http
+        self.ticket = ticket
+        self.requestID = requestID
+    }
+
+    func acceptTerms(requestID: String) async throws -> TeamStoreTermsReceipt {
+        let ticket = try protectedTicket()
+        guard TeamAuthWire.identifier(requestID) else { throw TeamWorkspaceError.invalidInput }
+        let response = try await http.storeCompliance(.acceptTerms, fields: [
+            "type": "pinbook-terms-accept-v1", "requestId": requestID,
+            "termsVersion": Self.termsVersion, "privacyVersion": Self.privacyVersion
+        ], ticket: ticket)
+        let value = try TeamAuthWire.object(response.data, keys: ["type", "acceptanceId",
+            "accountId", "termsVersion", "privacyVersion", "acceptedAt", "retentionRule"])
+        guard value["type"] as? String == "pinbook-terms-acceptance-v1",
+              try TeamAuthWire.string(value, "acceptanceId") == requestID,
+              try TeamAuthWire.string(value, "accountId") == ticket.accountID,
+              value["termsVersion"] as? String == Self.termsVersion,
+              value["privacyVersion"] as? String == Self.privacyVersion,
+              value["retentionRule"] as? String == "ACCOUNT_LIFETIME_PLUS_37_DAYS" else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        return .init(acceptanceID: requestID, accountID: ticket.accountID,
+                     acceptedAt: try TeamAuthWire.time(value, "acceptedAt"))
+    }
+
+    func execute(accountID: String, teamID: String,
+                 action: TeamSafetyAction) async throws {
+        let ticket = try protectedTicket()
+        guard accountID == ticket.accountID, TeamAuthWire.identifier(teamID) else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let requestID = requestID()
+        guard TeamAuthWire.identifier(requestID) else { throw TeamWorkspaceError.invalidInput }
+        let route: TeamStoreComplianceRoute
+        let fields: [String: Any]
+        switch action {
+        case .reportNote(let noteID, let authorID, let reason):
+            guard TeamAuthWire.identifier(noteID), TeamAuthWire.identifier(authorID),
+                  let reason = TeamReportReason(rawValue: reason) else {
+                throw TeamWorkspaceError.invalidInput
+            }
+            route = .reportNote
+            fields = ["type": "pinbook-report-note-v1", "requestId": requestID,
+                      "teamId": teamID, "noteId": noteID, "reasonCode": reason.rawValue]
+        case .reportUser(let userID, let reason):
+            guard TeamAuthWire.identifier(userID), userID != accountID,
+                  let reason = TeamReportReason(rawValue: reason) else {
+                throw TeamWorkspaceError.invalidInput
+            }
+            route = .reportUser
+            fields = ["type": "pinbook-report-user-v1", "requestId": requestID,
+                      "teamId": teamID, "reportedAccountId": userID,
+                      "reasonCode": reason.rawValue]
+        case .blockUser(let userID), .unblockUser(let userID):
+            guard TeamAuthWire.identifier(userID), userID != accountID else {
+                throw TeamWorkspaceError.invalidInput
+            }
+            let blocked: Bool
+            if case .blockUser = action { blocked = true } else { blocked = false }
+            route = blocked ? .blockUser : .unblockUser
+            fields = ["type": blocked ? "pinbook-block-user-v1" : "pinbook-unblock-user-v1",
+                      "requestId": requestID, "blockedAccountId": userID]
+        }
+        let response = try await http.storeCompliance(route, fields: fields, ticket: ticket)
+        if route == .reportNote || route == .reportUser {
+            try validateReport(response.data, requestID: requestID, teamID: teamID,
+                               action: action, accountID: accountID)
+        } else {
+            try validateBlock(response.data, requestID: requestID,
+                              action: action, accountID: accountID)
+        }
+    }
+
+    func requestDeletion(binding: TeamAccountDeletionBinding,
+                         request: TeamAccountDeletionRequest) async throws
+        -> TeamAccountDeletionStatus {
+        let ticket = try protectedTicket()
+        guard binding.accountID == ticket.accountID,
+              binding.providerID == ticket.scope.providerID,
+              binding.origin + "/" == ticket.scope.origin.absoluteString else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let response = try await http.storeCompliance(.requestDeletion, fields: [
+            "type": request.type, "requestId": request.requestID,
+            "confirmation": request.confirmation, "statusToken": request.statusToken
+        ], ticket: ticket)
+        return try deletion(response.data, binding: binding,
+                            deletionID: request.requestID)
+    }
+
+    func deletionStatus(binding: TeamAccountDeletionBinding,
+                        request: TeamAccountDeletionStatusRequest) async throws
+        -> TeamAccountDeletionStatus {
+        guard ticket == nil, TeamAuthWire.identifier(binding.accountID),
+              TeamAuthWire.identifier(request.deletionID),
+              TeamDeviceEnrollmentWire.canonicalAudience(binding.origin) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        let response = try await http.storeCompliance(.deletionStatus, fields: [
+            "type": request.type, "deletionId": request.deletionID,
+            "statusToken": request.statusToken
+        ], ticket: nil)
+        return try deletion(response.data, binding: binding,
+                            deletionID: request.deletionID)
+    }
+
+    private func protectedTicket() throws -> TeamAccountAccessTicket {
+        guard let ticket else { throw TeamWorkspaceError.unavailable }
+        return ticket
+    }
+
+    private func validateReport(_ data: Data, requestID: String, teamID: String,
+                                action: TeamSafetyAction, accountID: String) throws {
+        let value = try TeamAuthWire.object(data, keys: ["type", "reportId", "reportKind",
+            "reporterAccountId", "teamId", "targetId", "reasonCode", "state",
+            "receivedAt", "metadataExpiresAt"])
+        let kind: String, target: String, reason: String
+        switch action {
+        case .reportNote(let noteID, _, let code): kind = "NOTE"; target = noteID; reason = code
+        case .reportUser(let userID, let code): kind = "USER"; target = userID; reason = code
+        default: throw TeamWorkspaceError.bindingMismatch
+        }
+        let received = try TeamAuthWire.time(value, "receivedAt")
+        let expires = try TeamAuthWire.time(value, "metadataExpiresAt")
+        let expected = received.addingReportingOverflow(7_776_000_000)
+        guard value["type"] as? String == "pinbook-report-receipt-v1",
+              try TeamAuthWire.string(value, "reportId") == requestID,
+              value["reportKind"] as? String == kind,
+              try TeamAuthWire.string(value, "reporterAccountId") == accountID,
+              try TeamAuthWire.string(value, "teamId") == teamID,
+              try TeamAuthWire.string(value, "targetId") == target,
+              value["reasonCode"] as? String == reason,
+              value["state"] as? String == "RECEIVED", !expected.overflow,
+              expires == expected.partialValue else { throw TeamAuthHTTPError.invalidResponse }
+    }
+
+    private func validateBlock(_ data: Data, requestID: String,
+                               action: TeamSafetyAction, accountID: String) throws {
+        let value = try TeamAuthWire.object(data, keys: ["type", "requestId", "accountId",
+            "blockedAccountId", "state", "changedAt", "retentionRule"])
+        let blocked: Bool, target: String
+        switch action {
+        case .blockUser(let userID): blocked = true; target = userID
+        case .unblockUser(let userID): blocked = false; target = userID
+        default: throw TeamWorkspaceError.bindingMismatch
+        }
+        _ = try TeamAuthWire.time(value, "changedAt")
+        guard value["type"] as? String == "pinbook-user-block-status-v1",
+              try TeamAuthWire.string(value, "requestId") == requestID,
+              try TeamAuthWire.string(value, "accountId") == accountID,
+              try TeamAuthWire.string(value, "blockedAccountId") == target,
+              value["state"] as? String == (blocked ? "BLOCKED" : "UNBLOCKED"),
+              value["retentionRule"] as? String
+                == (blocked ? "UNTIL_UNBLOCK_OR_ACCOUNT_DELETION" : "37_DAYS") else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+    }
+
+    private func deletion(_ data: Data, binding: TeamAccountDeletionBinding,
+                          deletionID: String) throws -> TeamAccountDeletionStatus {
+        _ = try TeamAuthWire.object(data, keys: ["type", "deletionId", "accountId", "state",
+            "requestedAt", "authorityRevokedAt", "cleanupScheduledAt", "completedAt",
+            "statusExpiresAt"])
+        let result: TeamAccountDeletionStatus
+        do { result = try JSONDecoder().decode(TeamAccountDeletionStatus.self, from: data) }
+        catch { throw TeamAuthHTTPError.invalidResponse }
+        guard result.deletionID == deletionID,
+              result.accountID == binding.accountID else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        return result
+    }
 }
 protocol TeamSafetyTransport: Sendable {
     func execute(accountID: String, teamID: String, action: TeamSafetyAction) async throws
@@ -388,7 +626,7 @@ actor TeamSafetyCoordinator {
             guard TeamAuthWire.identifier(noteID) else { throw TeamWorkspaceError.invalidInput }
             userID = authorID; reason = value
         case .reportUser(let value, let text): userID = value; reason = text
-        case .blockUser(let value): userID = value; reason = nil
+        case .blockUser(let value), .unblockUser(let value): userID = value; reason = nil
         }
         guard TeamAuthWire.identifier(userID), userID != accountID else {
             throw TeamWorkspaceError.invalidInput
@@ -1005,6 +1243,47 @@ protocol TeamAccountSecureCustodyDeleting: Sendable {
                 binding: TeamAccountDeletionBinding) throws
 }
 
+/// Production account-global local erasure. Each SQLite store is shared across
+/// team scopes, so one bound handle removes every row for the account. Agreement
+/// identities must include every enrollment discovered for the account before
+/// deletion starts. Each step is idempotent for restart recovery.
+struct TeamAccountLocalStoreCleanup: TeamAccountSecureCustodyDeleting, Sendable {
+    let outbox: TeamOutgoingStore
+    let inbox: TeamInboxStore
+    let agreements: [TeamAgreementKeyCustody]
+    let device: TeamDeviceCustody
+    let joins: TeamJoinStore
+    let terms: any TeamAccountTermsDeleting
+    let sessions: TeamAccountSessionStore
+
+    func delete(step: TeamAccountDeletionCleanupStep,
+                binding: TeamAccountDeletionBinding) throws {
+        guard let origin = URL(string: binding.origin) else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let scope = try TeamAccountSessionScope(
+            origin: origin, providerID: binding.providerID)
+        switch step {
+        case .teamCacheAndArchive:
+            try outbox.deleteAccountData(accountID: binding.accountID)
+            try inbox.deleteAccountData(accountID: binding.accountID)
+            try joins.deleteAccount(audience: binding.origin,
+                                    accountID: binding.accountID,
+                                    authorityEpoch: binding.authorityEpoch)
+        case .agreementIdentity:
+            for agreement in agreements { try agreement.deleteIdentity() }
+        case .deviceSigningIdentity:
+            try device.deleteAccount(audience: binding.origin,
+                                     accountID: binding.accountID,
+                                     authorityEpoch: binding.authorityEpoch)
+        case .termsAcceptance:
+            try terms.removeAll(accountID: binding.accountID)
+        case .accountSession:
+            try sessions.removeCurrent(scope: scope, consent: true)
+        }
+    }
+}
+
 struct TeamAccountDeletionStartupGate: Sendable {
     let progressStore: any TeamAccountDeletionProgressStoring
     func blocksTeamActions(accountID: String) throws -> Bool {
@@ -1365,6 +1644,130 @@ struct TeamWorkspaceAccountComposition: Sendable {
     }
 }
 
+struct TeamWorkspacePublicBuildConfiguration: Equatable, Sendable {
+    static let serviceOriginKey = "PinbookTeamServiceOrigin"
+    static let appleClientIDKey = "PinbookTeamAppleClientID"
+    static let googleNativeClientIDKey = "PinbookTeamGoogleNativeClientID"
+    static let googleServerClientIDKey = "PinbookTeamGoogleServerClientID"
+    static let authorityEpochKey = "PinbookTeamAuthorityEpoch"
+    static let termsURLKey = "PinbookTeamTermsURL"
+    static let privacyURLKey = "PinbookTeamPrivacyURL"
+    static let invitationHostKey = "PinbookTeamInvitationHost"
+
+    let serviceOrigin: URL
+    let appleClientID: String
+    let googleNativeClientID: String
+    let googleServerClientID: String
+    let authorityEpoch: String
+    let termsURL: URL
+    let privacyURL: URL
+    let invitationHost: String
+
+    static func parse(_ values: [String: String]) throws -> TeamWorkspaceBuildConfiguration {
+        let keys = [serviceOriginKey, appleClientIDKey, googleNativeClientIDKey,
+                    googleServerClientIDKey, authorityEpochKey, termsURLKey,
+                    privacyURLKey, invitationHostKey]
+        let normalized = Dictionary(uniqueKeysWithValues: keys.map {
+            ($0, values[$0]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
+        })
+        if normalized.values.allSatisfy(\.isEmpty) { return .disabled }
+        guard normalized.values.allSatisfy({ !$0.isEmpty }),
+              let service = URL(string: normalized[serviceOriginKey]!),
+              let terms = URL(string: normalized[termsURLKey]!),
+              let privacy = URL(string: normalized[privacyURLKey]!),
+              validOrigin(service), validPolicyURL(terms), validPolicyURL(privacy),
+              validClientID(normalized[appleClientIDKey]!),
+              validClientID(normalized[googleNativeClientIDKey]!),
+              validClientID(normalized[googleServerClientIDKey]!),
+              TeamAuthWire.identifier(normalized[authorityEpochKey]!),
+              validHost(normalized[invitationHostKey]!),
+              service.host?.lowercased() == normalized[invitationHostKey]!.lowercased() else {
+            throw TeamAuthHTTPError.invalidConfiguration
+        }
+        return .enabled(.init(serviceOrigin: service,
+            appleClientID: normalized[appleClientIDKey]!,
+            googleNativeClientID: normalized[googleNativeClientIDKey]!,
+            googleServerClientID: normalized[googleServerClientIDKey]!,
+            authorityEpoch: normalized[authorityEpochKey]!, termsURL: terms,
+            privacyURL: privacy, invitationHost: normalized[invitationHostKey]!.lowercased()))
+    }
+
+    static func parse(bundle: Bundle) throws -> TeamWorkspaceBuildConfiguration {
+        let keys = [serviceOriginKey, appleClientIDKey, googleNativeClientIDKey,
+                    googleServerClientIDKey, authorityEpochKey, termsURLKey,
+                    privacyURLKey, invitationHostKey]
+        return try parse(Dictionary(uniqueKeysWithValues: keys.map {
+            ($0, bundle.object(forInfoDictionaryKey: $0) as? String ?? "")
+        }))
+    }
+
+    private static func validOrigin(_ url: URL) -> Bool {
+        guard canonicalHTTPS(url), url.path.isEmpty || url.path == "/" else { return false }
+        return url.query == nil && url.fragment == nil
+    }
+    private static func validPolicyURL(_ url: URL) -> Bool {
+        canonicalHTTPS(url) && !url.path.isEmpty && url.path != "/"
+            && url.query == nil && url.fragment == nil
+    }
+    private static func canonicalHTTPS(_ url: URL) -> Bool {
+        guard url.scheme == "https", url.user == nil, url.password == nil,
+              url.port == nil, let host = url.host, validHost(host) else { return false }
+        return url.absoluteString.unicodeScalars.allSatisfy { $0.value >= 0x21 && $0.value <= 0x7e }
+    }
+    private static func validHost(_ host: String) -> Bool {
+        guard host == host.lowercased(), host.count <= 253, host.contains("."),
+              !host.hasPrefix("."), !host.hasSuffix("."),
+              host.utf8.allSatisfy({ (97...122).contains($0) || (48...57).contains($0)
+                  || $0 == 45 || $0 == 46 }) else { return false }
+        var ipv4 = in_addr(), ipv6 = in6_addr()
+        return host.withCString { inet_pton(AF_INET, $0, &ipv4) } != 1
+            && host.withCString { inet_pton(AF_INET6, $0, &ipv6) } != 1
+    }
+    private static func validClientID(_ value: String) -> Bool {
+        (3...512).contains(value.utf8.count) && value.utf8.allSatisfy {
+            (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0)
+                || $0 == 45 || $0 == 46 || $0 == 95
+        }
+    }
+}
+
+enum TeamWorkspaceBuildConfiguration: Equatable, Sendable {
+    case disabled
+    case enabled(TeamWorkspacePublicBuildConfiguration)
+}
+
+/// Concrete, inert network foundation. The same strict client implements the
+/// frozen auth, onboarding, device registration, invitation, audience and
+/// delivery HTTP contracts; compliance adds migration 027. No request is made
+/// during construction and there is no fallback endpoint.
+struct TeamWorkspaceHTTPComposition: Sendable {
+    let configuration: TeamWorkspacePublicBuildConfiguration
+    let http: TeamAuthHTTPClient
+    let sessions: TeamAccountSessionStore
+    let accounts: TeamWorkspaceAccountComposition
+    let deletionStatus: TeamStoreComplianceHTTPTransport
+
+    init(configuration: TeamWorkspacePublicBuildConfiguration,
+         sessions: TeamAccountSessionStore = .init()) throws {
+        let http = try TeamAuthHTTPClient(origin: configuration.serviceOrigin)
+        self.configuration = configuration
+        self.http = http
+        self.sessions = sessions
+        self.accounts = .init(sessions: sessions, transport: http)
+        self.deletionStatus = .init(http: http)
+    }
+
+    func scope(for provider: TeamNativeSignInProvider) throws -> TeamAccountSessionScope {
+        try .init(origin: configuration.serviceOrigin,
+                  providerID: provider == .apple ? "apple" : "google")
+    }
+
+    func compliance(for snapshot: TeamAccountSessionSnapshot) throws
+        -> TeamStoreComplianceHTTPTransport {
+        .init(http: http, ticket: try TeamAccountAccessTicket(snapshot: snapshot))
+    }
+}
+
 struct TeamWorkspaceProductionComposition: Sendable {
     let accounts: TeamWorkspaceAccountComposition
     let deletionRecovery: TeamAccountDeletionAppStartRecovery
@@ -1379,18 +1782,44 @@ protocol TeamWorkspaceSessionBootstrapping: Sendable {
 
 enum TeamWorkspaceUserAction: Equatable, Sendable {
     case signIn(TeamNativeSignInProvider)
+    case createTeam
+    case issueInvitation(TeamInvitationRole)
     case acceptTerms
     case sendNote(String)
     case refreshInbox
     case reportNote(noteID: String, authorID: String, reason: String)
     case reportUser(userID: String, reason: String)
     case blockUser(userID: String)
+    case unblockUser(userID: String)
     case openInvitation(URL)
     case deleteAccount(confirmation: String)
 }
 
 protocol TeamWorkspaceUserActionHandling: Sendable {
     func perform(_ action: TeamWorkspaceUserAction) async throws
+}
+
+struct TeamWorkspacePresentedNote: Identifiable, Equatable, Sendable {
+    let id: String
+    let authorID: String
+    let body: String
+    let savedAt: Int64
+}
+
+struct TeamWorkspacePresentedMember: Identifiable, Equatable, Sendable {
+    let id: String
+    let isBlocked: Bool
+}
+
+struct TeamWorkspacePresentation: Equatable, Sendable {
+    static let empty = Self(notes: [], members: [], invitation: nil)
+    let notes: [TeamWorkspacePresentedNote]
+    let members: [TeamWorkspacePresentedMember]
+    let invitation: TeamInvitationShareItem?
+}
+
+protocol TeamWorkspacePresentationProviding: Sendable {
+    func presentation() async throws -> TeamWorkspacePresentation
 }
 
 struct TeamWorkspaceInvitationRouter: Sendable {
@@ -1439,6 +1868,13 @@ enum TeamWorkspaceRuntimeConfiguration: Sendable {
     var userActions: (any TeamWorkspaceUserActionHandling)? {
         guard case .injected(let composition) = self else { return nil }
         return composition.userActions
+    }
+    func presentation() async throws -> TeamWorkspacePresentation {
+        guard case .injected(let composition) = self,
+              let provider = composition.userActions as? any TeamWorkspacePresentationProviding else {
+            return .empty
+        }
+        return try await provider.presentation()
     }
     func invitation(from url: URL) -> TeamInvitationLink? {
         guard case .injected(let composition) = self else { return nil }
@@ -1635,5 +2071,90 @@ struct TeamWorkspaceConnectedComposition: Sendable {
     private func requireTeamActionsAllowed() throws {
         try TeamAccountDeletionStartupGate(progressStore: deletionProgress)
             .requireTeamActionsAllowed(accountID: accountID)
+    }
+}
+
+/// Functional user-action owner for an already authenticated, registered and
+/// joined account. It drives the real protected stores and frozen HTTP contracts;
+/// pre-connection sign-in/create/join remains the responsibility of the explicit
+/// onboarding owner so no UI action can invent missing authority.
+actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
+    TeamWorkspacePresentationProviding {
+    private let connected: TeamWorkspaceConnectedComposition
+    private let http: TeamAuthHTTPClient
+    private let termsTransport: any TeamStoreTermsTransport
+    private let invitationOrigin: String
+    private var latestInvitation: TeamInvitationShareItem?
+    private var blockedAccountIDs = Set<String>()
+    private var working = false
+
+    init(connected: TeamWorkspaceConnectedComposition, http: TeamAuthHTTPClient,
+         termsTransport: any TeamStoreTermsTransport,
+         invitationOrigin: String) throws {
+        _ = try TeamWorkspaceInvitationRouter(expectedOrigin: invitationOrigin)
+        self.connected = connected
+        self.http = http
+        self.termsTransport = termsTransport
+        self.invitationOrigin = invitationOrigin
+    }
+
+    func perform(_ action: TeamWorkspaceUserAction) async throws {
+        guard !working else { throw TeamWorkspaceError.busy }
+        working = true
+        defer { working = false }
+        switch action {
+        case .acceptTerms:
+            if try connected.terms.load(accountID: connected.accountID,
+                                        teamID: connected.teamID) != nil { return }
+            let receipt = try await termsTransport.acceptTerms(requestID: UUID().uuidString)
+            guard receipt.accountID == connected.accountID else {
+                throw TeamWorkspaceError.bindingMismatch
+            }
+            _ = try TeamTermsGate(store: connected.terms).accept(
+                accountID: connected.accountID, teamID: connected.teamID,
+                acceptedAt: receipt.acceptedAt, explicitConsent: true)
+        case .sendNote(let body):
+            _ = try await connected.sender().queueAndSubmit(body: body)
+        case .refreshInbox:
+            _ = try await connected.receiver().refresh()
+        case .reportNote(let noteID, let authorID, let reason):
+            try await connected.safety().execute(.reportNote(
+                noteID: noteID, authorID: authorID, reason: reason))
+        case .reportUser(let userID, let reason):
+            try await connected.safety().execute(.reportUser(userID: userID, reason: reason))
+        case .blockUser(let userID):
+            try await connected.safety().execute(.blockUser(userID: userID))
+            blockedAccountIDs.insert(userID)
+        case .unblockUser(let userID):
+            try await connected.safety().execute(.unblockUser(userID: userID))
+            blockedAccountIDs.remove(userID)
+        case .issueInvitation(let role):
+            let issued = try await http.issueInvitation(teamID: connected.teamID,
+                enrollmentID: connected.enrollmentID, role: role,
+                session: connected.session)
+            latestInvitation = try TeamInvitationShareItem(origin: invitationOrigin,
+                                                            issued: issued)
+        case .deleteAccount(let confirmation):
+            try await connected.deletion().delete(confirmation: confirmation)
+        case .signIn, .createTeam, .openInvitation:
+            throw TeamWorkspaceError.invalidInput
+        }
+    }
+
+    func presentation() async throws -> TeamWorkspacePresentation {
+        let notes = try connected.inbox.archivePage(limit: 50).notes.map {
+            TeamWorkspacePresentedNote(id: $0.envelope.noteId,
+                authorID: $0.envelope.authorUserId, body: $0.envelope.body,
+                savedAt: $0.savedAt)
+        }
+        let audience = try await connected.remote.audience(
+            teamID: connected.teamID, enrollmentID: connected.enrollmentID)
+        let accountIDs = Set(audience.targets.map(\.accountID))
+            .subtracting([connected.accountID]).sorted()
+        let members = accountIDs.map {
+            TeamWorkspacePresentedMember(id: $0,
+                isBlocked: blockedAccountIDs.contains($0))
+        }
+        return .init(notes: notes, members: members, invitation: latestInvitation)
     }
 }

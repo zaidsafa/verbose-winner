@@ -17,8 +17,11 @@ CHECKPOINT_KEYS = {
     "Block user",
     "Checking account access…",
     "Continue to sign in",
+    "Create a team",
+    "Create member invitation",
     "Delete account",
     "Note ID",
+    "No team notes",
     "Reason",
     "Recovery completed",
     "Refresh now",
@@ -31,6 +34,7 @@ CHECKPOINT_KEYS = {
     "Status",
     "Team workspace",
     "User ID",
+    "Unblock user",
 }
 
 def fail(message: str) -> None:

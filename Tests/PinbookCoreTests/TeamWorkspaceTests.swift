@@ -503,6 +503,72 @@ private func withWorkspaceOutbox(_ body: (TeamOutgoingStore, URL) async throws -
 }
 
 @Suite struct TeamWorkspaceTests {
+    private func validBuildValues() -> [String: String] {
+        [TeamWorkspacePublicBuildConfiguration.serviceOriginKey: "https://team.pinbook.example",
+         TeamWorkspacePublicBuildConfiguration.appleClientIDKey: "com.zaidsafa.pinbook.team",
+         TeamWorkspacePublicBuildConfiguration.googleNativeClientIDKey:
+            "123-native.apps.googleusercontent.com",
+         TeamWorkspacePublicBuildConfiguration.googleServerClientIDKey:
+            "123-server.apps.googleusercontent.com",
+         TeamWorkspacePublicBuildConfiguration.authorityEpochKey: "epoch-1",
+         TeamWorkspacePublicBuildConfiguration.termsURLKey:
+            "https://team.pinbook.example/legal/terms",
+         TeamWorkspacePublicBuildConfiguration.privacyURLKey:
+            "https://team.pinbook.example/legal/privacy",
+         TeamWorkspacePublicBuildConfiguration.invitationHostKey: "team.pinbook.example"]
+    }
+
+    @Test func productionBuildConfigurationIsAllOrEmptyAndDefaultOff() throws {
+        #expect(try TeamWorkspacePublicBuildConfiguration.parse([:]) == .disabled)
+        var partial = validBuildValues()
+        partial[TeamWorkspacePublicBuildConfiguration.googleServerClientIDKey] = ""
+        #expect(throws: TeamAuthHTTPError.invalidConfiguration) {
+            try TeamWorkspacePublicBuildConfiguration.parse(partial)
+        }
+        guard case .enabled(let value) = try TeamWorkspacePublicBuildConfiguration.parse(
+            validBuildValues()) else {
+            Issue.record("complete public configuration did not enable")
+            return
+        }
+        #expect(value.serviceOrigin.absoluteString == "https://team.pinbook.example")
+        #expect(value.invitationHost == "team.pinbook.example")
+        let composition = try TeamWorkspaceHTTPComposition(configuration: value)
+        #expect(try composition.scope(for: .apple).providerID == "apple")
+        #expect(try composition.scope(for: .google).providerID == "google")
+    }
+
+    @Test func productionBuildConfigurationRejectsNonHTTPSIPAndCrossHostInvites() {
+        var values = validBuildValues()
+        values[TeamWorkspacePublicBuildConfiguration.serviceOriginKey] = "http://team.pinbook.example"
+        #expect(throws: TeamAuthHTTPError.invalidConfiguration) {
+            try TeamWorkspacePublicBuildConfiguration.parse(values)
+        }
+        values = validBuildValues()
+        values[TeamWorkspacePublicBuildConfiguration.serviceOriginKey] = "https://127.0.0.1"
+        values[TeamWorkspacePublicBuildConfiguration.invitationHostKey] = "127.0.0.1"
+        #expect(throws: TeamAuthHTTPError.invalidConfiguration) {
+            try TeamWorkspacePublicBuildConfiguration.parse(values)
+        }
+        values = validBuildValues()
+        values[TeamWorkspacePublicBuildConfiguration.invitationHostKey] = "evil.example"
+        #expect(throws: TeamAuthHTTPError.invalidConfiguration) {
+            try TeamWorkspacePublicBuildConfiguration.parse(values)
+        }
+    }
+
+    @Test func outboxAccountCleanupIsBoundAndIdempotent() async throws {
+        try await withWorkspaceOutbox { outbox, _ in
+            _ = try outbox.createDraft(draftId: "alice-1", noteId: "note-1",
+                kind: .noteSubmission, baseRevision: nil, body: "one", createdAt: 1)
+            try outbox.deleteAccountData(accountID: "alice")
+            try outbox.deleteAccountData(accountID: "alice")
+            #expect(try outbox.drafts().isEmpty)
+            #expect(throws: TeamOutgoingError.invalidScope) {
+                try outbox.deleteAccountData(accountID: "bob")
+            }
+        }
+    }
+
     @Test func productionDefaultIsOffAndAppleGoogleUseEquivalentInjectedPath() async throws {
         #expect(!TeamWorkspaceRuntimeConfiguration.productionDefault.isEnabled)
         for (provider, providerID, accountID) in [

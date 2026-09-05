@@ -49,6 +49,22 @@
 	<string>$(PINBOOK_URL_SCHEME)</string>
 	<key>PinbookPersonalGoogleDriveClientID</key>
 	<string>$(PINBOOK_PERSONAL_GOOGLE_DRIVE_CLIENT_ID)</string>
+	<key>PinbookTeamServiceOrigin</key>
+	<string>$(PINBOOK_TEAM_SERVICE_ORIGIN)</string>
+	<key>PinbookTeamAppleClientID</key>
+	<string>$(PINBOOK_TEAM_APPLE_CLIENT_ID)</string>
+	<key>PinbookTeamGoogleNativeClientID</key>
+	<string>$(PINBOOK_TEAM_GOOGLE_NATIVE_CLIENT_ID)</string>
+	<key>PinbookTeamGoogleServerClientID</key>
+	<string>$(PINBOOK_TEAM_GOOGLE_SERVER_CLIENT_ID)</string>
+	<key>PinbookTeamAuthorityEpoch</key>
+	<string>$(PINBOOK_TEAM_AUTHORITY_EPOCH)</string>
+	<key>PinbookTeamTermsURL</key>
+	<string>$(PINBOOK_TEAM_TERMS_URL)</string>
+	<key>PinbookTeamPrivacyURL</key>
+	<string>$(PINBOOK_TEAM_PRIVACY_URL)</string>
+	<key>PinbookTeamInvitationHost</key>
+	<string>$(PINBOOK_TEAM_INVITATION_HOST)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>

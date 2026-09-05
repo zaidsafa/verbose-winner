@@ -295,6 +295,19 @@ public final class TeamInboxStore: @unchecked Sendable {
         }
     }
 
+    /// Account-global erasure across every team/device row in this shared store.
+    /// Child bindings are removed before archives; absence is success.
+    func deleteAccountData(accountID: String) throws {
+        guard accountID == target.userId else { throw TeamDeliveryError.invalidScope }
+        try lock.withLock {
+            try transaction {
+                try execute("DELETE FROM receipt_outbox WHERE account_id=?", [.text(accountID)])
+                try execute("DELETE FROM delivery_ciphertext_binding WHERE account_id=?", [.text(accountID)])
+                try execute("DELETE FROM archive WHERE account_id=?", [.text(accountID)])
+            }
+        }
+    }
+
     /// Account-wide archive export, distinct from the team's live delivery/receipt scope.
     /// Returns authenticated ciphertext only; no plaintext file or key is written to disk.
     public func exportEncryptedAccountArchive(exportedAt: Int64, recoveryKey: SymmetricKey) throws -> String {

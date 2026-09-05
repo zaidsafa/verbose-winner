@@ -1,5 +1,35 @@
 # Validation plan
 
+## 2026-09-05 default-off Team production composition
+
+- Added all-or-empty validation for the public Team service origin, Apple and
+  Google client IDs, authority epoch, Terms/Privacy URLs and invitation host.
+  Empty normal Debug/Release values keep the runtime disabled; partial, non-HTTPS,
+  IP-address or cross-host configurations fail closed.
+- Composed the same strict authenticated HTTP client through onboarding, device,
+  membership, invitation, delivery and migration-027 compliance transports.
+  Added exact Terms, reports, block/unblock and deletion routes without embedding
+  a provider credential, secret or live host.
+- Connected runtime actions now use actual archived notes and audience members,
+  fixed safety reasons, canonical QR/ShareLink invitations, explicit foreground
+  receive/archive-before-ACK and account-global local cleanup.
+- Complete Swift package: **414 tests in 39 suites PASS**.
+- Localization source validation: **371 keys complete across English plus 15
+  translated locales** with intact format tokens. The built app and widget
+  localization plists pass `plutil`; each translated app locale contains all 371
+  keys.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-composition-derived`; bundle `com.zaidsafa.pinbook.ios`,
+  version `0.1.0`, build `3`, with all eight Team production values empty.
+- `Pinbook/Info.plist`, the Xcode project and the opt-in entitlement lint clean;
+  `git diff --check` passes. The AASA generator produced valid JSON with app ID
+  `F98S3VN5NL.com.zaidsafa.pinbook.ios` at
+  `/private/tmp/pinbook-apple-app-site-association`.
+- Production remains default-off. Complete ignored configuration, a concrete
+  pre-connection onboarding owner, migration-028 worker evidence, public AASA/App
+  ID/provisioning and physical iOS/Android staging acceptance remain open. No
+  device/provider/server, signing, archive, TestFlight or production state changed.
+
 ## 2026-09-05 account-global deletion recovery correction
 
 - Replaced the team-scoped binding/gate with one immutable account-global record,
@@ -2237,3 +2267,34 @@ Simulator builds and static inspection alone do not prove physical-device behavi
 - Boundary: no physical device, provider, server, TestFlight or release action.
   Runtime remains default-off pending approved injected services and end-to-end
   visual/accessibility behavior acceptance.
+
+# 2026-09-05 — strict public configuration and compliance composition checkpoint
+
+- Added all-or-empty public configuration and an inert shared HTTP composition
+  covering the already-frozen auth, onboarding, device, invitation, audience,
+  delivery and migration-027 compliance contracts. Empty normal build settings
+  keep production disabled; partial, non-HTTPS, IP-host or cross-host invitation
+  configurations fail closed.
+- Exact synthetic compliance HTTP tests prove Terms acceptance, fixed report
+  reasons and the status-token-only deletion route. The latter sends no bearer.
+- Connected actions now drive protected Terms, encrypted outbox, explicit inbox
+  refresh, member invitation, report/block/unblock and restart-safe deletion.
+  Visible safety actions are derived only from actual archive/member records.
+- Account cleanup now deletes all account rows across the shared outbox and inbox
+  databases, device/join metadata, all discovered agreement identities, every
+  Terms record and the exact session. The deletion journal/status credential is
+  still retained until authoritative `COMPLETED`.
+- ACK behavior remains archive-before-ACK and asynchronous-worker safe: ambiguous
+  and 5xx responses retain the exact durable receipt for identical retry; only
+  exact authenticated `ACKED` or frozen terminal 410 retires it.
+- Focused `TeamWorkspaceTests`: **26/26 pass**. Focused
+  `TeamStoreComplianceHTTPTests`: **2/2 pass**. Complete Swift package:
+  **414 tests / 39 suites pass**, zero failures.
+- Localization validation: **371 keys**, English plus 15 complete translations;
+  the compiled app and widget catalogs exactly match source.
+- Generated AASA JSON validates. `git diff --check` passes. Unsigned Release iOS
+  Simulator build: **BUILD SUCCEEDED** for arm64 and x86_64; bundle identity and
+  version remain `com.zaidsafa.pinbook.ios`, `0.1.0 (3)`.
+- Boundary: no live domain/provider/staging/device/signing/TestFlight/server state
+  changed. Pre-connection runtime ownership, deployment 028 worker evidence,
+  AASA/App ID provisioning and physical iOS/Android acceptance remain gates.

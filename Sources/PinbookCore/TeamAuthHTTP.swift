@@ -6,7 +6,9 @@ public enum TeamAuthServerError: String, Sendable {
     case invalidRequest = "invalid_request", jsonRequired = "json_required"
     case requestTooLarge = "request_too_large", notFound = "not_found"
     case requestTimeout = "request_timeout", invalidCredentials = "invalid_credentials"
-    case capacity, unavailable, uncertain, terminal
+    case reauthenticationRequired = "reauthentication_required"
+    case termsRequired = "terms_required"
+    case conflict, capacity, unavailable, uncertain, terminal
 }
 
 /// No URLs, tokens, raw response bodies or underlying provider errors in diagnostics.
@@ -122,6 +124,9 @@ enum TeamAuthWire {
         case .notFound: expected = 404
         case .requestTimeout: expected = 408
         case .invalidCredentials: expected = 401
+        case .reauthenticationRequired: expected = 401
+        case .termsRequired: expected = 403
+        case .conflict: expected = 409
         case .capacity: expected = 429
         case .unavailable, .uncertain: expected = 503
         case .terminal: expected = 410
@@ -483,6 +488,34 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
         let value = clock()
         guard value >= 0, value <= TeamAuthWire.maximumSafeTime else { throw TeamAuthHTTPError.invalidRequest }
         return value
+    }
+
+    func storeCompliance(_ route: TeamStoreComplianceRoute,
+                         fields: [String: Any],
+                         ticket: TeamAccountAccessTicket?) async throws
+        -> (data: Data, receivedAt: Int64) {
+        try Task.checkCancellation()
+        let start = try onboardingTime()
+        let bearer: String?
+        if route.requiresSession {
+            guard let ticket,
+                  ticket.scope.origin.absoluteString
+                    == origin.appendingPathComponent("").absoluteString else {
+                throw TeamAuthHTTPError.invalidRequest
+            }
+            bearer = try ticket.usableToken(now: start)
+        } else {
+            guard ticket == nil else { throw TeamAuthHTTPError.invalidRequest }
+            bearer = nil
+        }
+        let data = try await sendPath(route.rawValue, fields: fields,
+            bearer: bearer, expectedStatus: 200, maximumResponseBytes: 4096)
+        let end = clock()
+        guard end >= start, end <= TeamAuthWire.maximumSafeTime else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        if let ticket { _ = try ticket.usableToken(now: end) }
+        return (data, end)
     }
 
     func acceptsDeviceBinding(_ binding: TeamDeviceEnrollmentWire.Binding, ticket: TeamAccountAccessTicket) -> Bool {

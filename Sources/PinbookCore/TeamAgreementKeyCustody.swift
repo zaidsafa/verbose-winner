@@ -81,6 +81,10 @@ protocol TeamAgreementKeyStoring: Sendable {
     func load(scope: String) throws -> Data?
     /// Returns false only when another exact-scope value already exists.
     func insert(scope: String, sealed: Data) throws -> Bool
+    func remove(scope: String) throws
+}
+extension TeamAgreementKeyStoring {
+    func remove(scope: String) throws { throw TeamAgreementKeyError.unavailable }
 }
 
 struct KeychainTeamAgreementKeyStore: TeamAgreementKeyStoring {
@@ -124,6 +128,12 @@ struct KeychainTeamAgreementKeyStore: TeamAgreementKeyStoring {
         if status == errSecDuplicateItem { return false }
         guard status == errSecSuccess else { throw TeamAgreementKeyError.unavailable }
         return true
+    }
+    func remove(scope: String) throws {
+        let status = SecItemDelete(try base(scope) as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw TeamAgreementKeyError.unavailable
+        }
     }
 }
 
@@ -177,6 +187,7 @@ final class TeamAgreementKeyCustody: @unchecked Sendable {
         }
         let result = try checked(sealed); try requireAccess(); return result
     }
+    func deleteIdentity() throws { try storage.remove(scope: scope.identifier) }
 
     /// Returns a fresh derived key owned by the caller, who must clear it after use.
     func derive(peer: TeamAgreementPublic, algorithm: String, partyU: Data,

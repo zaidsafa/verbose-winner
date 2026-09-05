@@ -1,6 +1,382 @@
 {
   "sourceLanguage": "en",
   "strings": {
+      "Create a team": {
+        "localizations": {
+          "ar": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "إنشاء فريق"
+            }
+          },
+          "tr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Takım oluştur"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "创建团队"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "建立團隊"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Crear un equipo"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Créer une équipe"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Team erstellen"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Criar uma equipe"
+            }
+          },
+          "hi": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "टीम बनाएँ"
+            }
+          },
+          "id": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Buat tim"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "チームを作成"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "팀 만들기"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Создать команду"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Crea un team"
+            }
+          },
+          "ur": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "ٹیم بنائیں"
+            }
+          }
+        }
+      },
+      "Create member invitation": {
+        "localizations": {
+          "ar": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "إنشاء دعوة لعضو"
+            }
+          },
+          "tr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Üye daveti oluştur"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "创建成员邀请"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "建立成員邀請"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Crear invitación de miembro"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Créer une invitation de membre"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Mitgliedseinladung erstellen"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Criar convite de membro"
+            }
+          },
+          "hi": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "सदस्य आमंत्रण बनाएँ"
+            }
+          },
+          "id": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Buat undangan anggota"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "メンバー招待を作成"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "멤버 초대 만들기"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Создать приглашение для участника"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Crea invito per un membro"
+            }
+          },
+          "ur": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "رکن کی دعوت بنائیں"
+            }
+          }
+        }
+      },
+      "No team notes": {
+        "localizations": {
+          "ar": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "لا توجد ملاحظات للفريق"
+            }
+          },
+          "tr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Ekip notu yok"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "暂无团队笔记"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "暫無團隊筆記"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "No hay notas del equipo"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Aucune note d’équipe"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Keine Teamnotizen"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Nenhuma nota da equipe"
+            }
+          },
+          "hi": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "कोई टीम नोट नहीं"
+            }
+          },
+          "id": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Belum ada catatan tim"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "チームノートはありません"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "팀 노트 없음"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Нет заметок команды"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Nessuna nota del team"
+            }
+          },
+          "ur": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "کوئی ٹیم نوٹ نہیں"
+            }
+          }
+        }
+      },
+      "Unblock user": {
+        "localizations": {
+          "ar": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "إلغاء حظر المستخدم"
+            }
+          },
+          "tr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Kullanıcının engelini kaldır"
+            }
+          },
+          "zh-Hans": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "取消屏蔽用户"
+            }
+          },
+          "zh-Hant": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "解除封鎖使用者"
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Desbloquear usuario"
+            }
+          },
+          "fr": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Débloquer l’utilisateur"
+            }
+          },
+          "de": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Benutzer entsperren"
+            }
+          },
+          "pt-BR": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Desbloquear usuário"
+            }
+          },
+          "hi": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "उपयोगकर्ता को अनब्लॉक करें"
+            }
+          },
+          "id": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Buka blokir pengguna"
+            }
+          },
+          "ja": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "ユーザーのブロックを解除"
+            }
+          },
+          "ko": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "사용자 차단 해제"
+            }
+          },
+          "ru": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Разблокировать пользователя"
+            }
+          },
+          "it": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Sblocca utente"
+            }
+          },
+          "ur": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "صارف کو اَن بلاک کریں"
+            }
+          }
+        }
+      },
     "Register this device": {
       "localizations": {
         "ar": {

@@ -16,8 +16,8 @@ capability:
    `PINBOOK_TEAM_INVITATION_HOST = <approved-host>`.
 3. Add Associated Domains to the registered App ID and regenerated provisioning
    profile. The opt-in xcconfig selects `Config/PinbookTeamUniversalLinks.entitlements`.
-4. Replace the placeholders in
-   `Config/apple-app-site-association.template.json`, publish the result as
+4. Generate the exact file with
+   `Scripts/generate-team-aasa.sh APPLE_TEAM_ID APP_BUNDLE_ID OUTPUT_PATH`, publish it as
    `https://<approved-host>/.well-known/apple-app-site-association` with no
    redirect and `application/json` content type, then verify Apple CDN retrieval.
 5. Inject the exact same origin into `TeamWorkspaceInvitationRouter`; do not infer
@@ -25,5 +25,7 @@ capability:
 6. Record staging and physical universal-link evidence in the final acceptance
    receipt before upload.
 
-The project does not select the opt-in xcconfig today, so current Release/TestFlight
-signing and production behavior are unchanged.
+The app target resolves its entitlement path from the empty
+`PINBOOK_TEAM_CODE_SIGN_ENTITLEMENTS` build setting. Only the opt-in xcconfig sets
+that path, so current Release/TestFlight signing and production behavior remain
+unchanged unless the release invocation deliberately selects it.

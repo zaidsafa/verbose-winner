@@ -48,7 +48,30 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
-- Final team-delivery foundation checkpoint: account deletion is now an
+- Production-composition checkpoint: the default-off Team workspace now has one
+  all-or-empty public build configuration, a shared strict HTTPS/session client
+  across authentication, onboarding, device, membership, invitations, delivery
+  and migration-027 compliance routes, and connected-account actions for Terms,
+  encrypted send/receive, reports, block/unblock, invitations and deletion.
+  The UI uses actual archived notes and actual audience members instead of manual
+  identifiers, fixed safety reasons, visible pending/error states, and canonical
+  QR/ShareLink invitations. Account deletion cleanup now erases all account data
+  across every team store, device/join custody, agreement keys, Terms and the
+  exact session. Associated Domains stays opt-in and the deterministic AASA
+  generator produces `F98S3VN5NL.com.zaidsafa.pinbook.ios` without committing a
+  live host. Complete Swift **414/414 in 39 suites**, localization **371 keys
+  across English plus 15 translations**, plist/project/entitlement lint,
+  `git diff --check`, generated AASA JSON, and an unsigned arm64+x86_64 Release
+  Simulator build pass at `/private/tmp/pinbook-composition-derived`. The built
+  app remains `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`, with all
+  eight Team production values empty. Production remains inert. An ignored
+  complete production configuration, explicit pre-connection onboarding owner,
+  migration-028 worker evidence, published AASA/App ID/provisioning and physical
+  cross-platform staging acceptance remain required. No device/provider/server,
+  signing, archive, TestFlight or production state changed in this checkpoint.
+  See `TEAM_PRODUCTION_COMPOSITION_CHECKPOINT.md`.
+
+- Earlier final team-delivery foundation checkpoint: account deletion is now an
   account-global, durable startup barrier from `PREPARED` through authoritative
   `COMPLETED`, including coordinators created before deletion began. App startup
   recovers deletion journals before session bootstrap, reports pending,
@@ -1291,3 +1314,22 @@ Updated: 2026-09-05 (Asia/Shanghai)
    the build number, archive and upload exactly one final candidate, then verify
    processing, internal/external group assignment and installation. Do not upload
    an intermediate build.
+
+## 2026-09-05 strict Team composition checkpoint
+
+- Source now contains the bounded default-off production configuration, frozen
+  auth/onboarding/delivery/compliance HTTP composition, connected-account action
+  owner, actual archive/member safety UI, account-global cleanup and opt-in AASA
+  tooling described in `TEAM_PRODUCTION_COMPOSITION_CHECKPOINT.md`.
+- Verification is green: Team workspace **26/26**, compliance HTTP **2/2**, full
+  Swift **414/414**, all **371** localization keys across English plus 15 locales,
+  exact compiled app/widget catalog comparison, valid generated AASA, and unsigned
+  Release Simulator arm64+x86_64 build.
+- Production remains disabled. No provider secret or live domain is committed;
+  no phone, provider console, server, signing, version/build, TestFlight or App
+  Store state changed. Preserve untracked `tmp/`.
+- Remaining owner/Infrastructure gates: supply one complete ignored public config;
+  connect pre-connection Apple/Google create/join ownership to the injection seam;
+  prove migration-028 workers and durable asynchronous ACK retry in staging;
+  publish AASA and enable Associated Domains in the App ID/profile; run the exact
+  physical iOS/Android acceptance matrix; only then build the single final update.

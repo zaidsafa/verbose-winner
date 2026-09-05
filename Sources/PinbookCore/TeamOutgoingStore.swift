@@ -334,6 +334,19 @@ public final class TeamOutgoingStore: @unchecked Sendable {
         }
     }
 
+    /// Account-global erasure across every team/device row in this shared store.
+    /// The receiver is only authority for its own account; absence is success.
+    func deleteAccountData(accountID: String) throws {
+        guard accountID == sender.userId else { throw TeamOutgoingError.invalidScope }
+        try lock.withLock {
+            try transaction {
+                try execute("DELETE FROM encrypted_submission WHERE account_id=?", [.text(accountID)])
+                try execute("DELETE FROM pending_event WHERE account_id=?", [.text(accountID)])
+                try execute("DELETE FROM draft WHERE account_id=?", [.text(accountID)])
+            }
+        }
+    }
+
     /// Atomically freezes the exact encrypted form for one already-durable event.
     /// Exact repeats are idempotent; any changed encryption is rejected.
     func saveEncryptedSubmission(event: PendingTeamOutgoingEvent,

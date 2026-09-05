@@ -166,9 +166,8 @@ private struct TeamWorkspaceView: View {
     let incomingInvitation: TeamInvitationLink?
     @State private var note = ""
     @State private var acceptsTerms = false
-    @State private var targetUserID = ""
-    @State private var targetNoteID = ""
-    @State private var safetyReason = ""
+    @State private var safetyReason: TeamReportReason = .spam
+    @State private var presentation = TeamWorkspacePresentation.empty
     @State private var actionMessage: String?
     @State private var isWorking = false
     @State private var confirmingDeletion = false
@@ -217,13 +216,21 @@ private struct TeamWorkspaceView: View {
             }
 
             Section("Invite members") {
+                Button("Create a team", systemImage: "person.3.fill") {
+                    run(.createTeam)
+                }
+                .disabled(!actionsEnabled)
+                Button("Create member invitation", systemImage: "person.badge.plus") {
+                    run(.issueInvitation(.member))
+                }
+                .disabled(!actionsEnabled)
                 if let incomingInvitation {
                     Button("Review invitation", systemImage: "arrow.right.circle.fill") {
                         run(.openInvitation(incomingInvitation.url))
                     }
                     .disabled(!actionsEnabled)
                 }
-                if let invitation {
+                if let invitation = presentation.invitation ?? invitation {
                     TeamInvitationQRCode(payload: invitation.qrPayload)
                     ShareLink(item: invitation.url) {
                         Label("Share invitation", systemImage: "square.and.arrow.up")
@@ -256,33 +263,59 @@ private struct TeamWorkspaceView: View {
                     run(.refreshInbox)
                 }
                 .disabled(!actionsEnabled)
+                if presentation.notes.isEmpty {
+                    ContentUnavailableView("No team notes", systemImage: "tray",
+                                           description: Text("Refresh now"))
+                } else {
+                    ForEach(presentation.notes) { item in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(item.body).font(.body)
+                            LabeledContent("User ID", value: item.authorID)
+                                .font(.caption).foregroundStyle(.secondary)
+                            Button("Report note", systemImage: "exclamationmark.bubble") {
+                                run(.reportNote(noteID: item.id, authorID: item.authorID,
+                                                reason: safetyReason.rawValue))
+                            }
+                            .disabled(!actionsEnabled)
+                        }
+                    }
+                }
                 Text("Foreground refresh, import, and acknowledgements are explicit. Pinbook does not rely on push notifications for delivery safety.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
             Section("Safety") {
-                TextField("User ID", text: $targetUserID)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                TextField("Note ID", text: $targetNoteID)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                TextField("Reason", text: $safetyReason, axis: .vertical)
-                    .lineLimit(2...4)
-                Button("Report note", systemImage: "exclamationmark.bubble") {
-                    run(.reportNote(noteID: targetNoteID, authorID: targetUserID,
-                                    reason: safetyReason))
+                Picker("Reason", selection: $safetyReason) {
+                    ForEach(TeamReportReason.allCases, id: \.self) { reason in
+                        Text(reason.rawValue.capitalized).tag(reason)
+                    }
                 }
-                .disabled(!safetyReportEnabled || targetNoteID.isEmpty)
-                Button("Report user", systemImage: "person.crop.circle.badge.exclamationmark") {
-                    run(.reportUser(userID: targetUserID, reason: safetyReason))
+                if presentation.members.isEmpty {
+                    Text("Open a valid team invitation to sign in, register this device, and review membership before sharing anything.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                } else {
+                    ForEach(presentation.members) { member in
+                        LabeledContent(member.id) {
+                            Menu {
+                                Button("Report user") {
+                                    run(.reportUser(userID: member.id,
+                                                    reason: safetyReason.rawValue))
+                                }
+                                if member.isBlocked {
+                                    Button("Unblock user") { run(.unblockUser(userID: member.id)) }
+                                } else {
+                                    Button("Block user", role: .destructive) {
+                                        run(.blockUser(userID: member.id))
+                                    }
+                                }
+                            } label: {
+                                Label("Options", systemImage: "ellipsis.circle")
+                            }
+                            .disabled(!actionsEnabled)
+                        }
+                    }
                 }
-                .disabled(!safetyReportEnabled)
-                Button("Block user", systemImage: "person.crop.circle.badge.xmark") {
-                    run(.blockUser(userID: targetUserID))
-                }
-                .disabled(!actionsEnabled || targetUserID.isEmpty)
             }
 
             Section("Account") {
@@ -310,15 +343,11 @@ private struct TeamWorkspaceView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
+        .task { await refreshPresentation() }
     }
 
     private var actionsEnabled: Bool {
         runtime.isEnabled && startup.allowsTeamWorkspace && runtime.userActions != nil && !isWorking
-    }
-
-    private var safetyReportEnabled: Bool {
-        actionsEnabled && !targetUserID.isEmpty
-            && !safetyReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var connectionStatus: String {
@@ -375,12 +404,24 @@ private struct TeamWorkspaceView: View {
         Task { @MainActor in
             do {
                 for action in actions { try await handler.perform(action) }
-                success(); actionMessage = "Recovery completed"
+                success()
+                await refreshPresentation()
+                actionMessage = "Recovery completed"
             } catch {
                 actionMessage = "Setup could not continue. Close this screen and reopen the invitation."
             }
             isWorking = false
         }
+    }
+
+    @MainActor
+    private func refreshPresentation() async {
+        guard runtime.isEnabled, startup.allowsTeamWorkspace else {
+            presentation = .empty
+            return
+        }
+        do { presentation = try await runtime.presentation() }
+        catch { actionMessage = "Setup could not continue. Close this screen and reopen the invitation." }
     }
 }
 
