@@ -75,6 +75,11 @@
   keywords, support URL, build or copyright, and its separate App Review form has
   Sign-In required selected. These are observed open listing gates; no app-version
   metadata, privacy answer, build assignment or review submission was changed.
+- Prepared six visually inspected English App Store screenshots from exact app and
+  installed-widget evidence. Every PNG is **1242 x 2688**, with SHA-256 recorded
+  beside the assets under `release/app-store/screenshots`. The set covers expenses,
+  summary, world currencies, the current Drive scope disclosure, reminders and both
+  widgets. The stale pre-Drive backup screen was excluded. Nothing was uploaded.
 - Apple App Privacy guidance was re-audited for ongoing off-device sync. The
   manifest and submission guide now disclose Other Financial Info, Other User
   Content and Photos or Videos for App Functionality, linked to the user's Drive

@@ -137,6 +137,11 @@ Official references:
 
 Screenshots and the full listing are not required to begin internal TestFlight testing, but the following copy is prepared for the later App Store version.
 
+Six English 6.5-inch portrait screenshots are prepared locally at the exact
+accepted **1242 x 2688** size under `release/app-store/screenshots/en-US/6.5-inch`.
+They are visually inspected and checksummed but not uploaded. Upload them only with
+the exact final candidate; regenerate any screen whose feature changes first.
+
 ### Subtitle
 
 Private expense notebook
