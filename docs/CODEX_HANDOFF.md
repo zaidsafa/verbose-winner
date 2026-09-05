@@ -1117,9 +1117,16 @@ Updated: 2026-09-05 (Asia/Shanghai)
   final App Store Connect privacy metadata. No new TestFlight build or source push
   occurred. The existing TestFlight build remains unchanged.
 - Both iPhone and Samsung are connected and approved only for isolated Pinbook QA
-  with synthetic records. The Android task was sent the exact backup-v8 immutable
-  appDataFolder contract and the owner's device authorization; it must confirm a
-  compatible QA build before any two-device run. WooOrders remains separate.
+  with synthetic records. Android prepared commit
+  `8a3228b0edc066a4ec6e4f7760da3befb3452b21`; its Drive-enabled QA candidate passed
+  479/479 tests plus lint/build and has SHA-256
+  `289ded55980b8ce770024a74fd972bd90f96d39a1ac2155666602da615d4c866`.
+  The installed and candidate `com.zaidsafa.pinbook.qa` packages were independently
+  confirmed to have the same SHA-256 signing certificate, then the candidate was
+  installed in place as version `0.5.0-qa` (9). The normal
+  `com.zaidsafa.pinbook` remains version `0.5.0` (9) with its prior update time.
+  Android Drive remains blocked until the exact QA OAuth client is created after
+  action-time owner confirmation. WooOrders remains separate.
 
 ### Superseding next actions
 
