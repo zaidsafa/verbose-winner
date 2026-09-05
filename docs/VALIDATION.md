@@ -76,7 +76,9 @@
   Review form has Sign-In required selected. These remain observed open gates.
   The factual subtitle **Private expense notebook** plus primary **Finance** and
   secondary **Productivity** categories were saved and verified after reload;
-  no privacy answer, build assignment or review submission was changed.
+  Content Rights was also saved as **No, this app does not contain, show, or
+  access third-party content**. No privacy answer, age rating, build assignment or
+  review submission was changed.
 - Prepared six visually inspected English App Store screenshots from exact app and
   installed-widget evidence. Every PNG is **1242 x 2688**, with SHA-256 recorded
   beside the assets under `release/app-store/screenshots`. The set covers expenses,

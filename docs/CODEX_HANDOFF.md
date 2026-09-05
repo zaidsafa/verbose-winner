@@ -1100,8 +1100,9 @@ Updated: 2026-09-05 (Asia/Shanghai)
   remains incomplete, with no uploaded screenshots/description/keywords/support
   URL/build/copyright and its separate App Review sign-in checkbox selected. The
   subtitle **Private expense notebook** and Finance/Productivity categories are
-  now saved and verified. Do not confuse those fields or completed TestFlight
-  contacts with App Store submission readiness.
+  now saved and verified. Content Rights is saved as no third-party content. Age
+  Ratings remains unconfigured pending action-time confirmation. Do not confuse
+  those fields or completed TestFlight contacts with App Store submission readiness.
 - The App Store product-page draft is labeled **1.0**, while all current/final-plan
   binaries are marketing version `0.1.0`. Correct the editable draft to `0.1.0`
   before build selection, unless the owner explicitly chooses a 1.0 binary release.
