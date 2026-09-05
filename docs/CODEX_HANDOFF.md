@@ -49,6 +49,17 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Dedicated personal Drive Google iOS clients are now allocated in project
+  `pinbook-507110` for production and the separate QA bundle, both under Apple team
+  `F98S3VN5NL`; Drive API is enabled. Their public client IDs and exact reversed
+  callbacks are build-setting-bound, and the installed loader rejects a mismatch.
+  Signed production Simulator and physical QA complete personal-Drive suites pass
+  **27/27**. Google is external/testing with `zaid.safa@gmail.com` as the sole test
+  user, but the console still marks branding incomplete; no live browser/token/
+  Drive request is accepted yet. Callback runtime, token refresh ownership,
+  merge/orchestration, localized UI and physical Android-to-iOS-to-Android sync
+  remain. No source push or TestFlight action occurred.
+
 - Personal Drive now has an inactive connection-custody coordinator. Every newly
   issued refresh token is first persisted in the device-only Keychain as an
   unusable revocation fence, then its exact generation is atomically activated.

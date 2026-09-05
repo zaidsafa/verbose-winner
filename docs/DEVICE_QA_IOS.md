@@ -5,6 +5,19 @@ Owner approved a separate Pinbook QA development installation on September 5,
 TestFlight hold. Android coordination is approved only for Pinbook two-device
 notes testing; WooOrders remains separate.
 
+## Latest personal Drive installed-configuration checkpoint
+
+The separate Pinbook QA app ran all five personal Drive suites on the physical
+**iPhone 16 Pro, iOS 26.6.1** with the allocated QA OAuth client and callback
+compiled into its signed bundle: **27/27 PASS**, zero failures/skips. Exact result:
+`/private/tmp/Pinbook-QA-Physical-Personal-Drive-Config-20260905.xcresult`.
+
+This proves installed configuration and the synthetic OAuth/Drive plus real
+Keychain boundaries only. The Google browser was not opened and no account, token
+or remote file was used. The connected Samsung SM-S9180 remains reserved for a
+later synthetic two-device acceptance run after live authorization, merge and UI
+activation are complete. Existing iOS and Android records were not changed.
+
 ## Latest inactive personal Drive connection-custody checkpoint
 
 The separate Pinbook QA app ran all five personal Drive suites on the physical

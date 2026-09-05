@@ -42,6 +42,20 @@ public struct PersonalGoogleDriveConfiguration: Sendable {
         redirectURL = redirect
         redirectScheme = scheme
     }
+
+    static func installed(in bundle: Bundle = .main) throws -> Self {
+        guard let clientID = bundle.object(
+            forInfoDictionaryKey: "PinbookPersonalGoogleDriveClientID"
+        ) as? String else {
+            throw PersonalGoogleDriveOAuthError.invalidConfiguration
+        }
+        let types = bundle.object(forInfoDictionaryKey: "CFBundleURLTypes")
+            as? [[String: Any]] ?? []
+        let schemes = Set(types.flatMap {
+            $0["CFBundleURLSchemes"] as? [String] ?? []
+        })
+        return try Self(clientID: clientID, registeredURLSchemes: schemes)
+    }
 }
 
 public struct PersonalGoogleDriveRefreshToken: Sendable, CustomStringConvertible,

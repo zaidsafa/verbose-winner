@@ -1,8 +1,9 @@
 # Pinbook personal cloud sync v1 — inactive contract
 
 Updated 2026-09-05. This is a provider-neutral safety contract, not an enabled
-Google Drive or iCloud feature. No OAuth client, entitlement, token, remote file,
-automatic schedule or user-facing cloud claim is added by this checkpoint.
+Google Drive or iCloud feature. Dedicated Google iOS OAuth clients are now
+allocated and compiled into the production and QA identities, but no entitlement,
+token, remote file, automatic schedule or user-facing cloud claim is enabled.
 
 ## Provider decision
 
@@ -149,8 +150,12 @@ fenced and returns `cleanupRequired`; it never becomes a connected state.
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
 
 Exact paths and the initial sandbox-blocked attempt are recorded in
-`VALIDATION.md`. The Drive adapter is not connected: this source still has no
-allocated personal-Drive client configuration, production callback wiring,
-iCloud adapter, scheduler, real remote
+`VALIDATION.md`. The production and QA bundles now carry their separately
+allocated dedicated Google iOS client and registered reversed-client callback,
+and the signed installed-configuration test passes on Simulator and physical QA.
+The Google project is external/testing with the owner as its explicit test user,
+but its console still reports incomplete branding. The Drive adapter is not
+connected: this source still has no production callback runtime, iCloud adapter,
+scheduler, live authorization, real remote
 bytes, automatic merge or production UI entry. The existing TestFlight build was
 not replaced.

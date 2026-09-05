@@ -1,5 +1,27 @@
 # Validation plan
 
+## 2026-09-05 personal Drive OAuth client allocation and installed configuration
+
+- Created separate Google iOS OAuth clients in the dedicated `pinbook-507110`
+  project for production `com.zaidsafa.pinbook.ios` and QA
+  `com.zaidsafa.pinbook.ios.qa`, both bound to Apple team `F98S3VN5NL`. The Drive
+  API is enabled. These native clients contain no client secret.
+- Added build-setting-bound client IDs and reversed-client callback schemes to the
+  installed app configuration. Production and QA compile to their own exact client
+  and callback; `PersonalGoogleDriveConfiguration.installed()` rejects missing or
+  mismatched installed values.
+- Signed production Simulator complete personal-Drive suites **27/27 PASS**, zero
+  failures/skips: `/private/tmp/Pinbook-Personal-Drive-Config-Sim-20260905.xcresult`.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** complete
+  personal-Drive suites **27/27 PASS**, zero failures/skips, including real
+  Data Protection Keychain coverage:
+  `/private/tmp/Pinbook-QA-Physical-Personal-Drive-Config-20260905.xcresult`.
+- Google Auth Platform is external/testing and explicitly includes
+  `zaid.safa@gmail.com` as its one test user. The console still reports incomplete
+  branding, so live consent is not accepted evidence yet. No browser authorization,
+  token, Drive object, Android mutation, source push, archive or TestFlight action
+  occurred.
+
 ## 2026-09-05 inactive personal Drive connection custody coordinator
 
 - Added the authorization-to-Keychain coordinator. Before reporting success, a

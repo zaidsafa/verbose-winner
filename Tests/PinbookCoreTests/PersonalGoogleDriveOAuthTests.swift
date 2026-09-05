@@ -119,6 +119,21 @@ struct PersonalGoogleDriveOAuthTests {
         }
     }
 
+    #if !SWIFT_PACKAGE
+    @Test func installedAppHasExactBundleBoundIOSClientAndCallback() throws {
+        let configuration = try PersonalGoogleDriveConfiguration.installed()
+        let client = try #require(Bundle.main.object(
+            forInfoDictionaryKey: "PinbookPersonalGoogleDriveClientID"
+        ) as? String)
+        #expect(configuration.clientID == client)
+        #expect(configuration.redirectScheme == client.split(separator: ".")
+            .reversed().joined(separator: "."))
+        #expect(configuration.redirectURL.absoluteString
+                == configuration.redirectScheme + ":/oauth2callback")
+        #expect(configuration.clientID.hasPrefix("599020933167-"))
+    }
+    #endif
+
     #if canImport(AppAuthCore)
     @Test func actualAppAuthRequestIsFreshPKCEOfflineDriveOnlyConsent() throws {
         let configuration = try personalDriveConfiguration()

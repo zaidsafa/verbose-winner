@@ -67,9 +67,12 @@ checkboxes deliberately remain open until checked against the exact next candida
       generation after authoritative success. Swift, signed Simulator and physical
       QA tests pass. An inactive AppAuth browser/callback owner now adds explicit
       consent, exact one-use callback routing, ephemeral presentation, cancellation,
-      background handling and a monotonic timeout. Allocated dedicated client/project
-      configuration, production callback wiring, real Drive acceptance and UI
-      activation remain open. The inactive connection coordinator now fences a
+      background handling and a monotonic timeout. Dedicated production and QA
+      Google iOS clients are now allocated and compiled with their exact registered
+      callbacks; signed Simulator and physical-QA configuration tests pass. Google
+      still reports incomplete branding, and production callback runtime, live
+      authorization/Drive acceptance and UI activation remain open. The inactive
+      connection coordinator now fences a
       newly issued token in protected Keychain custody before atomically activating
       it, and revokes/removes that exact fence on cancellation or failure.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
@@ -103,8 +106,10 @@ checkboxes deliberately remain open until checked against the exact next candida
   appDataFolder requests and exact conflict replay checks; it remains disconnected.
   A disconnected personal OAuth/token parser, protected custody/revocation path and
   AppAuth browser/callback owner and two-phase connection coordinator now exist and
-  remain isolated from team sign-in, but no allocated client, production callback
-  routing, iCloud adapter, scheduler, real remote bytes, merge or UI activation exists.
+  remain isolated from team sign-in. Separate allocated production/QA client IDs
+  and callbacks now compile and pass signed installed-configuration tests, but no
+  production callback runtime, iCloud adapter, scheduler, live token/remote bytes,
+  merge or UI activation exists.
   See `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the

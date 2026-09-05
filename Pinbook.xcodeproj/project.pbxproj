@@ -841,6 +841,8 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PINBOOK_BUNDLE_ROOT = com.zaidsafa.pinbook.ios;
 				PINBOOK_APP_DISPLAY_NAME = Pinbook;
+				PINBOOK_PERSONAL_GOOGLE_DRIVE_CLIENT_ID = "599020933167-8diur3kal045ded3tqh5ln137g2562tq.apps.googleusercontent.com";
+				PINBOOK_PERSONAL_GOOGLE_DRIVE_REDIRECT_SCHEME = "com.googleusercontent.apps.599020933167-8diur3kal045ded3tqh5ln137g2562tq";
 				PINBOOK_URL_SCHEME = pinbook;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -859,6 +861,8 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				PINBOOK_BUNDLE_ROOT = com.zaidsafa.pinbook.ios;
 				PINBOOK_APP_DISPLAY_NAME = Pinbook;
+				PINBOOK_PERSONAL_GOOGLE_DRIVE_CLIENT_ID = "599020933167-8diur3kal045ded3tqh5ln137g2562tq.apps.googleusercontent.com";
+				PINBOOK_PERSONAL_GOOGLE_DRIVE_REDIRECT_SCHEME = "com.googleusercontent.apps.599020933167-8diur3kal045ded3tqh5ln137g2562tq";
 				PINBOOK_URL_SCHEME = pinbook;
 			};
 			name = Release;
