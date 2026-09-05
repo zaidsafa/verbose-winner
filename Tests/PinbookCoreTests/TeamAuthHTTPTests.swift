@@ -40,6 +40,45 @@ private func sha256Hex(_ data: Data) -> String {
     SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
 }
 private func challengeJSON() throws -> Data { try json(["challengeId": tokenA, "nonce": tokenB, "expiresAt": 121_000]) }
+
+@Test func invitationUniversalLinkRoundTripsOnlyCanonicalPrivateCapability() throws {
+    let origin = "https://invite.pinbook.example"
+    let token = Data(0..<32).base64EncodedString()
+        .replacingOccurrences(of: "+", with: "-")
+        .replacingOccurrences(of: "/", with: "_")
+        .replacingOccurrences(of: "=", with: "")
+    let link = try TeamInvitationLink(origin: origin, token: token)
+    #expect(link.url.absoluteString == origin + "/join?invite=" + token)
+    #expect(try TeamInvitationLink(validating: link.url, expectedOrigin: origin) == link)
+    #expect(Mirror(reflecting: link).children.isEmpty)
+    #expect(String(describing: link) == "TeamInvitationLink(<redacted>)")
+}
+
+@Test func invitationUniversalLinkRejectsAlternateOriginsPathsQueriesAndEncodings() throws {
+    let origin = "https://invite.pinbook.example"
+    let token = String(repeating: "A", count: 43)
+    for invalidOrigin in ["http://invite.pinbook.example", "https://user@invite.pinbook.example",
+                          "https://invite.pinbook.example/", "https://invite.pinbook.example/path",
+                          "https://invite.pinbook.example?x=1"] {
+        #expect(throws: TeamInvitationLinkError.invalidOrigin) {
+            try TeamInvitationLink(origin: invalidOrigin, token: token)
+        }
+    }
+    let invalid: [String] = [
+        origin + "/join?invite=" + token + "&extra=1",
+        origin + "/join?Invite=" + token,
+        origin + "/join?%69nvite=" + token,
+        origin + "/join/?invite=" + token,
+        origin + "/join?invite=" + token + "#fragment",
+        origin + "/join?invite=" + String(repeating: "A", count: 42),
+        origin + "/join?invite=" + String(repeating: "A", count: 42) + "%41",
+    ]
+    for text in invalid {
+        #expect(throws: (any Error).self) {
+            try TeamInvitationLink(validating: #require(URL(string: text)), expectedOrigin: origin)
+        }
+    }
+}
 private func pairJSON(access: String = tokenA, refresh: String = tokenB,
                       account: String = "public-account", session: String = "public-session",
                       expiry: Int64 = 30_000) throws -> Data {

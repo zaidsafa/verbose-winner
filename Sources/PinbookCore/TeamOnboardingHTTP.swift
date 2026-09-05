@@ -11,6 +11,75 @@ enum TeamOnboardingRoute: String {
     case issueInvitation = "teams/invites", listInvitations = "teams/invites/list", revokeInvitation = "teams/invites/revoke"
     var requiresSession: Bool { ![.preview, .invitedChallenge, .invitedExchange].contains(self) }
 }
+
+enum TeamInvitationLinkError: Error, Equatable {
+    case invalidOrigin
+    case invalidToken
+    case invalidURL
+}
+
+/// Provider-neutral Universal Link grammar. The production origin is injected only
+/// after Infrastructure approval; this type never logs, stores or previews its token.
+struct TeamInvitationLink: Equatable, Sendable, CustomStringConvertible,
+                           CustomDebugStringConvertible, CustomReflectable {
+    static let path = "/join"
+    static let maximumURLBytes = 1_024
+    let url: URL
+
+    init(origin: String, token: String) throws {
+        guard Self.validOrigin(origin) else { throw TeamInvitationLinkError.invalidOrigin }
+        guard Self.validToken(token) else { throw TeamInvitationLinkError.invalidToken }
+        let canonical = origin + Self.path + "?invite=" + token
+        guard canonical.utf8.count <= Self.maximumURLBytes,
+              let url = URL(string: canonical), url.absoluteString == canonical else {
+            throw TeamInvitationLinkError.invalidURL
+        }
+        self.url = url
+    }
+
+    init(validating url: URL, expectedOrigin: String) throws {
+        guard Self.validOrigin(expectedOrigin) else {
+            throw TeamInvitationLinkError.invalidOrigin
+        }
+        let text = url.absoluteString
+        let prefix = expectedOrigin + Self.path + "?invite="
+        guard (1...Self.maximumURLBytes).contains(text.utf8.count),
+              text.utf8.allSatisfy({ (0x21...0x7e).contains($0) }),
+              text.hasPrefix(prefix) else { throw TeamInvitationLinkError.invalidURL }
+        let token = String(text.dropFirst(prefix.count))
+        guard Self.validToken(token) else { throw TeamInvitationLinkError.invalidToken }
+        let canonical = try Self(origin: expectedOrigin, token: token)
+        guard canonical.url.absoluteString == text else {
+            throw TeamInvitationLinkError.invalidURL
+        }
+        self = canonical
+    }
+
+    var description: String { "TeamInvitationLink(<redacted>)" }
+    var debugDescription: String { description }
+    var customMirror: Mirror { Mirror(self, children: [:]) }
+
+    private static func validOrigin(_ origin: String) -> Bool {
+        guard TeamDeviceEnrollmentWire.canonicalAudience(origin),
+              let components = URLComponents(string: origin),
+              components.scheme == "https", components.host != nil,
+              components.user == nil, components.password == nil,
+              components.query == nil, components.fragment == nil,
+              components.path.isEmpty, !origin.hasSuffix("/") else { return false }
+        return components.url?.absoluteString == origin
+    }
+
+    private static func validToken(_ token: String) -> Bool {
+        guard token.utf8.count == 43,
+              token.utf8.allSatisfy(TeamAuthWire.urlByte) else { return false }
+        let padded = token.replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/") + "="
+        guard let bytes = Data(base64Encoded: padded), bytes.count == 32 else { return false }
+        return bytes.base64EncodedString().replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "") == token
+    }
+}
 enum TeamInvitationRole: String, Sendable { case member = "MEMBER", reviewer = "REVIEWER" }
 enum TeamMembershipRole: String, Sendable { case owner = "OWNER", member = "MEMBER", reviewer = "REVIEWER" }
 enum TeamInvitationState: String, Sendable { case pending = "PENDING", claimed = "CLAIMED", expired = "EXPIRED", accepted = "ACCEPTED", revoked = "REVOKED" }

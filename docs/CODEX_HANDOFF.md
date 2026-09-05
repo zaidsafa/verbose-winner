@@ -49,6 +49,17 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- The provider-neutral invitation Universal Link grammar now has a strict iOS
+  builder/parser matching Android checkpoint `85a0da6`: injected exact HTTPS
+  origin, exact `/join?invite=` shape, one canonical 43-character unpadded
+  base64url token decoding to 32 bytes, and a 1,024 printable-ASCII-byte cap.
+  Alternate origins, paths, query keys/encodings, fragments and noncanonical
+  values fail closed. Focused tests pass **2/2**, complete Swift **384/384** and
+  unsigned Release iOS Simulator build pass with a synthetic `.example` origin.
+  Production DNS, Associated Domains, normal `onOpenURL`, ShareLink/QR
+  presentation and scanning remain inactive. No provider, phone, server,
+  TestFlight or production action occurred. See `TEAM_INVITATION_LINK_IOS.md`.
+
 - Server checkpoint `33410b6cdefb4fc2307a152d7de242650c61febb`
   now has the matching inactive iOS encrypted receive boundary. A fetched result
   is rebound to the exact signed delivery/team/account/device/enrollment, its JWE

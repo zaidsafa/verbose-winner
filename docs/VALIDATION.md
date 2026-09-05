@@ -1,5 +1,16 @@
 # Validation plan
 
+## 2026-09-05 strict invitation Universal Link grammar
+
+- Added a dependency-injected builder/parser for exact
+  `<origin>/join?invite=<43-character canonical base64url token>` links.
+- Focused invitation-link tests: **2/2 pass**.
+- Complete isolated Swift regression: **384/384 pass**.
+- Unsigned Release iOS Simulator build: **BUILD SUCCEEDED** with unchanged
+  `com.zaidsafa.pinbook.ios` identity.
+- Only a synthetic `.example` origin was used. Production domain, Associated
+  Domains, app routing, provider, phone, server and TestFlight remain unchanged.
+
 ## 2026-09-05 inactive authenticated delivery reservation contract
 
 - Matched Android/server commits
