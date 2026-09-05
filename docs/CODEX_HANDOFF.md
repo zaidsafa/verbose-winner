@@ -49,6 +49,22 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Server commit `b88454bc37f7b30d2fb0df161e268fd6a901f8e6` now has the
+  matching inactive iOS authenticated delivery relay transport. The client uses
+  the shared operation-bound challenge endpoint and exact pending/fetch/ACK/status
+  execution routes. Pending pagination is strict keyset pagination and freezes
+  the ciphertext, audience and agreement-key metadata that fetch must repeat
+  before decryption/archive. Authenticated ACK or terminal 410 retires only the
+  matching durable receipt and always preserves the protected archive; retryable
+  failures preserve the receipt. Submission status is exact-hash-bound and all
+  response schemas fail closed. Focused relay/receive **4/4**, complete Swift
+  **386/386**, `git diff --check`, and unsigned production Release iOS Simulator
+  build pass. This remains default-off until journal-v2 and has no runtime UI,
+  foreground refresh, retry scheduler, push, server/provider/device/TestFlight or
+  production effect. Store-readiness work still includes Apple sign-in
+  equivalence, account deletion, Terms, reporting/blocking and privacy-manifest
+  account/device declarations. See `TEAM_DELIVERY_FETCH_IOS.md`.
+
 - The provider-neutral invitation Universal Link grammar now has a strict iOS
   builder/parser matching Android checkpoint `85a0da6`: injected exact HTTPS
   origin, exact `/join?invite=` shape, one canonical 43-character unpadded

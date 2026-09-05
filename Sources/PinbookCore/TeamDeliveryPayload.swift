@@ -159,6 +159,57 @@ enum TeamDeliveryReceiveError: Error, Equatable {
     case invalidFetch
     case bindingMismatch
     case missingReceipt
+    case invalidACK
+}
+
+enum TeamDeliveryReceiptOutcome: Equatable, Sendable {
+    case acknowledged(purgeEligible: Bool)
+    case cancelled
+}
+
+/// Applies only an already authenticated relay result. It cannot send an ACK,
+/// infer success from transport failure, or remove the durable archived note.
+struct TeamDeliveryReceiptCoordinator {
+    func apply(_ result: TeamDeliveryACKResult, receipt: PendingTeamReceipt,
+               expectedBinding: TeamDeviceRequestWire.Binding,
+               inbox: TeamInboxStore) throws -> TeamDeliveryReceiptOutcome {
+        try requireLocal(receipt, expectedBinding: expectedBinding, inbox: inbox)
+        guard result.deliveryID == receipt.deliveryId,
+              result.jweSHA256 == receipt.jweSHA256,
+              try inbox.archived(deliveryId: receipt.deliveryId)?.envelope.expiresAt
+                == result.expiresAt else { throw TeamDeliveryReceiveError.invalidACK }
+        try inbox.retireReceipt(receipt, after: .acknowledged)
+        return .acknowledged(purgeEligible: result.purgeEligible)
+    }
+
+    /// The exact relay contract uses authenticated, content-free 410 only for a
+    /// cancelled target. Every other error preserves the pending local receipt.
+    func applyAuthenticatedTerminal(_ error: TeamAuthHTTPError,
+                                    receipt: PendingTeamReceipt,
+                                    expectedBinding: TeamDeviceRequestWire.Binding,
+                                    inbox: TeamInboxStore) throws -> TeamDeliveryReceiptOutcome {
+        guard error == .server(.terminal) else { throw TeamDeliveryReceiveError.invalidACK }
+        try requireLocal(receipt, expectedBinding: expectedBinding, inbox: inbox)
+        try inbox.retireReceipt(receipt, after: .cancelled)
+        return .cancelled
+    }
+
+    private func requireLocal(_ receipt: PendingTeamReceipt,
+                              expectedBinding: TeamDeviceRequestWire.Binding,
+                              inbox: TeamInboxStore) throws {
+        guard expectedBinding.operation == .deliveryACK,
+              expectedBinding.requestID == receipt.deliveryId,
+              expectedBinding.teamID == receipt.teamId,
+              expectedBinding.accountID == receipt.accountId,
+              expectedBinding.deviceID == receipt.deviceId,
+              expectedBinding.enrollmentID == receipt.enrollmentId,
+              inbox.teamId == receipt.teamId, inbox.target.userId == receipt.accountId,
+              inbox.target.deviceId == receipt.deviceId,
+              inbox.target.enrollmentId == receipt.enrollmentId,
+              try inbox.pendingReceipt(deliveryId: receipt.deliveryId) == receipt else {
+            throw TeamDeliveryReceiveError.invalidACK
+        }
+    }
 }
 
 /// Inactive receive boundary. The caller must obtain `fetch` through the authenticated
@@ -168,8 +219,8 @@ struct TeamDeliveryReceiveCoordinator {
     private let profile = TeamDeliveryJWE()
 
     func archiveFetched(_ fetch: TeamDeliveryFetchResult,
+                        pending: TeamPendingDelivery,
                         expectedBinding: TeamDeviceRequestWire.Binding,
-                        expectedAuthorUserID: String,
                         expectedRecipients: [TeamAgreementPublic],
                         custody: TeamAgreementKeyCustody,
                         inbox: TeamInboxStore,
@@ -180,6 +231,13 @@ struct TeamDeliveryReceiveCoordinator {
               expectedBinding.accountID == inbox.target.userId,
               expectedBinding.deviceID == inbox.target.deviceId,
               expectedBinding.enrollmentID == inbox.target.enrollmentId,
+              pending.deliveryID == fetch.deliveryID,
+              pending.acceptedAt == fetch.acceptedAt,
+              pending.expiresAt == fetch.expiresAt,
+              pending.jweBytes == fetch.jweBytes,
+              pending.jweSHA256 == fetch.jweSHA256,
+              pending.audienceDigest == fetch.audienceDigest,
+              pending.agreementKeyThumbprint == fetch.agreementKeyThumbprint,
               fetch.jweBytes == fetch.jwe.count,
               (1...TeamDeliveryJWE.maximumSerializedBytes).contains(fetch.jwe.count),
               fetch.jweSHA256 == Self.sha256(fetch.jwe),
@@ -189,8 +247,21 @@ struct TeamDeliveryReceiveCoordinator {
               Data(serialized.utf8) == fetch.jwe else {
             throw TeamDeliveryReceiveError.bindingMismatch
         }
-        do { try TeamDeliveryRules.requireID(expectedAuthorUserID) }
-        catch { throw TeamDeliveryReceiveError.bindingMismatch }
+        let localAgreement: TeamAgreementPublic
+        do {
+            try TeamDeliveryRules.requireID(pending.senderAccountID)
+            localAgreement = try custody.current()
+            let ordered = expectedRecipients.map(\.keyThumbprint).sorted()
+            let audience = try JSONSerialization.data(withJSONObject: ordered,
+                options: [.withoutEscapingSlashes])
+            guard localAgreement.keyThumbprint == pending.agreementKeyThumbprint,
+                  TeamDeviceEnrollmentWire.encode(Data(SHA256.hash(data: audience)))
+                    == pending.audienceDigest else {
+                throw TeamDeliveryReceiveError.bindingMismatch
+            }
+        } catch {
+            throw TeamDeliveryReceiveError.bindingMismatch
+        }
 
         var plaintext: Data
         do {
@@ -206,7 +277,7 @@ struct TeamDeliveryReceiveCoordinator {
             payload = try TeamDeliveryPayloadCodec.decode(plaintext,
                 expectedTeamId: expectedBinding.teamID,
                 expectedDeliveryId: fetch.deliveryID,
-                expectedAuthorUserId: expectedAuthorUserID)
+                expectedAuthorUserId: pending.senderAccountID)
         } catch {
             throw TeamDeliveryReceiveError.invalidFetch
         }
@@ -218,8 +289,8 @@ struct TeamDeliveryReceiveCoordinator {
             throw TeamDeliveryReceiveError.invalidFetch
         }
 
-        // TeamInboxStore commits archive + receipt in one transaction. No ACK transport
-        // exists in this contract, so a failed write always leaves the receipt unsent.
+        // TeamInboxStore commits archive + receipt in one transaction. The separate
+        // authenticated ACK boundary is never called from this receive operation.
         try inbox.receive(envelope, jweSHA256: fetch.jweSHA256, savedAt: savedAt)
         guard let receipt = try inbox.pendingReceipt(deliveryId: fetch.deliveryID),
               receipt.jweSHA256 == fetch.jweSHA256 else {

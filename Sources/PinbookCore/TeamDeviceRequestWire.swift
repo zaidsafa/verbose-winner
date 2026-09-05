@@ -14,8 +14,10 @@ enum TeamDeviceRequestWire {
         case agreementEnroll = "agreement-enroll"
         case teamAudience = "team-audience"
         case deliverySubmit = "delivery-submit"
+        case deliveryList = "delivery-list"
         case deliveryFetch = "delivery-fetch"
         case deliveryACK = "delivery-ack"
+        case deliveryStatus = "delivery-status"
     }
 
     struct Binding: TeamOnboardingDiagnostic {

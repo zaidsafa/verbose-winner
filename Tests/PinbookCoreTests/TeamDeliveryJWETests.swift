@@ -132,6 +132,16 @@ struct TeamDeliveryJWETests {
             keys: JWEFixtureKeys(sealed: sealed, privateKey: key), requireAccess: {})
     }
 
+    private func pending(_ fixture: JWEVector, jwe: Data,
+                         sender: String = "author_fixture") -> TeamPendingDelivery {
+        TeamPendingDelivery(deliveryID: "delivery_fixture", acceptedAt: 1_000,
+            expiresAt: 2_592_001_000, jweBytes: jwe.count,
+            jweSHA256: SHA256.hash(data: jwe).map { String(format: "%02x", $0) }.joined(),
+            senderAccountID: sender, senderDeviceID: "author_device",
+            senderEnrollmentID: "author_enrollment", audienceDigest: fixture.audienceDigest,
+            agreementKeyThumbprint: fixture.recipients[0].kid)
+    }
+
     @Test func androidServerVectorEncryptsCanonicalJWEAndBothRecipientsDecrypt() throws {
         let fixture = try vector()
         let recipients = try fixture.recipients.map(agreement)
@@ -171,10 +181,12 @@ struct TeamDeliveryJWETests {
         let inbox = try TeamInboxStore(applicationSupportDirectory: root,
             target: target, teamId: "team_fixture")
         let jwe = Data(fixture.canonicalJwe.utf8)
+        let pending = pending(fixture, jwe: jwe)
         let fetch = TeamDeliveryFetchResult(deliveryID: "delivery_fixture",
             acceptedAt: 1_000, expiresAt: 2_592_001_000, jweBytes: jwe.count,
             jweSHA256: SHA256.hash(data: jwe).map { String(format: "%02x", $0) }.joined(),
-            jwe: jwe)
+            audienceDigest: fixture.audienceDigest,
+            agreementKeyThumbprint: fixture.recipients[0].kid, jwe: jwe)
         let binding = TeamDeviceRequestWire.Binding(audience: "https://pinbook.example.test",
             authorityEpoch: "epoch_fixture", accountID: target.userId,
             sessionID: "session_fixture", deviceID: target.deviceId,
@@ -183,8 +195,8 @@ struct TeamDeliveryJWETests {
             requestID: "delivery_fixture", accessExpiresAt: 60_000)
         let receiver = TeamDeliveryReceiveCoordinator()
 
-        let receipt = try receiver.archiveFetched(fetch, expectedBinding: binding,
-            expectedAuthorUserID: "author_fixture", expectedRecipients: recipients,
+        let receipt = try receiver.archiveFetched(fetch, pending: pending, expectedBinding: binding,
+            expectedRecipients: recipients,
             custody: custody(fixture.recipients[0], index: 0), inbox: inbox, savedAt: 2_000)
         #expect(receipt.deliveryId == "delivery_fixture")
         #expect(receipt.jweSHA256 == fetch.jweSHA256)
@@ -196,18 +208,48 @@ struct TeamDeliveryJWETests {
         let otherCiphertextHash = TeamDeliveryFetchResult(deliveryID: fetch.deliveryID,
             acceptedAt: fetch.acceptedAt, expiresAt: fetch.expiresAt,
             jweBytes: fetch.jweBytes, jweSHA256: String(repeating: "0", count: 64),
-            jwe: fetch.jwe)
+            audienceDigest: fetch.audienceDigest,
+            agreementKeyThumbprint: fetch.agreementKeyThumbprint, jwe: fetch.jwe)
         #expect(throws: TeamDeliveryReceiveError.bindingMismatch) {
-            try receiver.archiveFetched(otherCiphertextHash, expectedBinding: binding,
-                expectedAuthorUserID: "author_fixture", expectedRecipients: recipients,
+            try receiver.archiveFetched(otherCiphertextHash, pending: pending, expectedBinding: binding,
+                expectedRecipients: recipients,
                 custody: custody(fixture.recipients[0], index: 0), inbox: inbox, savedAt: 3_000)
         }
 
         // Exact replay remains idempotent and never duplicates the pending ACK identity.
-        #expect(try receiver.archiveFetched(fetch, expectedBinding: binding,
-            expectedAuthorUserID: "author_fixture", expectedRecipients: recipients,
+        #expect(try receiver.archiveFetched(fetch, pending: pending, expectedBinding: binding,
+            expectedRecipients: recipients,
             custody: custody(fixture.recipients[0], index: 0), inbox: inbox, savedAt: 3_000) == receipt)
         #expect(try inbox.pendingReceipts() == [receipt])
+
+        let ackBinding = TeamDeviceRequestWire.Binding(audience: binding.audience,
+            authorityEpoch: binding.authorityEpoch, accountID: binding.accountID,
+            sessionID: binding.sessionID, deviceID: binding.deviceID,
+            enrollmentID: binding.enrollmentID, keyThumbprint: binding.keyThumbprint,
+            operation: .deliveryACK, teamID: binding.teamID,
+            requestID: receipt.deliveryId, accessExpiresAt: binding.accessExpiresAt)
+        let ack = TeamDeliveryACKResult(deliveryID: receipt.deliveryId,
+            settledAt: 2_500, expiresAt: fetch.expiresAt,
+            jweSHA256: receipt.jweSHA256, purgeEligible: false)
+        #expect(try TeamDeliveryReceiptCoordinator().apply(ack, receipt: receipt,
+            expectedBinding: ackBinding, inbox: inbox) == .acknowledged(purgeEligible: false))
+        #expect(try inbox.pendingReceipts().isEmpty)
+        #expect(try inbox.archived(deliveryId: receipt.deliveryId) != nil)
+
+        let archived = try #require(try inbox.archived(deliveryId: receipt.deliveryId))
+        try inbox.receive(archived.envelope, jweSHA256: receipt.jweSHA256,
+            savedAt: archived.savedAt)
+        #expect(throws: TeamDeliveryReceiveError.invalidACK) {
+            try TeamDeliveryReceiptCoordinator().applyAuthenticatedTerminal(
+                .server(.uncertain), receipt: receipt,
+                expectedBinding: ackBinding, inbox: inbox)
+        }
+        #expect(try inbox.pendingReceipts() == [receipt])
+        #expect(try TeamDeliveryReceiptCoordinator().applyAuthenticatedTerminal(
+            .server(.terminal), receipt: receipt,
+            expectedBinding: ackBinding, inbox: inbox) == .cancelled)
+        #expect(try inbox.pendingReceipts().isEmpty)
+        #expect(try inbox.archived(deliveryId: receipt.deliveryId) != nil)
     }
 
     @Test func ackBodyRejectsPlaintextDigestAndMalformedReceiptMetadata() throws {
@@ -239,8 +281,11 @@ struct TeamDeliveryJWETests {
             target: target, teamId: "team_fixture")
         let jwe = Data(fixture.canonicalJwe.utf8)
         let digest = SHA256.hash(data: jwe).map { String(format: "%02x", $0) }.joined()
+        let pending = pending(fixture, jwe: jwe)
         let fetch = TeamDeliveryFetchResult(deliveryID: "delivery_fixture", acceptedAt: 1_000,
-            expiresAt: 2_592_001_000, jweBytes: jwe.count, jweSHA256: digest, jwe: jwe)
+            expiresAt: 2_592_001_000, jweBytes: jwe.count, jweSHA256: digest,
+            audienceDigest: fixture.audienceDigest,
+            agreementKeyThumbprint: fixture.recipients[0].kid, jwe: jwe)
         let binding = TeamDeviceRequestWire.Binding(audience: "https://pinbook.example.test",
             authorityEpoch: "epoch_fixture", accountID: target.userId,
             sessionID: "session_fixture", deviceID: target.deviceId,
@@ -250,16 +295,18 @@ struct TeamDeliveryJWETests {
         let receiver = TeamDeliveryReceiveCoordinator()
         let badDigest = TeamDeliveryFetchResult(deliveryID: fetch.deliveryID,
             acceptedAt: fetch.acceptedAt, expiresAt: fetch.expiresAt, jweBytes: fetch.jweBytes,
-            jweSHA256: String(repeating: "0", count: 64), jwe: fetch.jwe)
+            jweSHA256: String(repeating: "0", count: 64), audienceDigest: fetch.audienceDigest,
+            agreementKeyThumbprint: fetch.agreementKeyThumbprint, jwe: fetch.jwe)
 
         #expect(throws: TeamDeliveryReceiveError.bindingMismatch) {
-            try receiver.archiveFetched(badDigest, expectedBinding: binding,
-                expectedAuthorUserID: "author_fixture", expectedRecipients: recipients,
+            try receiver.archiveFetched(badDigest, pending: pending, expectedBinding: binding,
+                expectedRecipients: recipients,
                 custody: custody(fixture.recipients[0], index: 0), inbox: inbox, savedAt: 2_000)
         }
         #expect(throws: TeamDeliveryReceiveError.invalidFetch) {
-            try receiver.archiveFetched(fetch, expectedBinding: binding,
-                expectedAuthorUserID: "different_author", expectedRecipients: recipients,
+            try receiver.archiveFetched(fetch,
+                pending: self.pending(fixture, jwe: jwe, sender: "different_author"),
+                expectedBinding: binding, expectedRecipients: recipients,
                 custody: custody(fixture.recipients[0], index: 0), inbox: inbox, savedAt: 2_000)
         }
         #expect(try inbox.archived(deliveryId: "delivery_fixture") == nil)

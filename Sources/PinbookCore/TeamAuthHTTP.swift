@@ -6,7 +6,7 @@ public enum TeamAuthServerError: String, Sendable {
     case invalidRequest = "invalid_request", jsonRequired = "json_required"
     case requestTooLarge = "request_too_large", notFound = "not_found"
     case requestTimeout = "request_timeout", invalidCredentials = "invalid_credentials"
-    case capacity, unavailable, uncertain
+    case capacity, unavailable, uncertain, terminal
 }
 
 /// No URLs, tokens, raw response bodies or underlying provider errors in diagnostics.
@@ -124,6 +124,7 @@ enum TeamAuthWire {
         case .invalidCredentials: expected = 401
         case .capacity: expected = 429
         case .unavailable, .uncertain: expected = 503
+        case .terminal: expected = 410
         }
         return status == expected ? .server(code) : .invalidResponse
     }
@@ -464,7 +465,7 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
         switch route {
         case .deliveryFetch, .deliverySubmitReserve:
             maximumResponseBytes = TeamAuthWire.maximumDeliveryFetchResponseBytes
-        case .listInvitations, .deviceRequestExecute:
+        case .deliveryPending, .listInvitations, .deviceRequestExecute:
             maximumResponseBytes = TeamAuthWire.maximumResponseBytes
         default: maximumResponseBytes = 4096
         }

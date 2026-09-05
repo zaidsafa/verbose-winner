@@ -39,6 +39,14 @@ private func json(_ value: [String: Any]) throws -> Data { try JSONSerialization
 private func sha256Hex(_ data: Data) -> String {
     SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
 }
+private func pendingFixture(deliveryID: String, jwe: Data,
+                            acceptedAt: Int64 = 1_000) -> TeamPendingDelivery {
+    TeamPendingDelivery(deliveryID: deliveryID, acceptedAt: acceptedAt,
+        expiresAt: acceptedAt + 2_592_000_000, jweBytes: jwe.count,
+        jweSHA256: sha256Hex(jwe), senderAccountID: "public-sender",
+        senderDeviceID: "public-sender-device", senderEnrollmentID: "public-sender-enrollment",
+        audienceDigest: tokenA, agreementKeyThumbprint: tokenB)
+}
 private func challengeJSON() throws -> Data { try json(["challengeId": tokenA, "nonce": tokenB, "expiresAt": 121_000]) }
 
 @Test func invitationUniversalLinkRoundTripsOnlyCanonicalPrivateCapability() throws {
@@ -210,6 +218,26 @@ struct TeamOnboardingHTTPTests {
             "bodySha256": try TeamDeviceRequestWire.bodySHA256(request.body), "challengeId": tokenB,
             "nonce": tokenC, "expiresAt": 9_000]
         return (binding, request, challenge)
+    }
+    private func relayContext<Request: TeamDeviceRequestPayload>(
+        host: String, session: TeamAccountSessionSnapshot,
+        key: TeamDeviceEnrollmentWire.PublicKey,
+        operation: TeamDeviceRequestWire.Operation, requestID: String, request: Request
+    ) throws -> (TeamDeviceRequestWire.Binding, [String: Any]) {
+        let binding = TeamDeviceRequestWire.Binding(audience: "https://\(host)",
+            authorityEpoch: "public-epoch", accountID: session.accountID,
+            sessionID: session.sessionID, deviceID: "public-device",
+            enrollmentID: "public-enrollment", keyThumbprint: key.thumbprint,
+            operation: operation, teamID: "public-team", requestID: requestID,
+            accessExpiresAt: 10_000)
+        return (binding, ["audience": binding.audience,
+            "authorityEpoch": binding.authorityEpoch, "accountId": binding.accountID,
+            "sessionId": binding.sessionID, "deviceId": binding.deviceID,
+            "enrollmentId": binding.enrollmentID, "keyThumbprint": binding.keyThumbprint,
+            "operation": binding.operation.rawValue, "teamId": binding.teamID,
+            "requestId": binding.requestID,
+            "bodySha256": try TeamDeviceRequestWire.bodySHA256(request.body),
+            "challengeId": tokenC, "nonce": tokenD, "expiresAt": 9_000])
     }
     private func reservationContext(host: String, session: TeamAccountSessionSnapshot,
                                     key: TeamDeviceEnrollmentWire.PublicKey,
@@ -543,9 +571,11 @@ struct TeamOnboardingHTTPTests {
         let key = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
         let (binding, request, challengeWire) = try deliveryContext(host: host, session: session, key: key)
         let jwe = Data(repeating: 0x78, count: 70_000)
+        let pending = pendingFixture(deliveryID: request.deliveryID, jwe: jwe)
         let response: [String: Any] = ["deliveryId": request.deliveryID, "acceptedAt": 1_000,
             "expiresAt": 2_592_001_000, "jweBytes": jwe.count,
-            "jweSha256": sha256Hex(jwe), "jwe": TeamDeviceEnrollmentWire.encode(jwe)]
+            "jweSha256": sha256Hex(jwe), "audienceDigest": tokenA,
+            "agreementKeyThumbprint": tokenB, "jwe": TeamDeviceEnrollmentWire.encode(jwe)]
         AuthStubProtocol.state.configure(host, try [challengeWire, response].map {
             let bytes = try json($0)
             return StubResponse(headers: safeHeaders.merging(
@@ -558,7 +588,7 @@ struct TeamOnboardingHTTPTests {
         let signature = try signer.signature(for: prepared.message(expected: binding,
             publicKey: key, request: request, now: 1_000)).rawRepresentation
         let result = try await client.fetchDelivery(challenge: prepared, signature: signature,
-            expected: binding, publicKey: key, request: request, ticket: ticket)
+            expected: binding, publicKey: key, request: request, pending: pending, ticket: ticket)
         #expect(result.deliveryID == request.deliveryID && result.acceptedAt == 1_000)
         #expect(result.expiresAt == 2_592_001_000 && result.jweBytes == 70_000)
         #expect(result.jwe == jwe && result.jweSHA256 == sha256Hex(jwe))
@@ -591,14 +621,18 @@ struct TeamOnboardingHTTPTests {
         let jwe = Data("public-encrypted-jwe".utf8)
         let digest = sha256Hex(jwe)
         let encoded = TeamDeviceEnrollmentWire.encode(jwe)
+        let pending = pendingFixture(deliveryID: request.deliveryID, jwe: jwe)
         let valid: [String: Any] = ["deliveryId": request.deliveryID, "acceptedAt": 1_000,
-            "expiresAt": 2_592_001_000, "jweBytes": jwe.count, "jweSha256": digest, "jwe": encoded]
+            "expiresAt": 2_592_001_000, "jweBytes": jwe.count, "jweSha256": digest,
+            "audienceDigest": tokenA, "agreementKeyThumbprint": tokenB, "jwe": encoded]
         var bad = [[String: Any]]()
         var value = valid; value["extra"] = true; bad.append(value)
         value = valid; value["deliveryId"] = "other-delivery"; bad.append(value)
         value = valid; value["expiresAt"] = 2_592_001_001; bad.append(value)
         value = valid; value["jweBytes"] = jwe.count + 1; bad.append(value)
         value = valid; value["jweSha256"] = digest.uppercased(); bad.append(value)
+        value = valid; value["audienceDigest"] = tokenC; bad.append(value)
+        value = valid; value["agreementKeyThumbprint"] = tokenC; bad.append(value)
         value = valid; value["jwe"] = encoded + "="; bad.append(value)
         value = valid; value["jwe"] = ""; value["jweBytes"] = 0; bad.append(value)
         value = valid; value["acceptedAt"] = -1; bad.append(value)
@@ -607,14 +641,14 @@ struct TeamOnboardingHTTPTests {
             AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(object)])])
             await #expect(throws: TeamAuthHTTPError.invalidResponse) {
                 try await client.fetchDelivery(challenge: prepared, signature: signature,
-                    expected: binding, publicKey: key, request: request, ticket: ticket)
+                    expected: binding, publicKey: key, request: request, pending: pending, ticket: ticket)
             }
             #expect(AuthStubProtocol.state.requests(host).count == 1)
         }
         AuthStubProtocol.state.configure(host, [StubResponse(chunks: [Data(repeating: 0x20, count: 140_001)])])
         await #expect(throws: TeamAuthHTTPError.responseTooLarge) {
             try await client.fetchDelivery(challenge: prepared, signature: signature,
-                expected: binding, publicKey: key, request: request, ticket: ticket)
+                expected: binding, publicKey: key, request: request, pending: pending, ticket: ticket)
         }
         #expect(AuthStubProtocol.state.requests(host).count == 1)
 
@@ -631,7 +665,7 @@ struct TeamOnboardingHTTPTests {
         }
         await #expect(throws: TeamAuthHTTPError.invalidRequest) {
             try await client.fetchDelivery(challenge: prepared, signature: Data(repeating: 0, count: 64),
-                expected: binding, publicKey: key, request: request, ticket: ticket)
+                expected: binding, publicKey: key, request: request, pending: pending, ticket: ticket)
         }
         #expect(AuthStubProtocol.state.requests(host).isEmpty)
     }
@@ -640,7 +674,8 @@ struct TeamOnboardingHTTPTests {
         let jwe = Data("public-encrypted-jwe".utf8)
         let response: [String: Any] = ["deliveryId": "public-delivery", "acceptedAt": 1_000,
             "expiresAt": 2_592_001_000, "jweBytes": jwe.count,
-            "jweSha256": sha256Hex(jwe), "jwe": TeamDeviceEnrollmentWire.encode(jwe)]
+            "jweSha256": sha256Hex(jwe), "audienceDigest": tokenA,
+            "agreementKeyThumbprint": tokenB, "jwe": TeamDeviceEnrollmentWire.encode(jwe)]
         let (client, host, session) = try fixture([
             StubResponse(chunks: [try json(response)], beforeDelivery: { clock.set(10_000) })
         ], clock: { clock.now() })
@@ -649,15 +684,151 @@ struct TeamOnboardingHTTPTests {
         let key = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
         let (binding, request, challengeWire) = try deliveryContext(host: host, session: session, key: key)
         let ticket = try TeamAccountAccessTicket(snapshot: session)
+        let pending = pendingFixture(deliveryID: request.deliveryID, jwe: jwe)
         let prepared = try TeamPreparedDeviceRequestChallenge(validating: json(challengeWire),
             expected: binding, publicKey: key, request: request, now: 1_000)
         let signature = try signer.signature(for: prepared.message(expected: binding,
             publicKey: key, request: request, now: 1_000)).rawRepresentation
         await #expect(throws: TeamAccountSessionError.reauthenticationRequired) {
             try await client.fetchDelivery(challenge: prepared, signature: signature,
-                expected: binding, publicKey: key, request: request, ticket: ticket)
+                expected: binding, publicKey: key, request: request, pending: pending, ticket: ticket)
         }
         #expect(AuthStubProtocol.state.requests(host).count == 1)
+    }
+    @Test func deliveryRelayUsesExactListACKAndStatusContracts() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        let signer = P256.Signing.PrivateKey()
+        let key = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
+        let ticket = try TeamAccountAccessTicket(snapshot: session)
+        let list = try TeamDeliveryListRequest(limit: 2,
+            expectedAgreementKeyThumbprint: tokenB)
+        let (listBinding, listChallenge) = try relayContext(host: host, session: session,
+            key: key, operation: .deliveryList, requestID: "public-list-request", request: list)
+        func row(_ deliveryID: String, _ acceptedAt: Int64) -> [String: Any] {
+            ["deliveryId": deliveryID, "acceptedAt": acceptedAt,
+             "expiresAt": acceptedAt + 2_592_000_000, "jweBytes": 123,
+             "jweSha256": String(repeating: "a", count: 64),
+             "senderAccountId": "public-sender", "senderDeviceId": "public-sender-device",
+             "senderEnrollmentId": "public-sender-enrollment", "audienceDigest": tokenA,
+             "agreementKeyThumbprint": tokenB]
+        }
+        let listResponse: [String: Any] = ["deliveries": [row("delivery-a", 2_000),
+            row("delivery-b", 2_000)], "hasMore": true,
+            "nextCursor": ["afterAcceptedAt": 2_000, "afterDeliveryId": "delivery-b"]]
+        let receipt = PendingTeamReceipt(accountId: session.accountID,
+            teamId: "public-team", deliveryId: "delivery-a", deviceId: "public-device",
+            enrollmentId: "public-enrollment", jweSHA256: String(repeating: "a", count: 64))
+        let ack = try TeamDeliveryACKRequest(receipt: receipt)
+        let (ackBinding, ackChallenge) = try relayContext(host: host, session: session,
+            key: key, operation: .deliveryACK, requestID: receipt.deliveryId, request: ack)
+        let ackResponse: [String: Any] = ["deliveryId": receipt.deliveryId, "state": "ACKED",
+            "settledAt": 3_000, "expiresAt": 2_592_002_000,
+            "jweSha256": receipt.jweSHA256, "purgeEligible": false]
+        let status = try TeamDeliveryStatusRequest(deliveryID: receipt.deliveryId,
+            expectedJWESHA256: receipt.jweSHA256)
+        let (statusBinding, statusChallenge) = try relayContext(host: host, session: session,
+            key: key, operation: .deliveryStatus, requestID: receipt.deliveryId, request: status)
+        let statusResponse: [String: Any] = ["deliveryId": receipt.deliveryId,
+            "state": "OBJECT_VERIFIED", "createdAt": 1_000,
+            "reservationExpiresAt": 901_000, "acceptedAt": NSNull(),
+            "expiresAt": NSNull(), "jweSha256": receipt.jweSHA256]
+        AuthStubProtocol.state.configure(host, try [listChallenge, listResponse, ackChallenge,
+            ackResponse, statusChallenge, statusResponse].map {
+                StubResponse(chunks: [try json($0)])
+            })
+
+        let preparedList = try await client.deliveryListChallenge(expected: listBinding,
+            publicKey: key, request: list, ticket: ticket)
+        let listSignature = try signer.signature(for: preparedList.message(expected: listBinding,
+            publicKey: key, request: list, now: 1_000)).rawRepresentation
+        let page = try await client.listPendingDeliveries(challenge: preparedList,
+            signature: listSignature, expected: listBinding, publicKey: key,
+            request: list, ticket: ticket)
+        #expect(page.deliveries.map(\.deliveryID) == ["delivery-a", "delivery-b"])
+        #expect(page.hasMore && page.nextCursor?.afterDeliveryID == "delivery-b")
+
+        let preparedACK = try await client.deliveryACKChallenge(expected: ackBinding,
+            publicKey: key, request: ack, ticket: ticket)
+        let ackSignature = try signer.signature(for: preparedACK.message(expected: ackBinding,
+            publicKey: key, request: ack, now: 1_000)).rawRepresentation
+        let acknowledged = try await client.acknowledgeDelivery(challenge: preparedACK,
+            signature: ackSignature, expected: ackBinding, publicKey: key,
+            request: ack, ticket: ticket)
+        #expect(acknowledged.deliveryID == receipt.deliveryId && !acknowledged.purgeEligible)
+
+        let preparedStatus = try await client.deliveryStatusChallenge(expected: statusBinding,
+            publicKey: key, request: status, ticket: ticket)
+        let statusSignature = try signer.signature(for: preparedStatus.message(expected: statusBinding,
+            publicKey: key, request: status, now: 1_000)).rawRepresentation
+        let state = try await client.deliveryStatus(challenge: preparedStatus,
+            signature: statusSignature, expected: statusBinding, publicKey: key,
+            request: status, ticket: ticket)
+        #expect(state.state == .objectVerified && state.acceptedAt == nil && state.expiresAt == nil)
+        try check(host, paths: ["deliveries/challenge", "deliveries/pending",
+            "deliveries/challenge", "deliveries/ack", "deliveries/challenge",
+            "deliveries/submit/status"], fields: [["enrollmentId", "binding"],
+            ["challengeId", "signature", "body"], ["enrollmentId", "binding"],
+            ["challengeId", "signature", "body"], ["enrollmentId", "binding"],
+            ["challengeId", "signature", "body"]])
+        let bodies = AuthStubProtocol.state.requests(host)
+        let listWire = try TeamStrictJSON.object(bodies[1].body)
+        #expect(try #require(listWire["body"] as? String)
+            == TeamDeviceEnrollmentWire.encode(list.body))
+
+        AuthStubProtocol.state.configure(host, [StubResponse(status: 410,
+            chunks: [try json(["error": "terminal"])])])
+        await #expect(throws: TeamAuthHTTPError.server(.terminal)) {
+            try await client.acknowledgeDelivery(challenge: preparedACK,
+                signature: ackSignature, expected: ackBinding, publicKey: key,
+                request: ack, ticket: ticket)
+        }
+    }
+
+    @Test func deliveryRelayRejectsChangedCursorMetadataAndStatusWithoutRetry() async throws {
+        let (client, host, session) = try fixture([])
+        defer { AuthStubProtocol.state.clear(host) }
+        let signer = P256.Signing.PrivateKey()
+        let key = try TeamDeviceEnrollmentWire.publicKey(signer.publicKey)
+        let ticket = try TeamAccountAccessTicket(snapshot: session)
+        let request = try TeamDeliveryListRequest(limit: 2,
+            expectedAgreementKeyThumbprint: tokenB)
+        let (binding, challengeWire) = try relayContext(host: host, session: session,
+            key: key, operation: .deliveryList, requestID: "public-list-request", request: request)
+        let prepared = try TeamPreparedDeviceRequestChallenge(validating: json(challengeWire),
+            expected: binding, publicKey: key, request: request, now: 1_000)
+        let signature = try signer.signature(for: prepared.message(expected: binding,
+            publicKey: key, request: request, now: 1_000)).rawRepresentation
+        let base: [String: Any] = ["deliveryId": "delivery-a", "acceptedAt": 2_000,
+            "expiresAt": 2_592_002_000, "jweBytes": 123,
+            "jweSha256": String(repeating: "a", count: 64),
+            "senderAccountId": "public-sender", "senderDeviceId": "public-sender-device",
+            "senderEnrollmentId": "public-sender-enrollment", "audienceDigest": tokenA,
+            "agreementKeyThumbprint": tokenB]
+        var wrongAgreement = base; wrongAgreement["agreementKeyThumbprint"] = tokenC
+        let badPages: [[String: Any]] = [
+            ["deliveries": [base], "hasMore": true,
+             "nextCursor": ["afterAcceptedAt": 2_000, "afterDeliveryId": "other"]],
+            ["deliveries": [wrongAgreement], "hasMore": false, "nextCursor": NSNull()],
+            ["deliveries": [base, base], "hasMore": false, "nextCursor": NSNull()],
+            ["deliveries": [base], "hasMore": false,
+             "nextCursor": ["afterAcceptedAt": 2_000, "afterDeliveryId": "delivery-a"]],
+        ]
+        for page in badPages {
+            AuthStubProtocol.state.configure(host, [StubResponse(chunks: [try json(page)])])
+            await #expect(throws: TeamAuthHTTPError.invalidResponse) {
+                try await client.listPendingDeliveries(challenge: prepared,
+                    signature: signature, expected: binding, publicKey: key,
+                    request: request, ticket: ticket)
+            }
+            #expect(AuthStubProtocol.state.requests(host).count == 1)
+        }
+        for invalidLimit in [0, 51] {
+            #expect(throws: TeamAuthHTTPError.invalidRequest) {
+                try TeamDeliveryListRequest(limit: invalidLimit,
+                    expectedAgreementKeyThumbprint: tokenB)
+            }
+        }
     }
     @Test func deliveryReservationUsesDedicatedRoutesExactProofAndLargeBoundedJWE() async throws {
         let (client, host, session) = try fixture([])
@@ -1228,7 +1399,8 @@ struct TeamAuthHTTPTests {
 
     @Test func fixedErrorCodesRequireMatchingStatusAndNeverExposeRawBodies() throws {
         let cases: [(Int, TeamAuthServerError)] = [(400, .invalidRequest), (415, .jsonRequired), (413, .requestTooLarge),
-            (404, .notFound), (408, .requestTimeout), (401, .invalidCredentials), (429, .capacity), (503, .unavailable), (503, .uncertain)]
+            (404, .notFound), (408, .requestTimeout), (401, .invalidCredentials), (429, .capacity),
+            (503, .unavailable), (503, .uncertain), (410, .terminal)]
         for (status, code) in cases {
             #expect(try TeamAuthWire.serverError(json(["error": code.rawValue]), status: status) == .server(code))
             #expect(try TeamAuthWire.serverError(json(["error": code.rawValue]), status: 500) == .invalidResponse)

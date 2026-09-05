@@ -2150,3 +2150,20 @@ Simulator builds and static inspection alone do not prove physical-device behavi
 - Boundary: server commit `33410b6c` has no authenticated ACK HTTP route. The
   local receipt outbox is therefore unsent/default-off. No phone, provider,
   server, TestFlight, archive or production action was performed.
+
+# 2026-09-05 — authenticated delivery relay transport checkpoint
+
+- Matched exact server commit `b88454bc37f7b30d2fb0df161e268fd6a901f8e6`
+  for shared operation-bound challenge plus pending, fetch, ACK and submission-
+  status execution routes.
+- Added strict keyset-page, immutable ciphertext/audience/agreement-key binding,
+  exact ACK lifecycle and content-free authenticated terminal 410 handling.
+- Focused relay transport/receive tests: **4/4 pass**.
+- Complete isolated Swift command using `/private/tmp/pinbook-relay-spm`:
+  **386 tests / 37 suites pass**, zero failures.
+- `git diff --check`: pass.
+- Unsigned Release iOS Simulator build using
+  `/private/tmp/pinbook-relay-derived`: **BUILD SUCCEEDED** for arm64 and x86_64;
+  bundle identity remained `com.zaidsafa.pinbook.ios`.
+- Boundary: default-off until journal-v2. No runtime UI/refresh/retry/push,
+  server/provider/device/TestFlight/archive upload or production action occurred.
