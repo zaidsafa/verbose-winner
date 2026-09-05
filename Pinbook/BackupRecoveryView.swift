@@ -5,6 +5,7 @@ import CryptoKit
 import Security
 
 struct BackupRecoveryView: View {
+    let personalDriveRuntime: PersonalGoogleDriveRuntime
     @Environment(\.modelContext) private var modelContext
     @Environment(\.pinbookSkin) private var skin
     @Query(sort: \BackupActivityItem.occurredAt, order: .reverse) private var activities: [BackupActivityItem]
@@ -23,10 +24,14 @@ struct BackupRecoveryView: View {
     @State private var showingExporter = false
     @State private var showingImporter = false
     @State private var showingPreview = false
+    @State private var showingDriveConnection = false
+    @State private var showingDriveDisconnect = false
     @State private var isWorking = false
     @State private var operationError: String?
     @State private var completionMessage: String?
     @State private var importTask: Task<Void, Never>?
+    @State private var cloudTask: Task<Void, Never>?
+    @AppStorage("pinbook.personal-drive.last-sync-at") private var lastDriveSyncAt: Double = 0
 
     private var service: BackupRecoveryService { BackupRecoveryService(context: modelContext) }
     private var recordCount: Int {
@@ -44,6 +49,7 @@ struct BackupRecoveryView: View {
     var body: some View {
         List {
             backupHealthSection
+            personalCloudSection
             manualBackupSection
             recoverySnapshotsSection
             localActivitySection
@@ -54,7 +60,10 @@ struct BackupRecoveryView: View {
         .navigationTitle("Backup & Recovery")
         .navigationBarTitleDisplayMode(.inline)
         .disabled(isWorking)
-        .onDisappear { importTask?.cancel() }
+        .onDisappear {
+            importTask?.cancel()
+            cloudTask?.cancel()
+        }
         .overlay {
             if isWorking { ProgressView().controlSize(.large) }
         }
@@ -110,6 +119,28 @@ struct BackupRecoveryView: View {
         } message: {
             Text("Current financial records will be replaced with the exact pre-restore snapshot. Backup history and snapshots remain available.")
         }
+        .confirmationDialog(
+            driveLocalized("Connect Google Drive"),
+            isPresented: $showingDriveConnection,
+            titleVisibility: .visible
+        ) {
+            Button(driveLocalized("Connect")) { cloudTask = Task { await connectDrive() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(driveLocalized("Pinbook will request access only to its private app data folder. It cannot read your other Google Drive files."))
+        }
+        .confirmationDialog(
+            driveLocalized("Disconnect Google Drive"),
+            isPresented: $showingDriveDisconnect,
+            titleVisibility: .visible
+        ) {
+            Button(driveLocalized("Disconnect"), role: .destructive) {
+                cloudTask = Task { await disconnectDrive() }
+            }
+            Button(driveLocalized("Keep connected"), role: .cancel) {}
+        } message: {
+            Text(driveLocalized("Disconnecting stops future sync. Your local Pinbook records and existing private Drive backups stay in place."))
+        }
         .alert("Backup operation failed", isPresented: Binding(
             get: { operationError != nil },
             set: { if !$0 { operationError = nil } }
@@ -149,10 +180,169 @@ struct BackupRecoveryView: View {
             Button("Import and preview", systemImage: "doc.badge.plus") {
                 showingImporter = true
             }
-            Text("Export and import use the system Files workflow. No cloud provider is connected, and no data leaves this device unless you choose a destination.")
+            Text("Export and import use the system Files workflow. Data is sent only to a destination you choose.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var personalCloudSection: some View {
+        Section {
+            HStack(spacing: 12) {
+                Image(systemName: "externaldrive.fill.badge.icloud")
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                    .frame(width: 34)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(driveLocalized("Google Drive"))
+                        .font(.headline)
+                    Text(driveStatusText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if driveIsBusy { ProgressView() }
+            }
+            .accessibilityElement(children: .combine)
+
+            switch personalDriveRuntime.state {
+            case .disconnected:
+                Button(driveLocalized("Connect Google Drive"), systemImage: "link.badge.plus") {
+                    showingDriveConnection = true
+                }
+            case .connected:
+                Button(driveLocalized("Sync now"), systemImage: "arrow.triangle.2.circlepath") {
+                    cloudTask = Task { await syncDrive() }
+                }
+                Toggle(driveLocalized("Sync automatically"), isOn: automaticSyncBinding)
+                Button(driveLocalized("Disconnect Google Drive"), systemImage: "link.badge.minus") {
+                    showingDriveDisconnect = true
+                }
+                .foregroundStyle(.red)
+            case .cleanupRequired:
+                Button(driveLocalized("Finish disconnect"), systemImage: "exclamationmark.arrow.triangle.2.circlepath") {
+                    showingDriveDisconnect = true
+                }
+            case .unavailable:
+                Text(driveLocalized("Unavailable"))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            case .connecting, .syncing, .disconnecting:
+                EmptyView()
+            }
+        } header: {
+            Text(driveLocalized("Private cloud sync"))
+        } footer: {
+            Text(driveLocalized("Pinbook syncs a private backup of your records through Google Drive. Changes are merged safely, and a recovery snapshot is saved before imported changes are applied."))
+            if appearances.first?.automaticSyncEnabled == true {
+                Text(driveLocalized("Automatic sync runs when Pinbook opens. You can still sync manually at any time."))
+            }
+        }
+    }
+
+    private var automaticSyncBinding: Binding<Bool> {
+        Binding(
+            get: { appearances.first?.automaticSyncEnabled ?? false },
+            set: { enabled in
+                guard let settings = appearances.first else { return }
+                settings.automaticSyncEnabled = enabled
+                settings.updatedAt = .nowMilliseconds
+                try? modelContext.save()
+            }
+        )
+    }
+
+    private var driveIsBusy: Bool {
+        [.connecting, .syncing, .disconnecting].contains(personalDriveRuntime.state)
+    }
+
+    private var driveStatusText: String {
+        switch personalDriveRuntime.state {
+        case .unavailable:
+            driveLocalized("Unavailable")
+        case .disconnected:
+            driveLocalized("Not connected")
+        case .connecting:
+            driveLocalized("Connecting…")
+        case .connected:
+            lastDriveSyncAt > 0
+                ? driveLocalized("Connected · Last sync")
+                    + " " + Date(timeIntervalSince1970: lastDriveSyncAt)
+                        .formatted(date: .abbreviated, time: .shortened)
+                : driveLocalized("Connected · Not synced yet")
+        case .syncing:
+            driveLocalized("Syncing…")
+        case .disconnecting:
+            driveLocalized("Disconnecting…")
+        case .cleanupRequired:
+            driveLocalized("Needs attention")
+        }
+    }
+
+    @MainActor
+    private func connectDrive() async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await personalDriveRuntime.connect()
+            completionMessage = driveLocalized(
+                "Google Drive connected. Tap Sync now to merge your records."
+            )
+        } catch is CancellationError {
+            return
+        } catch {
+            operationError = driveErrorMessage(error)
+        }
+    }
+
+    @MainActor
+    private func disconnectDrive() async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await personalDriveRuntime.disconnect()
+            lastDriveSyncAt = 0
+            completionMessage = driveLocalized("Google Drive disconnected.")
+        } catch is CancellationError {
+            return
+        } catch {
+            operationError = driveErrorMessage(error)
+        }
+    }
+
+    @MainActor
+    private func syncDrive() async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            let result = try await personalDriveRuntime.sync(using: service)
+            lastDriveSyncAt = Date().timeIntervalSince1970
+            completionMessage = result.uploaded
+                ? driveLocalized("Sync complete. Your merged backup was saved to Google Drive.")
+                : driveLocalized("Sync complete. Your records are already up to date.")
+        } catch is CancellationError {
+            return
+        } catch {
+            operationError = driveErrorMessage(error)
+        }
+    }
+
+    private func driveErrorMessage(_ error: Error) -> String {
+        if error is PersonalGoogleDriveConnectionError {
+            return driveLocalized("Google Drive needs cleanup. Tap Finish disconnect, then connect again.")
+        }
+        if error is PersonalGoogleDriveAccessError {
+            return driveLocalized("Google Drive is not connected.")
+        }
+        if error is BackupTransportError || error is GoogleDriveBackupError
+            || error is PersonalCloudUploadError || error is PersonalGoogleDriveOAuthError {
+            return driveLocalized("Google Drive sync could not finish. Check your connection and try again.")
+        }
+        return error.localizedDescription
     }
 
     @ViewBuilder
@@ -415,6 +605,15 @@ private extension BackupActivityKind {
         case .recovery: "Snapshot recovery"
         }
     }
+}
+
+private func driveLocalized(_ key: String.LocalizationValue) -> String {
+    String(
+        localized: key,
+        table: "DriveSync",
+        bundle: PinbookLanguage.localizedBundle,
+        locale: PinbookLanguage.currentLocale
+    )
 }
 
 private func formattedBackupTimestamp(_ milliseconds: Int64) -> String {

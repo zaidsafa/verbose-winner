@@ -23986,96 +23986,96 @@
         }
       }
     },
-    "Export and import use the system Files workflow. No cloud provider is connected, and no data leaves this device unless you choose a destination.": {
+    "Export and import use the system Files workflow. Data is sent only to a destination you choose.": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يستخدم التصدير والاستيراد تطبيق الملفات في النظام. لا توجد خدمة سحابية متصلة، ولا تغادر البيانات هذا الجهاز إلا إذا اخترت وجهة."
+            "value": "يستخدم التصدير والاستيراد تطبيق الملفات في النظام. لا تُرسل البيانات إلا إلى وجهة تختارها."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导出和导入使用系统“文件”流程。应用未连接任何云服务；只有在你选择目标位置后，数据才会离开此设备。"
+            "value": "导出和导入使用系统“文件”流程。数据只会发送到你选择的目标位置。"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’export et l’import passent par l’app Fichiers. Aucun fournisseur cloud n’est connecté et aucune donnée ne quitte l’appareil sans destination choisie par vous."
+            "value": "L’export et l’import passent par l’app Fichiers. Les données sont envoyées uniquement vers une destination que vous choisissez."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La exportación e importación usan la app Archivos. No hay ningún proveedor de nube conectado y ningún dato sale del dispositivo a menos que elijas un destino."
+            "value": "La exportación e importación usan la app Archivos. Los datos solo se envían al destino que elijas."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esportazione e importazione usano l’app File. Nessun servizio cloud è connesso e nessun dato lascia il dispositivo senza una destinazione scelta da te."
+            "value": "Esportazione e importazione usano l’app File. I dati vengono inviati solo alla destinazione che scegli."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export und Import erfolgen über die Dateien-App. Kein Cloud-Anbieter ist verbunden, und Daten verlassen das Gerät nur, wenn du ein Ziel auswählst."
+            "value": "Export und Import erfolgen über die Dateien-App. Daten werden nur an ein von dir gewähltes Ziel gesendet."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A exportação e a importação usam o app Arquivos. Nenhum provedor de nuvem está conectado e nenhum dado sai do dispositivo sem que você escolha um destino."
+            "value": "A exportação e a importação usam o app Arquivos. Os dados são enviados apenas para o destino que você escolher."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dışa ve içe aktarma, sistemin Dosyalar uygulamasını kullanır. Bağlı bulut sağlayıcısı yoktur; siz bir hedef seçmedikçe veriler aygıttan çıkmaz."
+            "value": "Dışa ve içe aktarma, sistemin Dosyalar uygulamasını kullanır. Veriler yalnızca seçtiğiniz hedefe gönderilir."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "匯出與匯入透過系統「檔案」App 進行。未連接任何雲端服務，除非您選擇目的地，否則資料不會離開此裝置。"
+            "value": "匯出與匯入透過系統「檔案」App 進行。資料只會傳送到您選擇的目的地。"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ekspor dan impor menggunakan aplikasi File sistem. Tidak ada penyedia cloud yang terhubung, dan data tidak meninggalkan perangkat kecuali Anda memilih tujuan."
+            "value": "Ekspor dan impor menggunakan aplikasi File sistem. Data hanya dikirim ke tujuan yang Anda pilih."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "読み込み・書き出しにはシステムの「ファイル」を使用します。クラウドサービスには接続しておらず、保存先を選ばない限りデータがデバイスの外に出ることはありません。"
+            "value": "読み込み・書き出しにはシステムの「ファイル」を使用します。データは選択した保存先にのみ送られます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "가져오기와 내보내기는 시스템의 파일 앱을 이용합니다. 연결된 클라우드 서비스는 없으며, 사용자가 대상을 선택하지 않으면 데이터가 기기 밖으로 나가지 않습니다."
+            "value": "가져오기와 내보내기는 시스템의 파일 앱을 이용합니다. 데이터는 사용자가 선택한 대상으로만 전송됩니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Экспорт и импорт выполняются через приложение «Файлы». Облачные сервисы не подключены, и данные не покидают устройство, пока вы не выберете место назначения."
+            "value": "Экспорт и импорт выполняются через приложение «Файлы». Данные отправляются только в выбранное вами место."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आयात और निर्यात सिस्टम के Files ऐप से होते हैं। कोई क्लाउड सेवा जुड़ी नहीं है और जब तक आप गंतव्य नहीं चुनते, डेटा इस डिवाइस से बाहर नहीं जाता।"
+            "value": "आयात और निर्यात सिस्टम के Files ऐप से होते हैं। डेटा केवल आपके चुने हुए गंतव्य पर भेजा जाता है।"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "درآمد اور برآمد سسٹم کی Files ایپ سے ہوتی ہیں۔ کوئی کلاؤڈ سروس منسلک نہیں اور جب تک آپ منزل منتخب نہ کریں، ڈیٹا اس آلے سے باہر نہیں جاتا۔"
+            "value": "درآمد اور برآمد سسٹم کی Files ایپ سے ہوتی ہیں۔ ڈیٹا صرف آپ کی منتخب کردہ منزل پر بھیجا جاتا ہے۔"
           }
         }
       }

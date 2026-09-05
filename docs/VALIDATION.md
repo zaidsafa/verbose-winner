@@ -1,5 +1,50 @@
 # Validation plan
 
+## 2026-09-05 active personal Google Drive sync release candidate
+
+- Added the production runtime from explicit AppAuth consent through protected
+  refresh-token custody, memory-only access refresh, strict Drive `appDataFolder`
+  transport, bounded verified backup-v8 inventory/download, deterministic merge,
+  pre-apply recovery snapshot and immutable idempotent append. A single 401 clears
+  the memory token and retries through the protected refresh owner; all other
+  failures stop without deleting remote snapshots.
+- Added user-facing Backup & Recovery states for Connect, Sync now, optional sync
+  when Pinbook opens, Disconnect and fenced cleanup. The confirmation explicitly
+  says Pinbook cannot read other Drive files. All 29 provider strings contain the
+  15 supported non-English localizations. Manual Files copy no longer falsely says
+  that no cloud provider can be connected.
+- Focused Swift access+merge suites: **5/5 PASS**. The complete SwiftPM runner
+  compiled but later produced no progress and was interrupted; it is not counted
+  as acceptance evidence.
+- Signed iOS 26.5 Simulator personal-Drive acceptance: **47/47 PASS**, zero
+  failures/skips:
+  `/private/tmp/Pinbook-Personal-Drive-Sync-Auto-Sim-20260905.xcresult`.
+- Separate signed QA app on physical **iPhone 16 Pro, iOS 26.6.1** ran the same
+  complete set: **47/47 PASS**, zero failures/skips, including real device-only
+  Keychain coverage:
+  `/private/tmp/Pinbook-QA-Physical-Personal-Drive-Sync-Auto-20260905.xcresult`.
+  The normal QA app was relaunched afterward.
+- Scope-confirmation XCUITest: **1/1 PASS** on Simulator, exact evidence:
+  `/private/tmp/Pinbook-Drive-Sync-UI-Sim-Retry-20260905.xcresult`. The initial
+  attempt asserted the wrong shorter status label and is not acceptance evidence.
+- Complete signed Simulator app-host regression: **404 PASS + 4 expected
+  physical-only SKIPS**, 408 total, zero failures:
+  `/private/tmp/Pinbook-Full-AppHost-Sync-20260905.xcresult`.
+- Exact unsigned production Release **BUILD SUCCEEDED** at
+  `/private/tmp/pinbook-personal-drive-active-release-derived`; bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`, production OAuth client,
+  and the updated privacy manifest all compile into the app.
+- Apple App Privacy guidance was re-audited for ongoing off-device sync. The
+  manifest and submission guide now disclose Other Financial Info, Other User
+  Content and Photos or Videos for App Functionality, linked to the user's Drive
+  account, with no tracking. The policy describes private-folder scope, Keychain,
+  automatic sync and disconnect retention.
+- Live Google consent, token issuance, remote object creation/revocation and the
+  Android-to-iOS-to-Android synthetic-data round trip are still open gates. The
+  connected Samsung is reserved for that later compatible-build run and was not
+  used. No source push, archive, TestFlight upload or App Store Connect mutation
+  occurred.
+
 ## 2026-09-05 personal Drive OAuth client allocation and installed configuration
 
 - Created separate Google iOS OAuth clients in the dedicated `pinbook-507110`

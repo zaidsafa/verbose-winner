@@ -164,6 +164,7 @@ struct AppShellView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var appearances: [AppearanceSettingsItem]
     @AppStorage(PinbookOnboardingState.completionKey) private var hasCompletedOnboarding = false
     @AppStorage(PinbookLanguage.preferenceKey, store: PinbookLanguage.preferenceStore) private var languagePreference = PinbookLanguage.system.rawValue
@@ -172,11 +173,14 @@ struct AppShellView: View {
     @State private var showingQuickAdd = false
     @State private var onboardingOverrideDismissed = false
     @State private var bootstrapError: String?
+    @State private var personalDriveRuntime: PersonalGoogleDriveRuntime
+    @State private var automaticSyncTask: Task<Void, Never>?
     private let launchConfiguration: PinbookLaunchConfiguration
 
     init(launchConfiguration: PinbookLaunchConfiguration = .production) {
         self.launchConfiguration = launchConfiguration
         _selection = State(initialValue: launchConfiguration.initialTab)
+        _personalDriveRuntime = State(initialValue: PersonalGoogleDriveRuntime())
     }
 
     private var skin: PinbookSkin {
@@ -231,7 +235,9 @@ struct AppShellView: View {
                 }
 
                 Tab("Options", systemImage: "slider.horizontal.3", value: .options) {
-                    NavigationStack { OptionsView() }
+                    NavigationStack {
+                        OptionsView(personalDriveRuntime: personalDriveRuntime)
+                    }
                 }
             }
             .tabBarMinimizeBehavior(.onScrollDown)
@@ -271,6 +277,7 @@ struct AppShellView: View {
             }
         }
         .onOpenURL { url in
+            if personalDriveRuntime.handleRedirect(url) { return }
             guard let scheme = Bundle.main.object(forInfoDictionaryKey: "PinbookURLScheme") as? String,
                   let deepLink = PinbookDeepLink(url: url, expectedScheme: scheme) else { return }
             let presentation = PinbookDeepLinkPresentation(deepLink)
@@ -284,13 +291,35 @@ struct AppShellView: View {
 #if DEBUG
                 try PinbookDebugFixtures.prepare(modelContext, configuration: launchConfiguration)
 #endif
+                startAutomaticSyncIfNeeded()
             } catch {
                 bootstrapError = error.localizedDescription
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                personalDriveRuntime.refreshState()
+                startAutomaticSyncIfNeeded()
+            } else {
+                automaticSyncTask?.cancel()
+                automaticSyncTask = nil
             }
         }
         // Wrap presentations as well as the tab content in the chosen language.
         .environment(\.locale, language.effectiveLocale())
         .environment(\.layoutDirection, language.layoutDirection())
+    }
+
+    private func startAutomaticSyncIfNeeded() {
+        guard automaticSyncTask == nil,
+              appearances.first?.automaticSyncEnabled == true,
+              personalDriveRuntime.state == .connected else { return }
+        automaticSyncTask = Task { @MainActor in
+            defer { automaticSyncTask = nil }
+            _ = try? await personalDriveRuntime.sync(
+                using: BackupRecoveryService(context: modelContext)
+            )
+        }
     }
 }
 

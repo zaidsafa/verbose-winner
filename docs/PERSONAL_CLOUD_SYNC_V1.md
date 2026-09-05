@@ -1,9 +1,10 @@
-# Pinbook personal cloud sync v1 — inactive contract
+# Pinbook personal cloud sync v1 — release-candidate contract
 
-Updated 2026-09-05. This is a provider-neutral safety contract, not an enabled
-Google Drive or iCloud feature. Dedicated Google iOS OAuth clients are now
-allocated and compiled into the production and QA identities, but no entitlement,
-token, remote file, automatic schedule or user-facing cloud claim is enabled.
+Updated 2026-09-05. The provider-neutral safety contract is now implemented for
+Google Drive behind an explicit user connection. Dedicated Google iOS OAuth
+clients are compiled into the production and QA identities. Release remains
+blocked on live consent/revocation validation and Android-to-iOS-to-Android
+physical interoperability with synthetic data.
 
 ## Provider decision
 
@@ -59,10 +60,11 @@ memory or protected system credential storage and must never enter SwiftData,
 backup JSON, logs, analytics, Git or TestFlight notes. Disconnect stops future
 work but does not silently delete local records or provider data.
 
-Before release: configure real provider clients, test consent/revocation and token
-expiry, update App Privacy and `PRIVACY_POLICY.md`, localize all provider states,
-and run Android-to-iOS-to-Android physical recovery with synthetic data. Until
-then the production UI must continue to say that no cloud provider is connected.
+Before release: test consent/revocation and token expiry, complete the App Privacy
+questionnaire, publish `PRIVACY_POLICY.md`, and run Android-to-iOS-to-Android
+physical recovery with synthetic data. The user-facing flow must clearly describe
+the private `appDataFolder` scope, remain disconnected until explicit consent, and
+offer manual sync even when automatic sync is enabled.
 
 Official implementation references:
 
@@ -72,7 +74,7 @@ Official implementation references:
 - https://developers.google.com/identity/protocols/oauth2/native-app
 - https://developers.google.com/identity/openid-connect/reference#revoke
 
-## Implemented inactive guard and evidence
+## Implemented safety boundary and evidence
 
 `BackupTransport` now exposes only paginated inventory, bounded download and
 immutable append. It has no update or delete method. `BackupTransportGuard`
@@ -90,7 +92,7 @@ Different content and a second concurrent dispatch fail closed; the reservation
 clears only after an exact verified provider receipt. Backup bytes, account
 identity, filenames and credentials never enter this state.
 
-`GoogleDriveBackupTransport` implements the inactive Drive v3 wire boundary with
+`GoogleDriveBackupTransport` implements the Drive v3 wire boundary with
 only the `drive.appdata` scope: pre-generated `appDataFolder` file IDs, complete
 page-token inventory, strict private `appProperties`, exact bounded media reads,
 and multipart immutable create. A 409 retry is accepted only after both metadata
@@ -154,8 +156,17 @@ Exact paths and the initial sandbox-blocked attempt are recorded in
 allocated dedicated Google iOS client and registered reversed-client callback,
 and the signed installed-configuration test passes on Simulator and physical QA.
 The Google project is external/testing with the owner as its explicit test user,
-but its console still reports incomplete branding. The Drive adapter is not
-connected: this source still has no production callback runtime, iCloud adapter,
-scheduler, live authorization, real remote
-bytes, automatic merge or production UI entry. The existing TestFlight build was
-not replaced.
+but its console still reports incomplete branding. The production runtime now
+owns callback routing, protected refresh, manual/open-time sync, bounded verified
+merge, pre-apply recovery and immutable append. The localized UI keeps the app
+disconnected until explicit consent and exposes Connect, Sync now, automatic sync,
+Disconnect and cleanup states. Access tokens remain memory-only; a single 401
+clears the cached token and refreshes once.
+
+Exact-current evidence is **47/47 PASS** on both signed Simulator and the separate
+physical iPhone QA app, **1/1 PASS** for the scope-confirmation UI, **404 PASS + 4
+expected physical-only SKIPS** for the complete signed app-host suite, plus a
+successful unsigned production Release. See the top of `VALIDATION.md` for paths.
+Live Google consent/token/remote-file/revocation and Android round-trip acceptance
+remain open. iCloud is not implemented. The existing TestFlight build was not
+replaced.

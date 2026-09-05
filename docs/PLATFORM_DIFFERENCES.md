@@ -6,6 +6,7 @@
 - SwiftData is the offline local store on iOS; Android Room remains Android-only. Backup records provide the cross-platform interchange boundary.
 - Receipt import uses system PhotosPicker without broad photo-library permission. Notification authorization is requested only when the user explicitly saves an expense with a reminder.
 - Manual backups use the native Files document exporter/importer. This gives the user control of the destination without connecting Pinbook to Google Drive, iCloud, or another provider; cloud locations shown by Files belong to the user's system configuration, not an app sync integration.
+- Optional automatic sync uses Google Drive's private `appDataFolder` so the same backup-v8 records can interoperate with Android. Pinbook cannot read the user's other Drive files. iCloud/CloudKit remains a possible later alternative, not a simultaneous second sync authority.
 - Currency selection follows Foundation's iOS-provided common ISO catalog and localized names/symbols rather than maintaining a handwritten regional shortlist. ISO codes remain visible because many symbols are ambiguous and some currencies have no distinct glyph in the active locale.
 - Two native WidgetKit widgets provide privacy-safe Quick Expense and Balance Overview entry points. Live balance content is intentionally absent because no App Group/shared-container capability has been approved or configured.
-- App signing, Google OAuth configuration, TestFlight, and App Store settings are intentionally outside this repository milestone and require explicit approval.
+- Production and QA Google iOS OAuth clients are configured, and the prior TestFlight build remains published. Live Drive and cross-device acceptance still gate the next final-only TestFlight upload.

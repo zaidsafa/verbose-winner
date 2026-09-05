@@ -84,18 +84,20 @@ in the repository. No sign-in or demo account is required.
 
 ### Beta review notes
 
-No account or sign-in is required. Pinbook is offline-first and stores financial records locally. Backup and Recovery uses the native Files picker and requires the tester to choose a location. Receipt attachment uses Apple's selected-photo picker. The Home Screen widgets are privacy-safe shortcuts and display no financial amounts. No demo credentials are required.
+No Pinbook account is required. Pinbook is offline-first and stores financial records locally. Optional Google Drive sync asks the tester to sign in to their own Google account and grants only the private app-data-folder scope; Pinbook cannot read other Drive files. Manual Backup and Recovery uses the native Files picker and requires the tester to choose a location. Receipt attachment uses Apple's selected-photo picker. The Home Screen widgets are privacy-safe shortcuts and display no financial amounts. No demo credentials are required.
 
 ## App privacy and compliance
 
 - Privacy policy URL: `https://<YOUR DOMAIN>/pinbook/privacy`
-- App Privacy answer: **No, we do not collect data from this app.**
+- App Privacy answer: **Yes, we collect data from this app.** Google Drive sync stores data off device on an ongoing basis after the user enables it, so it does not meet Apple's optional-disclosure exception.
+- Data types: **Other Financial Info**, **Other User Content**, and **Photos or Videos**.
+- For each data type: purpose **App Functionality**; **linked to the user**; **not used for tracking**.
 - Tracking: No
 - Third-party analytics or advertising: None
-- Sign-in: None
+- Sign-in: Optional Google authorization for personal Drive sync; no Pinbook account.
 - Content rights: Pinbook does not contain, show, or access third-party content.
 - Export compliance: Pinbook does not implement non-exempt encryption. The bundle declares `ITSAppUsesNonExemptEncryption = NO`.
-- Privacy manifest: included in the app bundle; it declares no tracking or collected data and declares app-only UserDefaults access under Apple's `CA92.1` reason.
+- Privacy manifest: included in the app bundle; it declares the three Drive-backed data types above, no tracking, and app-only UserDefaults access under Apple's `CA92.1` reason.
 
 Publish `docs/PRIVACY_POLICY.md` at the HTTPS privacy-policy URL before completing App Privacy. If any data handling changes before upload, re-audit these answers rather than copying them unchanged.
 
@@ -148,7 +150,7 @@ Highlights:
 
 1. In Xcode, open **Pinbook.xcodeproj**. Under **Signing & Capabilities**, confirm team `Zaid Alsheikh (F98S3VN5NL)` and **Automatically manage signing** for both `Pinbook` and `PinbookWidgets`.
 2. In App Store Connect, open the existing **Pinbook: Expense Ledger** app (`6807481054`). Do not create another app or bundle ID.
-3. Add the privacy-policy URL and publish the **No Data Collected** answers under **App Privacy**.
+3. Add the privacy-policy URL and publish the Drive data disclosures listed under **App privacy and compliance**.
 4. Add the TestFlight beta description, feedback email, review contact, and review notes.
 5. In Xcode select the `Pinbook` scheme and **Any iOS Device (arm64)**, then choose **Product → Archive**.
 6. In Organizer select the archive, choose **Distribute App → TestFlight & App Store → Upload**, and let Xcode manage distribution signing. Use **TestFlight Internal Only** only if the build will never be sent to external testers.

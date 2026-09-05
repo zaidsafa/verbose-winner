@@ -701,6 +701,43 @@ final class PinbookUITests: XCTestCase {
     }
 
     @MainActor
+    func testPrivateGoogleDriveSyncExplainsNarrowScopeBeforeConnecting() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-PinbookFixture", "populated",
+            "-PinbookTab", "options",
+            "-PinbookSkin", "paperGlass",
+            "-PinbookTheme", "light",
+        ]
+        app.launch()
+
+        let backupLink = app.buttons.matching(NSPredicate(
+            format: "label CONTAINS %@", "Backup & Recovery"
+        )).firstMatch
+        XCTAssertTrue(backupLink.waitForExistence(timeout: 5))
+        backupLink.tap()
+        XCTAssertTrue(app.navigationBars["Backup & Recovery"].waitForExistence(timeout: 5))
+
+        let connect = app.buttons["Connect Google Drive"]
+        scrollToHittable(connect, in: app)
+        XCTAssertTrue(connect.isHittable)
+        XCTAssertTrue(app.staticTexts["Not connected"].exists)
+        connect.tap()
+
+        let scopeExplanation = app.staticTexts[
+            "Pinbook will request access only to its private app data folder. It cannot read your other Google Drive files."
+        ]
+        XCTAssertTrue(scopeExplanation.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Connect"].exists)
+
+        let evidence = XCTAttachment(screenshot: app.screenshot())
+        evidence.name = "Pinbook private Google Drive scope confirmation"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+        app.terminate()
+    }
+
+    @MainActor
     func testArabicBackupRecoveryCenterUsesRTLLocalizedCopy() throws {
         let app = XCUIApplication()
         app.launchArguments = [

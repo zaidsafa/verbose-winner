@@ -38,43 +38,18 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Unfinished functionality: not allowed to disappear from scope
 
-- [ ] Personal cloud integration: distinguish manual Files destinations (implemented)
-      from automatic Drive/iCloud sync (not implemented). Final provider behavior,
-      OAuth/capabilities, consent, conflicts, failures and recovery must be agreed
-      and verified; do not advertise simultaneous providers without a safe design.
-      Read-only review of Android's current Drive v8 implementation found no
-      conditional-update guard, first-page-only discovery and unbounded response
-      reads. These are source-level concurrency/bounds risks, not observed data
-      loss; Android notified. Do not blindly mirror them into iOS automatic sync.
-      The inactive replacement contract now specifies Drive-first immutable
-      append-only snapshots, complete bounded pagination, persisted idempotent
-      upload identity and existing local preview/snapshot/transaction gates. See
-      `PERSONAL_CLOUD_SYNC_V1.md`. The inactive Swift port/guard now structurally
-      permits only list, bounded verified download and immutable append, with
-      complete core/app-host/Release coverage. A protected Keychain upload owner
-      now persists the exact operation identity and content authority before the
-      provider call, reuses it after an ambiguous result, rejects changed bytes or
-      concurrent dispatch, and clears only after an exact receipt. Signed
-      Simulator and separate physical-iPhone Keychain tests pass. The inactive
-      Drive v3 adapter now reserves appDataFolder file IDs, pages strict private
-      metadata, bounds media, creates immutable multipart objects and verifies
-      exact metadata+bytes after a 409 retry. The separate personal OAuth/token
-      boundary now requires a real iOS client, uses AppAuth PKCE with Drive-only
-      offline consent, sends no client secret and strictly parses code/refresh
-      responses. Device-only Keychain custody now binds client hash, generation,
-      time/expiry and a durable revocation-pending phase. Explicit disconnect
-      fences refresh, performs one-use remote revocation, and deletes only its exact
-      generation after authoritative success. Swift, signed Simulator and physical
-      QA tests pass. An inactive AppAuth browser/callback owner now adds explicit
-      consent, exact one-use callback routing, ephemeral presentation, cancellation,
-      background handling and a monotonic timeout. Dedicated production and QA
-      Google iOS clients are now allocated and compiled with their exact registered
-      callbacks; signed Simulator and physical-QA configuration tests pass. Google
-      still reports incomplete branding, and production callback runtime, live
-      authorization/Drive acceptance and UI activation remain open. The inactive
-      connection coordinator now fences a
-      newly issued token in protected Keychain custody before atomically activating
-      it, and revokes/removes that exact fence on cancellation or failure.
+- [ ] Personal cloud integration: Google Drive is implemented as the first optional
+      provider with explicit consent, private `appDataFolder` scope, protected
+      device-only refresh-token custody, manual and open-time automatic sync,
+      bounded verified backup-v8 merge, pre-apply recovery and immutable idempotent
+      snapshots. iCloud remains a possible later alternative; it must not become a
+      simultaneous second automatic authority. Simulator and physical iPhone suites
+      pass 47/47, the scope UI test passes, and the full signed app-host regression
+      passes 404 + 4 expected physical-only skips. This checkbox stays open until
+      live consent/token/revocation/remote-object acceptance, published privacy
+      metadata, and Android -> iOS -> Android synthetic-data interoperability pass.
+      Android has the exact contract and must not repeat its earlier first-page,
+      unbounded-read or mutable-write risks. See `PERSONAL_CLOUD_SYNC_V1.md`.
 - [ ] Invite-only team sign-in, account/session admission, enrollment, roles,
       revocation and account lifecycle. Apple+Google direction accepted from the
       owner's direct "proceed" response to that proposed choice; Android notified.
@@ -97,19 +72,14 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
-- Personal cloud upload ownership now has an inactive crash-safe iOS boundary.
-  The protected non-synchronizing Keychain stores only redacted operation
-  authority before dispatch; exact retry, conflicting-content, concurrent-owner,
-  corrupted-state and receipt-settlement cases pass. Complete core, signed
-  app-host, physical iPhone focused QA and ordinary Release pass. The Drive v3
-  adapter is implemented behind an ephemeral token provider with strict bounded
-  appDataFolder requests and exact conflict replay checks; it remains disconnected.
-  A disconnected personal OAuth/token parser, protected custody/revocation path and
-  AppAuth browser/callback owner and two-phase connection coordinator now exist and
-  remain isolated from team sign-in. Separate allocated production/QA client IDs
-  and callbacks now compile and pass signed installed-configuration tests, but no
-  production callback runtime, iCloud adapter, scheduler, live token/remote bytes,
-  merge or UI activation exists.
+- Personal Google Drive sync is wired into the production runtime and localized
+  Backup & Recovery UI. It remains disconnected until explicit user consent and is
+  isolated from team sign-in. The protected non-synchronizing Keychain stores the
+  refresh credential and pending immutable-upload authority; access tokens remain
+  memory-only. The active merge path verifies every bounded snapshot, preserves
+  local equal-time values, saves a recovery snapshot before changes and appends a
+  new immutable backup only when content changed. Live Google and cross-device
+  acceptance remain open; no new TestFlight build has been uploaded.
   See `PERSONAL_CLOUD_SYNC_V1.md`.
 
 - ACCEPT, ACK and CANCEL journal metadata now has inactive iOS parity with the

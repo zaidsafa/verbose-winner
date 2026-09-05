@@ -29,6 +29,7 @@ enum PinbookCurrencyCatalog {
 }
 
 struct OptionsView: View {
+    let personalDriveRuntime: PersonalGoogleDriveRuntime
     @Environment(\.pinbookSkin) private var skin
     @AppStorage(PinbookOnboardingState.completionKey) private var hasCompletedOnboarding = false
     @AppStorage(PinbookLanguage.preferenceKey, store: PinbookLanguage.preferenceStore) private var languagePreference = PinbookLanguage.system.rawValue
@@ -89,7 +90,7 @@ struct OptionsView: View {
 
             Section("Data") {
                 NavigationLink {
-                    BackupRecoveryView()
+                    BackupRecoveryView(personalDriveRuntime: personalDriveRuntime)
                 } label: {
                     OptionsRow(title: "Backup & Recovery", subtitle: "Local Files and restore history", symbol: "externaldrive.badge.timemachine")
                 }

@@ -987,7 +987,7 @@ Updated: 2026-09-05 (Asia/Shanghai)
 - Favorite currencies remain empty in production until the user explicitly enables them. A permanently searchable selector lists all 159 Foundation common ISO currency codes with a symbol tile, ISO code, localized name, and independent switch; ambiguous or unavailable distinct symbols fall back to a neutral currency glyph while the code stays visible.
 - The embedded `PinbookWidgets` extension supplies two privacy-safe Home Screen widgets. Quick Expense opens a clean expense form and Balance Overview opens Summary. Neither widget displays amounts or reads shared financial data, and no App Group/iCloud capability was added.
 - TestFlight groundwork uses app bundle `com.zaidsafa.pinbook.ios`, widget bundle `com.zaidsafa.pinbook.ios.widgets`, version `0.1.0`, build `1`, and automatic signing pinned to Apple team `F98S3VN5NL` for both distributable targets. No signing or account-side mutation was performed during this milestone.
-- The app now has a full-bleed 1024×1024 opaque App Store icon, an embedded `PrivacyInfo.xcprivacy` declaring no tracking/collection and app-only UserDefaults reason `CA92.1`, plus `ITSAppUsesNonExemptEncryption = NO` for the current no-custom-encryption build.
+- The app has a full-bleed 1024×1024 opaque App Store icon, an embedded `PrivacyInfo.xcprivacy` declaring no tracking, app-only UserDefaults reason `CA92.1`, and the later Drive data disclosures recorded below, plus `ITSAppUsesNonExemptEncryption = NO` for the current no-custom-encryption build.
 - `docs/TESTFLIGHT_SUBMISSION.md` provides copy-ready app-record fields, TestFlight review copy, App Store listing copy, privacy/compliance answers, and the upload sequence. `docs/PRIVACY_POLICY.md` is a publish-ready policy draft with a support-email placeholder.
 - Users can create, edit, and soft-delete active-book templates. Expenses can be starred or unstarred as Favorites directly from their cards.
 - Quick Add presents active-book Favorites and templates in a native half-height sheet and copies the selected source into a fresh, open, unstarred expense with a new identity and current date.
@@ -1033,7 +1033,7 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Limitations
 
-- Drive/OAuth, iCloud transport, and OCR remain unimplemented. Backup & Recovery is currently manual and local through Files.
+- Google Drive sync is implemented but still needs live-provider and Android interoperability acceptance. iCloud transport and OCR remain unimplemented. Manual Files backup remains available independently.
 - iCloud/CloudKit is not implemented. The planned provider design treats it as an optional alternative to Google Drive, not a simultaneous second sync authority.
 - Statements are generated locally, but successful transfer through a chosen share extension was not exercised. Reminder request construction is implemented, but authorization and real notification delivery were deliberately not triggered during simulator acceptance.
 - All 16 catalogs are complete, but draft coverage does not establish native fluency or exhaustive layout acceptance. User-authored content is not translated. Widgets follow system language, not the in-app override, because no App Group is used; already scheduled notifications are not rewritten when the language changes.
@@ -1043,7 +1043,7 @@ Updated: 2026-09-05 (Asia/Shanghai)
 - The current build passed 39 signed Debug physical-device tests. These do not prove widget gallery installation, installation of Apple's TestFlight Release binary, a completed external Files-provider transfer, real notification delivery, or App Store acceptance. The UI tests opened both system document pickers but did not save or select a file. Further automated checks should use the simulator while the owner's iPhone is disconnected.
 - Existing Apple signing with automatic provisioning was used for device tests, archive, export, and upload. TestFlight metadata, group assignment, and external review submission were changed under owner authorization. No OAuth credentials or public App Store submission were created.
 - The initial TestFlight audit reported no valid code-signing identities, so its archive was deliberately unsigned. The owner later supplied evidence of a processed build (below). This does not prove current signing availability or physical acceptance; localization resumption uses unsigned builds and does not mutate signing or upload a replacement.
-- The owner subsequently supplied an App Store Connect screenshot showing `Pinbook: Expense Ledger`, processed TestFlight build `0.1.0 (1)`, the colorful icon, and `Ready to Submit`. This is screenshot evidence, not a live account audit or proof of tester installation/review approval. No App Store Connect mutation was performed during localization resumption. Before external testing, confirm final contact/privacy-policy details. The current **No Data Collected** answer applies only while records, receipts, and manual backups stay local; future cloud integration requires a fresh privacy audit.
+- The owner subsequently supplied an App Store Connect screenshot showing `Pinbook: Expense Ledger`, processed TestFlight build `0.1.0 (1)`, the colorful icon, and `Ready to Submit`. This is screenshot evidence, not a live account audit or proof of tester installation/review approval. The later Drive candidate requires updated App Privacy disclosures as recorded below; do not reuse the earlier **No Data Collected** answer.
 
 ## Exact next actions
 
@@ -1054,3 +1054,43 @@ Updated: 2026-09-05 (Asia/Shanghai)
 5. Implement Google Drive `drive.appdata` only after explicit OAuth/provider approval, routing remote bytes through the existing validation, preview, snapshot, history, and deterministic conflict-recovery boundary. Re-audit App Privacy and update the privacy policy before shipping it.
 6. Collect locale-specific wording/layout feedback from the exact candidate on iPhone. All catalogs are now directly assistant-authored drafts; no Google approval or external translation request is needed. The offline checker validates all 256 keys and placeholders and can compare compiled app/widget catalogs to source. Native review is not a blocker under the owner's authorization, but do not claim professional or native-reviewed quality.
 7. Source commits remain local-only; the binary was uploaded to TestFlight. The earlier 2026-09-04 push was blocked by auto-review pending explicit owner approval to export commits to `https://github.com/zaidsafa/verbose-winner.git`, branch `codex/pinbook-ios-foundation`. No push was retried. Do not retry through another route without that authorization. Project changes committed for these milestones are the 13 added `knownRegions` lines and four build-number increments; the owner's pre-existing project/signing edits remain uncommitted and preserved.
+
+## 2026-09-05 active Drive sync checkpoint — supersedes stale inactive notes
+
+- Personal Google Drive sync is now compiled into the production runtime and the
+  localized Backup & Recovery UI. It uses explicit AppAuth consent, only
+  `drive.appdata`, a device-only Keychain refresh credential, memory-only access
+  tokens, bounded verified backup-v8 reconciliation, pre-apply local recovery and
+  immutable idempotent uploads. Users may sync manually or enable sync when the app
+  opens. Disconnect revokes/fences credentials but does not silently delete remote
+  backup files.
+- Exact acceptance: focused Swift **5/5**, Simulator Drive **47/47**, physical
+  iPhone QA Drive **47/47**, scope UI **1/1**, full signed app-host **404 passed +
+  4 expected physical-only skips**, and unsigned production Release build passed.
+  Exact result paths are at the top of `VALIDATION.md`. The complete SwiftPM runner
+  hung after compilation and was interrupted; it is not acceptance evidence.
+- App Privacy and the privacy manifest now disclose Other Financial Info, Other
+  User Content and Photos or Videos for App Functionality, linked to the user's
+  Google account, with no tracking. `PRIVACY_POLICY.md` still needs a public HTTPS
+  host before App Store submission.
+- Still open: Google console branding/live consent, real token/Drive
+  create-download-revoke, Android interoperability on synthetic data, full final
+  candidate regression, archive/upload/processing, exact TestFlight install, and
+  final App Store Connect privacy metadata. No new TestFlight build or source push
+  occurred. The existing TestFlight build remains unchanged.
+- Both iPhone and Samsung are connected and approved only for isolated Pinbook QA
+  with synthetic records. The Android task was sent the exact backup-v8 immutable
+  appDataFolder contract and the owner's device authorization; it must confirm a
+  compatible QA build before any two-device run. WooOrders remains separate.
+
+### Superseding next actions
+
+1. Complete live Google consent and private-folder create/download/revocation on
+   the isolated iOS QA app without personal records.
+2. Wait for Android to confirm the same immutable backup-v8 contract, then run the
+   synthetic Android -> iOS -> Android conflict/receipt/note round trip.
+3. Complete the remaining final UX, accessibility, widget and device matrix.
+4. Publish the privacy policy, update App Store Connect privacy answers, increment
+   the build number, archive and upload exactly one final candidate, then verify
+   processing, internal/external group assignment and installation. Do not upload
+   an intermediate build.
