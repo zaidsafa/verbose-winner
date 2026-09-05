@@ -1085,6 +1085,12 @@ Updated: 2026-09-05 (Asia/Shanghai)
   User Content and Photos or Videos for App Functionality, linked to the user's
   Google account, with no tracking. `PRIVACY_POLICY.md` still needs a public HTTPS
   host before App Store submission.
+- A separate clean support-site checkout now contains the finished Pinbook home,
+  privacy and support pages as a validated static export using the exact app icon.
+  The normal Sites connector repeatedly fails at its transport boundary, so no
+  public URL or Google Branding mutation exists yet. A GitHub Pages fallback must
+  not be pushed without the owner's explicit approval; the public iOS source
+  repository itself remains unchanged.
 - Still open: independent Drive download/revocation, Android interoperability on
   synthetic data, full final
   candidate regression, archive/upload/processing, exact TestFlight install, and

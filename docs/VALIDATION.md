@@ -57,6 +57,13 @@
   consent/token/upload evidence against the QA client, not an independently read
   Drive object or exact-byte download/revocation result. The working TestFlight app
   and its records were not used.
+- A separate Pinbook support/privacy site is complete as a validated static export.
+  It contains an app home page, privacy policy and support page, reuses the exact
+  current app icon, has responsive light/dark presentation, and passes lint and
+  production build. No public URL exists yet: the normal Sites connector is
+  returning a transport failure, and no fallback GitHub Pages publication has
+  been authorized. This is prepared local publication evidence only, not the
+  owned HTTPS release gate.
 - Apple App Privacy guidance was re-audited for ongoing off-device sync. The
   manifest and submission guide now disclose Other Financial Info, Other User
   Content and Photos or Videos for App Functionality, linked to the user's Drive
