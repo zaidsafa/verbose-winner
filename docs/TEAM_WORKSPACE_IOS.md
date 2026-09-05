@@ -37,34 +37,44 @@ Updated: 2026-09-05 (Asia/Shanghai)
   custody and a transport satisfying every workspace interface; it contains no
   built-in origin, credential or fallback endpoint.
 - Every ordinary injected remote operation is checked against the exact live
-  session generation before and after dispatch. Account deletion checks before
-  dispatch, then records authenticated acceptance because success may revoke
-  that session immediately. It records a stable operation before the remote
-  call and requires an idempotent authenticated
-  server result. Rejection preserves every local item. After acceptance, a
-  restart-safe journal requires idempotent cleanup of the account/team cache and
-  archive, agreement key, device signing identity, Terms acceptance and session.
-  Completion is impossible while any stage remains pending; no partial built-in
-  custody implementation can be mistaken for complete deletion.
+  session generation before and after dispatch. Account deletion now uses a
+  separate default-off recovery state machine. It durably persists one stable
+  operation ID plus the immutable original origin/provider/authority/account/
+  team/custody binding. A random 256-bit deletion-status-only credential is
+  created in non-synchronizing, ThisDeviceOnly Keychain custody before dispatch;
+  it cannot enter app or portable backups.
+- The deletion journal commits `PREPARED -> DISPATCHED` before the one ordinary
+  session-authenticated request. A lost/ambiguous response becomes `UNCERTAIN`.
+  `DISPATCHED` and `UNCERTAIN` can reconcile only through the separate status
+  transport and original status credential, even after the ordinary session is
+  revoked; startup gates keep team actions blocked while that result is unknown.
+  Definitive `REJECTED` preserves user material and unblocks normal use.
+  Authenticated `ACCEPTED` alone starts exact-binding, idempotent cleanup of the
+  account/team cache and archive, agreement key, device signing identity, Terms
+  acceptance and account session. No production status transport or concrete
+  secure cleanup is supplied until the server 027/028 API is frozen.
 
 ## Evidence
 
-- Focused `TeamWorkspaceTests`: **9/9 pass**.
-- Complete Swift package: **395 tests in 38 suites pass**.
+- Focused `TeamWorkspaceTests`: **13/13 pass**, including lost response,
+  restart/config change, schema-version rejection, exact-account isolation,
+  definitive rejection and idempotent cleanup-after-side-effect.
+- Complete Swift package: **399 tests in 38 suites pass**.
 - The compiled Release app contains all **16 `.lproj` catalogs**. Direct checks
   of Arabic, Urdu, Simplified Chinese and Traditional Chinese Team-workspace
   values match their source-catalog translations.
 - `PrivacyInfo.xcprivacy` and `project.pbxproj`: `plutil` pass.
 - Unsigned Release iOS Simulator build: **BUILD SUCCEEDED** for arm64 and x86_64
-  using `/private/tmp/pinbook-composition-derived`.
+  using `/private/tmp/pinbook-deletion-recovery-derived`.
 - `git diff --check`: pass.
 
 ## Explicit boundary
 
 The visible screen is a default-off local shell, not working production sync.
-No production origin, live session, server moderation/deletion route,
-push schedule, phone, provider, TestFlight or release action was enabled. The
-server must finish and freeze journal-v2 acceptance and moderation/account
-contracts before these controls can become active. Full localization is complete;
-visual/accessibility acceptance and actual injected end-to-end behavior remain
-required before a final TestFlight candidate.
+No production origin, live session, server moderation/deletion/status route,
+concrete secure cleanup, push schedule, phone, provider, TestFlight or release
+action was enabled. The server must finish and freeze journal-v2 acceptance and
+moderation/account deletion 027/028 contracts before these controls can become
+active. The concrete Keychain path compiled but was not claimed as physical-device
+acceptance. Full localization is complete; visual/accessibility acceptance and
+actual injected end-to-end behavior remain required before a final candidate.

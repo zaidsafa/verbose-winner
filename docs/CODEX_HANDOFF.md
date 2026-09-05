@@ -56,16 +56,21 @@ Updated: 2026-09-05 (Asia/Shanghai)
   injection-only composition maps Apple and Google into the same strict account
   challenge/session path and binds every remote workspace call to the exact live
   session generation. It embeds no origin, credential or guessed endpoint.
-  Account deletion is all-or-pending: a durable stable operation precedes the
-  idempotent authenticated remote call, rejection preserves all local material,
-  and accepted deletion cannot finish until injected idempotent cleanup covers
+  Account deletion now persists a stable operation and immutable original
+  origin/provider/authority/account/team/custody binding. A random 256-bit,
+  deletion-status-only credential is stored in non-synchronizing ThisDeviceOnly
+  Keychain custody before the journal durably moves `PREPARED -> DISPATCHED` and
+  before the request. Lost responses become `UNCERTAIN`; startup blocks team
+  actions and reconciliation uses only the status credential after ordinary
+  session revocation. Definitive rejection preserves data and unblocks normal
+  use. Authenticated acceptance alone begins exact-binding idempotent cleanup of
   team cache/archive, agreement key, device signing identity, Terms and session.
-  Crashes resume from the last durable cleanup step. No incomplete built-in
-  custody deletion is presented as complete. Focused workspace **9/9**, complete
-  Swift **395/395**, catalog JSON validation, plist/project lint, `git diff --check`
-  and unsigned Release Simulator build pass. No device/provider/server/TestFlight/
-  release action occurred. Visual/accessibility and injected end-to-end acceptance
-  remain required. See `TEAM_WORKSPACE_IOS.md`.
+  No production status transport or concrete cleanup is supplied before the
+  frozen server 027/028 API. Focused workspace **13/13**, complete Swift
+  **399/399**, `git diff --check` and unsigned Release Simulator build pass at
+  `/private/tmp/pinbook-deletion-recovery-derived`. No device/provider/server/
+  TestFlight/release action occurred. Physical Keychain and injected end-to-end
+  acceptance remain open. See `TEAM_WORKSPACE_IOS.md`.
 
 - A default-off local Team workspace now appears under Options with connection,
   exact invitation QR/ShareLink, manual encrypted-note, foreground inbox,

@@ -1,5 +1,32 @@
 # Validation plan
 
+## 2026-09-05 default-off account-deletion recovery
+
+- Added a transport-abstract, restart-safe deletion state machine that persists
+  one immutable original origin/provider/authority/account/team/custody binding,
+  stable operation ID and ordered cleanup progress without storing secrets in
+  the journal.
+- A fresh 256-bit status-only credential is placed in non-synchronizing,
+  `AfterFirstUnlockThisDeviceOnly` Keychain custody before dispatch. The journal
+  commits `PREPARED -> DISPATCHED` before network use and records `UNCERTAIN` for
+  every thrown dispatch/status result.
+- After dispatch, recovery uses only the original binding and status credential;
+  it does not restore or depend on the ordinary account session. Startup blocks
+  team actions in `DISPATCHED`, `UNCERTAIN` and accepted-but-incomplete cleanup.
+- Authenticated `ACCEPTED` alone begins the five exact-binding idempotent cleanup
+  steps. Definitive `REJECTED` removes only recovery metadata/credential,
+  preserves user data and unblocks normal use.
+- Focused `TeamWorkspaceTests`: **13/13 PASS**. Coverage includes response loss,
+  durable pre-dispatch ordering, restart after session loss/config change,
+  unknown schema version, exact-account isolation, rejection and a crash after
+  cleanup side effect but before its journal checkpoint.
+- Complete Swift package: **399 tests in 38 suites PASS**.
+- Unsigned Release iOS Simulator app build: **BUILD SUCCEEDED** for arm64 and
+  x86_64 at `/private/tmp/pinbook-deletion-recovery-derived`.
+- `git diff --check`: pass. Production transport, server 027/028 endpoints,
+  concrete account-content/key cleanup, physical-device Keychain acceptance,
+  provider, runtime UI and TestFlight remain unchanged/default-off.
+
 ## 2026-09-05 strict invitation Universal Link grammar
 
 - Added a dependency-injected builder/parser for exact
