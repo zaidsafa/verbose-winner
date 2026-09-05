@@ -1125,8 +1125,12 @@ Updated: 2026-09-05 (Asia/Shanghai)
   confirmed to have the same SHA-256 signing certificate, then the candidate was
   installed in place as version `0.5.0-qa` (9). The normal
   `com.zaidsafa.pinbook` remains version `0.5.0` (9) with its prior update time.
-  Android Drive remains blocked until the exact QA OAuth client is created after
-  action-time owner confirmation. WooOrders remains separate.
+  After action-time owner confirmation, Google Cloud created and verified the
+  exact Android QA OAuth client. Android then restored five records from the
+  iPhone QA backup, created `QA_ANDROID_ROUNDTRIP` with CNY 1.23 and an explicit
+  synthetic-only private note, and automatically uploaded exactly one snapshot.
+  The final Android-to-iPhone read-back and explicit revocation remain open.
+  WooOrders remains separate.
 
 ### Superseding next actions
 

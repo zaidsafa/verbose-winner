@@ -57,6 +57,18 @@
   consent/token/upload evidence against the QA client, not an independently read
   Drive object or exact-byte download/revocation result. The working TestFlight app
   and its records were not used.
+- After explicit action-time approval, Google Cloud created and visibly verified
+  the dedicated Android QA client
+  `599020933167-l10b50tp3nd025qa7si6p0ttpg66d9pr.apps.googleusercontent.com`
+  for only `com.zaidsafa.pinbook.qa` and its independently matched signing SHA-1.
+  The isolated Samsung QA app then connected to the same private `appDataFolder`
+  and reported **5 restored · 0 uploaded**. A clearly synthetic record named
+  `QA_ANDROID_ROUNDTRIP`, CNY 1.23, counterparty `Synthetic_Tester`, private note
+  `CROSS_DEVICE_VERIFICATION_ONLY` was created locally; automatic sync then
+  reported **0 restored · 1 uploaded**. This proves the iPhone-to-Android read leg
+  and Android-to-Drive write leg. The final Android-to-iPhone read-back remains
+  open and needs explicit live-sync authorization because it may also append a QA
+  snapshot. Production Google clients and both normal apps remained untouched.
 - A separate Pinbook support/privacy site is complete as a validated static export.
   It contains an app home page, privacy policy and support page, reuses the exact
   current app icon, has responsive light/dark presentation, and passes lint and
@@ -89,13 +101,14 @@
   Content and Photos or Videos for App Functionality, linked to the user's Drive
   account, with no tracking. The policy describes private-folder scope, Keychain,
   automatic sync and disconnect retention.
-- Independent remote-object download/revocation acceptance and the
-  Android-to-iOS-to-Android synthetic-data round trip are still open gates. The
+- Explicit disconnect/revocation acceptance and the final Android-to-iPhone
+  synthetic-data read-back are still open gates. The
   connected Samsung now has the separate signer-matched `com.zaidsafa.pinbook.qa`
   candidate installed in place as `0.5.0-qa` (9); it passed 479/479 tests plus
   lint/build before installation. The normal `com.zaidsafa.pinbook` remained
-  untouched. Drive authorization still waits for the dedicated Android QA OAuth
-  client. No archive or TestFlight upload occurred.
+  untouched. Its dedicated Android QA OAuth client is verified and the live
+  iPhone-to-Android read plus Android-to-Drive write legs passed as recorded above.
+  No archive or TestFlight upload occurred.
 
 ## 2026-09-05 personal Drive OAuth client allocation and installed configuration
 

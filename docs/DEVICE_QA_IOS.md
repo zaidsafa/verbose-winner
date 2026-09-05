@@ -23,7 +23,11 @@ still installed as bundle `com.zaidsafa.pinbook.ios.qa`, version `0.1.0`, build
 installed `com.zaidsafa.pinbook.qa` app had the same SHA-256 signing certificate,
 so it was installed in place as `0.5.0-qa` (9) without clearing data. The normal
 `com.zaidsafa.pinbook` app remained version `0.5.0` (9) with its prior update
-time. The Android QA OAuth client and live two-device round trip remain open.
+time. After explicit approval, the dedicated Android QA OAuth client was created
+for the exact package/signing SHA-1. Android connected to the shared private Drive
+folder, restored five newer records, and later uploaded one clearly labeled
+synthetic CNY 1.23 round-trip record. The final iPhone read-back and explicit
+disconnect/revocation remain open.
 
 ## Latest active personal Drive sync checkpoint
 
