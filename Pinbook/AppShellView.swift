@@ -175,6 +175,8 @@ struct AppShellView: View {
     @State private var bootstrapError: String?
     @State private var personalDriveRuntime: PersonalGoogleDriveRuntime
     @State private var automaticSyncTask: Task<Void, Never>?
+    @State private var teamWorkspaceStartup: TeamWorkspaceStartupState = .recovering
+    @State private var teamInvitation: TeamInvitationLink?
     private let launchConfiguration: PinbookLaunchConfiguration
     private let teamWorkspaceRuntime: TeamWorkspaceRuntimeConfiguration
 
@@ -241,7 +243,10 @@ struct AppShellView: View {
 
                 Tab("Options", systemImage: "slider.horizontal.3", value: .options) {
                     NavigationStack {
-                        OptionsView(personalDriveRuntime: personalDriveRuntime)
+                        OptionsView(personalDriveRuntime: personalDriveRuntime,
+                                    teamWorkspaceRuntime: teamWorkspaceRuntime,
+                                    teamWorkspaceStartup: teamWorkspaceStartup,
+                                    teamInvitation: teamInvitation)
                     }
                 }
             }
@@ -283,6 +288,7 @@ struct AppShellView: View {
         }
         .onOpenURL { url in
             if personalDriveRuntime.handleRedirect(url) { return }
+            if routeTeamInvitation(url) { return }
             guard let scheme = Bundle.main.object(forInfoDictionaryKey: "PinbookURLScheme") as? String,
                   let deepLink = PinbookDeepLink(url: url, expectedScheme: scheme) else { return }
             let presentation = PinbookDeepLinkPresentation(deepLink)
@@ -290,9 +296,13 @@ struct AppShellView: View {
             showingAddExpense = presentation.showsExpenseEditor
             selection = presentation.tab
         }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+            guard let url = activity.webpageURL else { return }
+            _ = routeTeamInvitation(url)
+        }
         .task {
             do {
-                _ = await teamWorkspaceRuntime.recoverAccountDeletionsAtAppStart()
+                teamWorkspaceStartup = await teamWorkspaceRuntime.prepareForAppStart()
                 try PinbookBootstrap.prepare(modelContext)
 #if DEBUG
                 try PinbookDebugFixtures.prepare(modelContext, configuration: launchConfiguration)
@@ -326,6 +336,14 @@ struct AppShellView: View {
                 using: BackupRecoveryService(context: modelContext)
             )
         }
+    }
+
+    @discardableResult
+    private func routeTeamInvitation(_ url: URL) -> Bool {
+        guard let invitation = teamWorkspaceRuntime.invitation(from: url) else { return false }
+        teamInvitation = invitation
+        selection = .options
+        return true
     }
 }
 

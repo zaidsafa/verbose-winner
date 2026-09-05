@@ -628,7 +628,7 @@ enum TeamAccountDeletionPhase: String, Codable, Equatable, Sendable {
     case serverCompleted = "SERVER_COMPLETED"
 
     var blocksTeamActions: Bool {
-        self != .prepared
+        true
     }
 }
 
@@ -897,10 +897,14 @@ final class SQLiteTeamAccountDeletionProgressStore:
               let bytes = sqlite3_column_blob(statement, column) else {
             throw TeamWorkspaceError.bindingMismatch
         }
-        let value = try JSONDecoder().decode(TeamAccountDeletionProgress.self,
-            from: Data(bytes: bytes, count: count))
-        try Self.validate(value)
-        return value
+        do {
+            let value = try JSONDecoder().decode(TeamAccountDeletionProgress.self,
+                from: Data(bytes: bytes, count: count))
+            try Self.validate(value)
+            return value
+        } catch {
+            throw TeamWorkspaceError.bindingMismatch
+        }
     }
     private func loadUnlocked(accountID: String) throws -> TeamAccountDeletionProgress? {
         let statement = try prepare("SELECT payload FROM deletion_progress WHERE account_id=?",
@@ -1242,6 +1246,17 @@ struct TeamAccountDeletionAppStartRecovery: Sendable {
     let progressStore: any TeamAccountDeletionProgressStoring
     let credentialStore: any TeamAccountDeletionCredentialStoring
     let cleanup: any TeamAccountSecureCustodyDeleting
+    let statusRequestTimeoutNanoseconds: UInt64
+
+    init(status: any TeamAccountDeletionStatusTransport,
+         progressStore: any TeamAccountDeletionProgressStoring,
+         credentialStore: any TeamAccountDeletionCredentialStoring,
+         cleanup: any TeamAccountSecureCustodyDeleting,
+         statusRequestTimeoutNanoseconds: UInt64 = 15_000_000_000) {
+        self.status = status; self.progressStore = progressStore
+        self.credentialStore = credentialStore; self.cleanup = cleanup
+        self.statusRequestTimeoutNanoseconds = statusRequestTimeoutNanoseconds
+    }
 
     func resumeAll() async -> [TeamAccountDeletionRecoveryResult] {
         let pending: [TeamAccountDeletionProgress]
@@ -1256,7 +1271,9 @@ struct TeamAccountDeletionAppStartRecovery: Sendable {
             }
             do {
                 let coordinator = try TeamAccountDeletionCoordinator(
-                    binding: progress.binding, dispatch: nil, status: status,
+                    binding: progress.binding, dispatch: nil,
+                    status: TeamAccountDeletionBoundedStatusTransport(
+                        base: status, timeoutNanoseconds: statusRequestTimeoutNanoseconds),
                     progressStore: progressStore, credentialStore: credentialStore,
                     cleanup: cleanup)
                 _ = try await coordinator.resumePending()
@@ -1271,6 +1288,63 @@ struct TeamAccountDeletionAppStartRecovery: Sendable {
             }
         }
         return results
+    }
+}
+
+private actor TeamAccountDeletionStatusDeadlineRace {
+    enum Outcome: Sendable {
+        case value(TeamAccountDeletionStatus)
+        case failed
+    }
+    private var outcome: Outcome?
+    private var waiter: CheckedContinuation<Outcome, Never>?
+
+    func wait() async -> Outcome {
+        if let outcome { return outcome }
+        return await withCheckedContinuation { continuation in
+            if let outcome { continuation.resume(returning: outcome) }
+            else { waiter = continuation }
+        }
+    }
+
+    func deliver(_ value: Outcome) {
+        if let waiter {
+            self.waiter = nil
+            waiter.resume(returning: value)
+        } else if outcome == nil {
+            outcome = value
+        }
+    }
+}
+
+private struct TeamAccountDeletionBoundedStatusTransport:
+    TeamAccountDeletionStatusTransport, Sendable {
+    let base: any TeamAccountDeletionStatusTransport
+    let timeoutNanoseconds: UInt64
+
+    func deletionStatus(binding: TeamAccountDeletionBinding,
+                        request: TeamAccountDeletionStatusRequest) async throws
+        -> TeamAccountDeletionStatus {
+        guard timeoutNanoseconds > 0 else { throw TeamWorkspaceError.unavailable }
+        let race = TeamAccountDeletionStatusDeadlineRace()
+        let requestTask = Task {
+            do {
+                let value = try await base.deletionStatus(binding: binding, request: request)
+                await race.deliver(.value(value))
+            } catch {
+                await race.deliver(.failed)
+            }
+        }
+        let timeoutTask = Task {
+            do { try await Task.sleep(nanoseconds: timeoutNanoseconds) }
+            catch { return }
+            await race.deliver(.failed)
+        }
+        defer { requestTask.cancel(); timeoutTask.cancel() }
+        switch await race.wait() {
+        case .value(let value): return value
+        case .failed: throw TeamWorkspaceError.unavailable
+        }
     }
 }
 
@@ -1294,6 +1368,60 @@ struct TeamWorkspaceAccountComposition: Sendable {
 struct TeamWorkspaceProductionComposition: Sendable {
     let accounts: TeamWorkspaceAccountComposition
     let deletionRecovery: TeamAccountDeletionAppStartRecovery
+    let sessionBootstrap: any TeamWorkspaceSessionBootstrapping
+    let invitationRouter: TeamWorkspaceInvitationRouter
+    let userActions: any TeamWorkspaceUserActionHandling
+}
+
+protocol TeamWorkspaceSessionBootstrapping: Sendable {
+    func bootstrap(blockedAccountIDs: Set<String>) async throws
+}
+
+enum TeamWorkspaceUserAction: Equatable, Sendable {
+    case signIn(TeamNativeSignInProvider)
+    case acceptTerms
+    case sendNote(String)
+    case refreshInbox
+    case reportNote(noteID: String, authorID: String, reason: String)
+    case reportUser(userID: String, reason: String)
+    case blockUser(userID: String)
+    case openInvitation(URL)
+    case deleteAccount(confirmation: String)
+}
+
+protocol TeamWorkspaceUserActionHandling: Sendable {
+    func perform(_ action: TeamWorkspaceUserAction) async throws
+}
+
+struct TeamWorkspaceInvitationRouter: Sendable {
+    let expectedOrigin: String
+
+    init(expectedOrigin: String) throws {
+        _ = try TeamInvitationLink(origin: expectedOrigin,
+            token: String(repeating: "A", count: 43))
+        self.expectedOrigin = expectedOrigin
+    }
+
+    func route(_ url: URL) throws -> TeamInvitationLink {
+        try TeamInvitationLink(validating: url, expectedOrigin: expectedOrigin)
+    }
+}
+
+enum TeamWorkspaceStartupState: Equatable, Sendable {
+    case recovering
+    case disabled
+    case ready([TeamAccountDeletionRecoveryResult])
+    case failed
+
+    var recoveryResults: [TeamAccountDeletionRecoveryResult] {
+        if case .ready(let results) = self { return results }
+        return []
+    }
+
+    var allowsTeamWorkspace: Bool {
+        if case .ready = self { return true }
+        return false
+    }
 }
 
 /// Normal app composition is disabled. A future release host must deliberately
@@ -1308,10 +1436,26 @@ enum TeamWorkspaceRuntimeConfiguration: Sendable {
         if case .injected = self { return true }
         return false
     }
-    func recoverAccountDeletionsAtAppStart() async
-        -> [TeamAccountDeletionRecoveryResult] {
-        guard case .injected(let composition) = self else { return [] }
-        return await composition.deletionRecovery.resumeAll()
+    var userActions: (any TeamWorkspaceUserActionHandling)? {
+        guard case .injected(let composition) = self else { return nil }
+        return composition.userActions
+    }
+    func invitation(from url: URL) -> TeamInvitationLink? {
+        guard case .injected(let composition) = self else { return nil }
+        return try? composition.invitationRouter.route(url)
+    }
+    func prepareForAppStart() async -> TeamWorkspaceStartupState {
+        guard case .injected(let composition) = self else { return .disabled }
+        let results = await composition.deletionRecovery.resumeAll()
+        let blocked = Set(results.compactMap {
+            $0.outcome == .completed || $0.accountID == "unknown" ? nil : $0.accountID
+        })
+        do {
+            try await composition.sessionBootstrap.bootstrap(blockedAccountIDs: blocked)
+            return .ready(results)
+        } catch {
+            return .failed
+        }
     }
 }
 
@@ -1330,46 +1474,48 @@ actor TeamWorkspaceSessionBoundRemote: TeamWorkspaceRemoteTransport {
     private let ticket: TeamAccountAccessTicket
     private let sessions: TeamAccountSessionStore
     private let remote: any TeamWorkspaceRemoteTransport
+    private let deletionGate: TeamAccountDeletionStartupGate
     private let clock: @Sendable () -> Int64
 
     init(ticket: TeamAccountAccessTicket, sessions: TeamAccountSessionStore,
          remote: any TeamWorkspaceRemoteTransport,
+         deletionGate: TeamAccountDeletionStartupGate,
          clock: @escaping @Sendable () -> Int64 = {
              Int64(Date().timeIntervalSince1970 * 1_000)
          }) throws {
         try sessions.requireCurrentAccess(ticket, now: clock())
         self.ticket = ticket; self.sessions = sessions
-        self.remote = remote; self.clock = clock
+        self.remote = remote; self.deletionGate = deletionGate; self.clock = clock
     }
 
     func audience(teamID: String, enrollmentID: String) async throws -> TeamAudience {
-        try check(); let value = try await remote.audience(teamID: teamID, enrollmentID: enrollmentID)
-        try check(); return value
+        try checkProtected(); let value = try await remote.audience(teamID: teamID, enrollmentID: enrollmentID)
+        try checkProtected(); return value
     }
     func reserve(_ plan: TeamWorkspaceSendPlan) async throws -> TeamDeliverySubmissionReservation {
-        try check(); let value = try await remote.reserve(plan)
-        try check(); return value
+        try checkProtected(); let value = try await remote.reserve(plan)
+        try checkProtected(); return value
     }
     func status(deliveryID: String, jweSHA256: String) async throws -> TeamDeliverySubmissionStatus {
-        try check(); let value = try await remote.status(deliveryID: deliveryID, jweSHA256: jweSHA256)
-        try check(); return value
+        try checkProtected(); let value = try await remote.status(deliveryID: deliveryID, jweSHA256: jweSHA256)
+        try checkProtected(); return value
     }
     func pending(after: TeamDeliveryListCursor?, limit: Int) async throws -> TeamPendingDeliveryPage {
-        try check(); let value = try await remote.pending(after: after, limit: limit)
-        try check(); return value
+        try checkProtected(); let value = try await remote.pending(after: after, limit: limit)
+        try checkProtected(); return value
     }
     func fetch(_ pending: TeamPendingDelivery) async throws -> TeamWorkspaceFetchedDelivery {
-        try check(); let value = try await remote.fetch(pending)
-        try check(); return value
+        try checkProtected(); let value = try await remote.fetch(pending)
+        try checkProtected(); return value
     }
     func acknowledge(_ receipt: PendingTeamReceipt) async throws -> TeamWorkspaceACKReply {
-        try check(); let value = try await remote.acknowledge(receipt)
-        try check(); return value
+        try checkProtected(); let value = try await remote.acknowledge(receipt)
+        try checkProtected(); return value
     }
     func execute(accountID: String, teamID: String, action: TeamSafetyAction) async throws {
         guard accountID == ticket.accountID else { throw TeamWorkspaceError.bindingMismatch }
-        try check(); try await remote.execute(accountID: accountID, teamID: teamID, action: action)
-        try check()
+        try checkProtected(); try await remote.execute(accountID: accountID, teamID: teamID, action: action)
+        try checkProtected()
     }
     func requestDeletion(binding: TeamAccountDeletionBinding,
                          request: TeamAccountDeletionRequest) async throws
@@ -1380,14 +1526,20 @@ actor TeamWorkspaceSessionBoundRemote: TeamWorkspaceRemoteTransport {
               TeamAuthWire.identifier(request.requestID) else {
             throw TeamWorkspaceError.bindingMismatch
         }
-        try check()
+        try checkSession()
         let value = try await remote.requestDeletion(binding: binding, request: request)
         // A successful remote deletion may invalidate the session immediately,
         // so no post-dispatch session assertion is valid for this one operation.
         return value
     }
 
-    private func check() throws {
+    private func checkProtected() throws {
+        try checkSession()
+        try deletionGate.requireTeamActionsAllowed(accountID: ticket.accountID)
+        try Task.checkCancellation()
+    }
+
+    private func checkSession() throws {
         try Task.checkCancellation()
         let now = clock()
         _ = try ticket.usableToken(now: now)
@@ -1455,7 +1607,8 @@ struct TeamWorkspaceConnectedComposition: Sendable {
         self.deletionCredentials = deletionCredentials
         self.accountCleanup = accountCleanup
         self.remote = try TeamWorkspaceSessionBoundRemote(ticket: ticket,
-            sessions: sessions, remote: remote, clock: clock)
+            sessions: sessions, remote: remote,
+            deletionGate: .init(progressStore: deletionProgress), clock: clock)
     }
 
     func sender() throws -> TeamManualNoteSendCoordinator {

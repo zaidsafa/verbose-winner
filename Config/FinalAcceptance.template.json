@@ -1,0 +1,53 @@
+{
+  "schema": "pinbook-final-acceptance-v1",
+  "status": "PENDING",
+  "ios": {
+    "sourcePath": "",
+    "sourceCommit": "",
+    "archivePath": "",
+    "appBinarySHA256": "",
+    "ipaPath": "",
+    "ipaSHA256": "",
+    "version": "",
+    "build": 0,
+    "appBundleID": "",
+    "widgetBundleID": "",
+    "signingTeamID": "",
+    "signingCertificateSHA256": ""
+  },
+  "android": {
+    "sourcePath": "",
+    "sourceCommit": "",
+    "artifactType": "APK",
+    "artifactPath": "",
+    "artifactSHA256": "",
+    "packageID": "",
+    "versionName": "",
+    "versionCode": 0,
+    "signingCertificateSHA256": ""
+  },
+  "staging": {
+    "origin": "",
+    "aasaURL": "",
+    "serverContractMigration": 0,
+    "evidence": ""
+  },
+  "devices": {
+    "iphoneModel": "",
+    "iphoneOS": "",
+    "androidModel": "",
+    "androidOS": ""
+  },
+  "matrix": [
+    {"id": "ios-to-android-note", "status": "PENDING", "evidence": ""},
+    {"id": "android-to-ios-note", "status": "PENDING", "evidence": ""},
+    {"id": "ios-archive-before-ack", "status": "PENDING", "evidence": ""},
+    {"id": "android-archive-before-ack", "status": "PENDING", "evidence": ""},
+    {"id": "dropped-response-exact-retry", "status": "PENDING", "evidence": ""},
+    {"id": "multi-team-account-global-deletion", "status": "PENDING", "evidence": ""},
+    {"id": "locked-reboot-deletion-recovery", "status": "PENDING", "evidence": ""},
+    {"id": "universal-link-cold-launch", "status": "PENDING", "evidence": ""},
+    {"id": "provider-reauthentication", "status": "PENDING", "evidence": ""},
+    {"id": "android-ios-backup-roundtrip", "status": "PENDING", "evidence": ""}
+  ]
+}

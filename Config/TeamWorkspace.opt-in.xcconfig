@@ -1,0 +1,4 @@
+// Opt-in only after Infrastructure supplies and verifies the approved HTTPS host.
+// Keep the required local file ignored by Git and never commit provider secrets.
+#include "TeamWorkspace.xcconfig.local"
+CODE_SIGN_ENTITLEMENTS = Config/PinbookTeamUniversalLinks.entitlements

@@ -48,6 +48,27 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Final team-delivery foundation checkpoint: account deletion is now an
+  account-global, durable startup barrier from `PREPARED` through authoritative
+  `COMPLETED`, including coordinators created before deletion began. App startup
+  recovers deletion journals before session bootstrap, reports pending,
+  authentication-required and ambiguous outcomes, and bounds each status lookup
+  independently so one stalled record cannot block later recovery. The visible
+  Team workspace uses injected runtime actions and strict injected-origin
+  invitation routing; production remains default-off. Associated Domains and AASA
+  files are opt-in templates with no public host embedded. New UI copy is complete
+  across English plus 15 translated locales. The final acceptance receipt is
+  machine-verifiable and starts entirely `PENDING`, binding both source commits,
+  signed artifacts, version/build/signing identity, staging/AASA and every
+  two-device matrix case before it can pass. Focused workspace **23/23**, complete
+  Swift **409/409**, localization **367/367 across 16 locales**, `git diff --check`
+  and unsigned arm64+x86_64 Release Simulator build pass at
+  `/private/tmp/pinbook-final-delivery-derived`. No physical-device run, provider
+  activation, production service change, signed archive, version/build bump or
+  TestFlight upload occurred in this checkpoint. Infrastructure staging, concrete
+  production transports/providers, approved invitation host/App ID, signed final
+  artifacts and the real iPhone/Android acceptance receipt remain release gates.
+
 - The Team workspace now has complete human localization across English plus all
   15 non-source catalogs, including app-level RTL for Arabic/Urdu and separate
   Simplified/Traditional Chinese. The Release app compiles all 16 `.lproj`

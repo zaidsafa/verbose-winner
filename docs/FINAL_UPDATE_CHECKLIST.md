@@ -5,6 +5,13 @@ TestFlight uploads. Next update must cover the complete agreed scope and final
 regression. This checklist distinguishes shipped capabilities from unfinished
 ones; neither compiled source nor a placeholder counts as a completed feature.
 
+The final archive is additionally blocked on a real receipt copied from
+`Config/FinalAcceptance.template.json` and accepted by
+`node Scripts/verify-final-acceptance.mjs <receipt>`. The template intentionally
+contains only `PENDING` states; it is not acceptance evidence. The receipt binds
+the exact iOS/Android source commits, artifacts, versions, signing identities,
+staging migration and the physical Android-to-iPhone matrix.
+
 Latest local-only progress: encrypted fetch now strictly decrypts and atomically
 archives each note with its ciphertext-bound pending receipt before any possible
 ACK. The exact ACK body is frozen and v1 plaintext-digest receipts migrate safely,
@@ -62,6 +69,10 @@ checkboxes deliberately remain open until checked against the exact next candida
       owner's direct "proceed" response to that proposed choice; Android notified.
       Actual credentials/client IDs, provider setup and validation remain gates.
       Do not send duplicate provider-choice prompts.
+- [ ] Approved invitation HTTPS origin, App ID Associated Domains capability,
+      matching provisioning profile, deployed AASA file and cold-launch physical
+      verification. Source routing is strict and default-off; see
+      `TEAM_UNIVERSAL_LINKS_SETUP.md`.
 - [ ] Reviewed group-encryption library/provider, crash-safe crypto state, bounded
       untrusted input, key rotation, offline catch-up and authorized rejoin.
 - [ ] Durable outgoing notes/drafts, revisions and reviews as distinct events;

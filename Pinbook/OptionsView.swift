@@ -31,6 +31,9 @@ enum PinbookCurrencyCatalog {
 
 struct OptionsView: View {
     let personalDriveRuntime: PersonalGoogleDriveRuntime
+    let teamWorkspaceRuntime: TeamWorkspaceRuntimeConfiguration
+    let teamWorkspaceStartup: TeamWorkspaceStartupState
+    let teamInvitation: TeamInvitationLink?
     @Environment(\.pinbookSkin) private var skin
     @AppStorage(PinbookOnboardingState.completionKey) private var hasCompletedOnboarding = false
     @AppStorage(PinbookLanguage.preferenceKey, store: PinbookLanguage.preferenceStore) private var languagePreference = PinbookLanguage.system.rawValue
@@ -91,7 +94,9 @@ struct OptionsView: View {
 
             Section("Data") {
                 NavigationLink {
-                    TeamWorkspaceView(invitation: nil, runtime: .productionDefault)
+                    TeamWorkspaceView(invitation: nil, runtime: teamWorkspaceRuntime,
+                                      startup: teamWorkspaceStartup,
+                                      incomingInvitation: teamInvitation)
                 } label: {
                     OptionsRow(title: "Team workspace", subtitle: "Encrypted notes and invitations", symbol: "person.2.badge.key")
                 }
@@ -157,8 +162,16 @@ private struct TeamWorkspaceView: View {
     @Environment(\.pinbookSkin) private var skin
     let invitation: TeamInvitationShareItem?
     let runtime: TeamWorkspaceRuntimeConfiguration
+    let startup: TeamWorkspaceStartupState
+    let incomingInvitation: TeamInvitationLink?
     @State private var note = ""
     @State private var acceptsTerms = false
+    @State private var targetUserID = ""
+    @State private var targetNoteID = ""
+    @State private var safetyReason = ""
+    @State private var actionMessage: String?
+    @State private var isWorking = false
+    @State private var confirmingDeletion = false
 
     var body: some View {
         List {
@@ -180,13 +193,36 @@ private struct TeamWorkspaceView: View {
             }
 
             Section("Connection") {
-                LabeledContent("Status", value: "Not connected")
+                LabeledContent("Status", value: connectionStatus)
                 Text("Open a valid team invitation to sign in, register this device, and review membership before sharing anything.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                Button("Sign in with Apple", systemImage: "apple.logo") {
+                    run(.signIn(.apple))
+                }
+                .disabled(!actionsEnabled)
+                Button("Sign in with Google", systemImage: "g.circle") {
+                    run(.signIn(.google))
+                }
+                .disabled(!actionsEnabled)
+            }
+
+            if !startup.recoveryResults.isEmpty {
+                Section("Account access") {
+                    ForEach(startup.recoveryResults, id: \.accountID) { result in
+                        Label(recoveryText(result), systemImage: recoverySymbol(result))
+                            .foregroundStyle(recoveryColor(result))
+                    }
+                }
             }
 
             Section("Invite members") {
+                if let incomingInvitation {
+                    Button("Review invitation", systemImage: "arrow.right.circle.fill") {
+                        run(.openInvitation(incomingInvitation.url))
+                    }
+                    .disabled(!actionsEnabled)
+                }
                 if let invitation {
                     TeamInvitationQRCode(payload: invitation.qrPayload)
                     ShareLink(item: invitation.url) {
@@ -204,41 +240,60 @@ private struct TeamWorkspaceView: View {
             Section("Send a note") {
                 TextField("Write a short team note", text: $note, axis: .vertical)
                     .lineLimit(3...7)
-                    .disabled(true)
                 Toggle("I accept the Team Terms", isOn: $acceptsTerms)
-                    .disabled(true)
-                Button("Encrypt and send", systemImage: "lock.paperclip") {}
-                    .disabled(true)
+                Button("Encrypt and send", systemImage: "lock.paperclip") {
+                    runSend()
+                }
+                .disabled(!actionsEnabled || note.trimmingCharacters(
+                    in: .whitespacesAndNewlines).isEmpty || !acceptsTerms)
                 Text("Sending becomes available only after a verified team connection and one-time Terms acceptance. Failed deliveries stay in the protected outbox for manual retry.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
             Section("Inbox") {
-                Button("Refresh now", systemImage: "arrow.clockwise") {}
-                    .disabled(true)
+                Button("Refresh now", systemImage: "arrow.clockwise") {
+                    run(.refreshInbox)
+                }
+                .disabled(!actionsEnabled)
                 Text("Foreground refresh, import, and acknowledgements are explicit. Pinbook does not rely on push notifications for delivery safety.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
             Section("Safety") {
-                Button("Report note", systemImage: "exclamationmark.bubble") {}
-                    .disabled(true)
-                Button("Report user", systemImage: "person.crop.circle.badge.exclamationmark") {}
-                    .disabled(true)
-                Button("Block user", systemImage: "person.crop.circle.badge.xmark") {}
-                    .disabled(true)
+                TextField("User ID", text: $targetUserID)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                TextField("Note ID", text: $targetNoteID)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                TextField("Reason", text: $safetyReason, axis: .vertical)
+                    .lineLimit(2...4)
+                Button("Report note", systemImage: "exclamationmark.bubble") {
+                    run(.reportNote(noteID: targetNoteID, authorID: targetUserID,
+                                    reason: safetyReason))
+                }
+                .disabled(!safetyReportEnabled || targetNoteID.isEmpty)
+                Button("Report user", systemImage: "person.crop.circle.badge.exclamationmark") {
+                    run(.reportUser(userID: targetUserID, reason: safetyReason))
+                }
+                .disabled(!safetyReportEnabled)
+                Button("Block user", systemImage: "person.crop.circle.badge.xmark") {
+                    run(.blockUser(userID: targetUserID))
+                }
+                .disabled(!actionsEnabled || targetUserID.isEmpty)
             }
 
             Section("Account") {
-                Button("Sign in with Apple", systemImage: "apple.logo") {}
-                    .disabled(true)
-                Button("Delete account", systemImage: "trash", role: .destructive) {}
-                    .disabled(true)
-                Text("Account actions remain unavailable until their authenticated server contracts and deletion cleanup are approved.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                Button("Delete account", systemImage: "trash", role: .destructive) {
+                    confirmingDeletion = true
+                }
+                .disabled(!actionsEnabled)
+            }
+
+            if let actionMessage {
+                Section("Status") { Text(actionMessage) }
             }
         }
         .scrollContentBackground(.hidden)
@@ -248,6 +303,84 @@ private struct TeamWorkspaceView: View {
         .accessibilityIdentifier(runtime.isEnabled
             ? "team-workspace-runtime-injected" : "team-workspace-runtime-disabled")
         .contentMargins(.bottom, PinbookLayout.tabBarScrollClearance, for: .scrollContent)
+        .confirmationDialog("Delete account",
+                            isPresented: $confirmingDeletion, titleVisibility: .visible) {
+            Button("Delete account", role: .destructive) {
+                run(.deleteAccount(confirmation: TeamAccountDeletionCoordinator.confirmation))
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    private var actionsEnabled: Bool {
+        runtime.isEnabled && startup.allowsTeamWorkspace && runtime.userActions != nil && !isWorking
+    }
+
+    private var safetyReportEnabled: Bool {
+        actionsEnabled && !targetUserID.isEmpty
+            && !safetyReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var connectionStatus: String {
+        switch startup {
+        case .recovering: "Checking account access…"
+        case .disabled: "Not connected"
+        case .ready: "Account access"
+        case .failed: "Account access could not be confirmed. Close this screen before signing in again."
+        }
+    }
+
+    private func recoveryText(_ result: TeamAccountDeletionRecoveryResult) -> String {
+        switch result.outcome {
+        case .authenticationRequired: "Continue to sign in"
+        case .pending: "Account deletion is still in progress"
+        case .completed: "Recovery completed"
+        case .ambiguous: "Account cleanup could not be confirmed. Do not retry this invitation yet."
+        }
+    }
+
+    private func recoverySymbol(_ result: TeamAccountDeletionRecoveryResult) -> String {
+        switch result.outcome {
+        case .authenticationRequired: "person.badge.key"
+        case .pending: "clock.badge.exclamationmark"
+        case .completed: "checkmark.circle.fill"
+        case .ambiguous: "exclamationmark.triangle.fill"
+        }
+    }
+
+    private func recoveryColor(_ result: TeamAccountDeletionRecoveryResult) -> Color {
+        switch result.outcome {
+        case .completed: .green
+        case .pending: .orange
+        case .authenticationRequired, .ambiguous: .red
+        }
+    }
+
+    private func runSend() {
+        let body = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !body.isEmpty, acceptsTerms else { return }
+        runSequence([.acceptTerms, .sendNote(body)]) {
+            note = ""; acceptsTerms = false
+        }
+    }
+
+    private func run(_ action: TeamWorkspaceUserAction) {
+        runSequence([action]) {}
+    }
+
+    private func runSequence(_ actions: [TeamWorkspaceUserAction],
+                             success: @escaping () -> Void) {
+        guard actionsEnabled, let handler = runtime.userActions else { return }
+        isWorking = true; actionMessage = nil
+        Task { @MainActor in
+            do {
+                for action in actions { try await handler.perform(action) }
+                success(); actionMessage = "Recovery completed"
+            } catch {
+                actionMessage = "Setup could not continue. Close this screen and reopen the invitation."
+            }
+            isWorking = false
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 # Pinbook iOS invitation link grammar
 
-Status: implemented and tested locally; production origin and Associated Domains
-remain inactive pending Infrastructure approval.
+Status: strict inbound and outbound routing implemented locally; production origin,
+Associated Domains and AASA remain inactive pending Infrastructure approval.
 
 `TeamInvitationLink` accepts an injected exact HTTPS origin and produces only:
 
@@ -15,8 +15,12 @@ noncanonical token encoding and any URL that does not round-trip byte-for-byte.
 
 Descriptions and reflection are redacted. The type does not log, persist or show
 the capability token. It is ready for a later in-memory `ShareLink`, local QR
-renderer and privacy-safe scanner, but those presentation paths must use only a
-parser-validated value.
+renderer and privacy-safe scanner. AppShell now accepts browser activities and
+HTTPS URLs only through the injected router, then exposes the validated invitation
+to the Team workspace without rendering its token. Disabled runtime stays closed.
+
+See `TEAM_UNIVERSAL_LINKS_SETUP.md` for the opt-in entitlement and AASA deployment
+artifacts. They are deliberately not selected by the current project build.
 
 Focused tests: 2/2 pass using a synthetic `.example` fixture origin. Complete
 Swift regression passes 384/384 and the unsigned Release iOS Simulator build
