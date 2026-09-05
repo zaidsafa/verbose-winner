@@ -1,5 +1,28 @@
 # Validation plan
 
+## 2026-09-05 inactive authenticated delivery fetch contract
+
+- Matched the dedicated Android/server source checkpoint
+  `f11f6383665bb1489fb402272302137ef4c683f6`: canonical
+  `pinbook-delivery-fetch-v1` body, separate challenge/fetch routes, exact current
+  account/device/enrollment/team/delivery binding and locally verified P-256 proof.
+- Strict response acceptance requires the signed delivery ID, immutable 30-day
+  expiry, canonical base64url, 1...100,000 encrypted bytes, exact declared count
+  and lowercase SHA-256. The transport independently caps the full JSON response
+  at 140,000 bytes and never retries automatically.
+- Production source compiled for iOS Simulator. The complete focused
+  `TeamOnboardingHTTPTests` suite passed **21/21**, including all three new delivery-fetch
+  cases and existing onboarding/request-proof cases:
+  `/private/tmp/Pinbook-Delivery-Fetch-Contract-Final-20260905.xcresult`.
+- Complete exact-current signed Simulator app-host regression passed **408 + 4
+  expected physical-only skips** (412 total), zero failures:
+  `/private/tmp/Pinbook-Delivery-Fetch-Full-AppHost-20260905.xcresult`.
+- The unsigned production Release build passed with unchanged bundle
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`.
+- Default remains off. No origin/provider/runtime/UI was activated, no real
+  delivery was fetched or decrypted, and no archive, ACK, source push, deployment
+  or TestFlight action occurred. See `TEAM_DELIVERY_FETCH_IOS.md`.
+
 ## 2026-09-05 active personal Google Drive sync release candidate
 
 - Added the production runtime from explicit AppAuth consent through protected
@@ -57,6 +80,10 @@
   but six unrelated system-Keychain cases received Apple Security error `-34018`;
   therefore that complete run is diagnostic, not a replacement regression result:
   `/private/tmp/Pinbook-Fixture-Isolation-Full-20260905.xcresult`.
+- The exact-current separate physical QA app then passed the complete signed
+  app-host regression **409/409**, zero failures/skips, superseding the Simulator
+  Keychain-environment diagnostic for final source acceptance:
+  `/private/tmp/Pinbook-QA-Physical-AppHost-Fixture-Isolation-20260905.xcresult`.
 - Exact unsigned production Release **BUILD SUCCEEDED** at
   `/private/tmp/pinbook-personal-drive-active-release-derived`; bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`, production OAuth client,

@@ -49,6 +49,7 @@ public struct TeamAuthAccountSession: Sendable, CustomStringConvertible, CustomD
 
 enum TeamAuthWire {
     static let maximumResponseBytes = 32 * 1024
+    static let maximumDeliveryFetchResponseBytes = 140_000
     static let maximumSafeTime: Int64 = 9_007_199_254_740_991
 
     static func credential(_ value: String) -> Bool {
@@ -457,8 +458,14 @@ public final class TeamAuthHTTPClient: @unchecked Sendable {
             guard ticket == nil else { throw TeamAuthHTTPError.invalidRequest }
             bearer = nil
         }
+        let maximumResponseBytes: Int
+        switch route {
+        case .deliveryFetch: maximumResponseBytes = TeamAuthWire.maximumDeliveryFetchResponseBytes
+        case .listInvitations, .deviceRequestExecute: maximumResponseBytes = TeamAuthWire.maximumResponseBytes
+        default: maximumResponseBytes = 4096
+        }
         let data = try await sendPath(route.rawValue, fields: fields, bearer: bearer, expectedStatus: 200,
-            maximumResponseBytes: [.listInvitations, .deviceRequestExecute].contains(route) ? 32 * 1024 : 4096)
+            maximumResponseBytes: maximumResponseBytes)
         let end = clock()
         guard end >= start, end <= TeamAuthWire.maximumSafeTime else { throw TeamAuthHTTPError.invalidResponse }
         if let ticket { _ = try ticket.usableToken(now: end) }

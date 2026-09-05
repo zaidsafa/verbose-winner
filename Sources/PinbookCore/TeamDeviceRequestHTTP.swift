@@ -2,11 +2,14 @@ import CryptoKit
 import Foundation
 
 protocol TeamDeviceRequestPayload: TeamOnboardingDiagnostic {
-    var membershipRevision: Int64 { get }
     var body: Data { get }
 }
 
-struct TeamAudienceRevisionRequest: TeamDeviceRequestPayload {
+protocol TeamMembershipRevisionRequestPayload: TeamDeviceRequestPayload {
+    var membershipRevision: Int64 { get }
+}
+
+struct TeamAudienceRevisionRequest: TeamMembershipRevisionRequestPayload {
     let membershipRevision: Int64
     let body: Data
 
@@ -20,7 +23,7 @@ struct TeamAudienceRevisionRequest: TeamDeviceRequestPayload {
     }
 }
 
-struct TeamAgreementEnrollmentRequest: TeamDeviceRequestPayload {
+struct TeamAgreementEnrollmentRequest: TeamMembershipRevisionRequestPayload {
     let membershipRevision: Int64
     let agreement: TeamAgreementPublic
     let body: Data
@@ -36,6 +39,18 @@ struct TeamAgreementEnrollmentRequest: TeamDeviceRequestPayload {
         }
         self.membershipRevision = membershipRevision; self.agreement = agreement
         body = Data("{\"agreementKey\":{\"crv\":\"P-256\",\"kty\":\"EC\",\"x\":\"\(x)\",\"y\":\"\(y)\"},\"membershipRevision\":\(membershipRevision)}".utf8)
+        guard body.count <= 256 else { throw TeamAuthHTTPError.invalidRequest }
+    }
+}
+
+struct TeamDeliveryFetchRequest: TeamDeviceRequestPayload {
+    let deliveryID: String
+    let body: Data
+
+    init(deliveryID: String) throws {
+        guard TeamAuthWire.identifier(deliveryID) else { throw TeamAuthHTTPError.invalidRequest }
+        self.deliveryID = deliveryID
+        body = Data("{\"deliveryId\":\"\(deliveryID)\",\"type\":\"pinbook-delivery-fetch-v1\"}".utf8)
         guard body.count <= 256 else { throw TeamAuthHTTPError.invalidRequest }
     }
 }
@@ -62,6 +77,15 @@ struct TeamAgreementRegistration: TeamOnboardingDiagnostic {
     let enrollmentID: String
     let agreementKeyThumbprint: String
     let agreementPublicKey: TeamDeviceEnrollmentWire.PublicKey
+}
+
+struct TeamDeliveryFetchResult: TeamOnboardingDiagnostic {
+    let deliveryID: String
+    let acceptedAt: Int64
+    let expiresAt: Int64
+    let jweBytes: Int
+    let jweSHA256: String
+    let jwe: Data
 }
 
 struct TeamPreparedDeviceRequestChallenge: TeamOnboardingDiagnostic {
@@ -134,6 +158,8 @@ struct TeamPreparedAgreementRequestChallenge: TeamOnboardingDiagnostic {
 }
 
 private enum TeamDeviceRequestHTTPWire {
+    private static let deliveryLifetimeMilliseconds: Int64 = 2_592_000_000
+
     static func audience(_ data: Data, expected: TeamDeviceRequestWire.Binding,
                          request: TeamAudienceRevisionRequest) throws -> TeamAudience {
         let object = try TeamAuthWire.object(data, keys: ["teamId", "membershipRevision", "targets"])
@@ -198,6 +224,54 @@ private enum TeamDeviceRequestHTTPWire {
             throw TeamAuthHTTPError.invalidResponse
         }
         return result
+    }
+
+    static func delivery(_ data: Data, expected: TeamDeviceRequestWire.Binding,
+                         request: TeamDeliveryFetchRequest) throws -> TeamDeliveryFetchResult {
+        let object = try TeamStrictJSON.object(data,
+            maximumBytes: TeamAuthWire.maximumDeliveryFetchResponseBytes)
+        guard Set(object.keys) == ["deliveryId", "acceptedAt", "expiresAt", "jweBytes", "jweSha256", "jwe"] else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        let deliveryID = try TeamAuthWire.string(object, "deliveryId")
+        let acceptedAt = try TeamAuthWire.time(object, "acceptedAt")
+        let expiresAt = try TeamAuthWire.time(object, "expiresAt")
+        let count = try TeamAuthWire.time(object, "jweBytes")
+        guard deliveryID == request.deliveryID, deliveryID == expected.requestID,
+              acceptedAt <= TeamAuthWire.maximumSafeTime - deliveryLifetimeMilliseconds,
+              expiresAt == acceptedAt + deliveryLifetimeMilliseconds,
+              (1...100_000).contains(count), let encoded = object["jwe"] as? String,
+              let digest = object["jweSha256"] as? String,
+              digest.utf8.count == 64,
+              digest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }),
+              let jwe = decode(encoded, maximumBytes: 100_000), jwe.count == Int(count),
+              sha256(jwe) == digest else {
+            throw TeamAuthHTTPError.invalidResponse
+        }
+        return .init(deliveryID: deliveryID, acceptedAt: acceptedAt, expiresAt: expiresAt,
+            jweBytes: Int(count), jweSHA256: digest, jwe: jwe)
+    }
+
+    private static func decode(_ value: String, maximumBytes: Int) -> Data? {
+        guard !value.isEmpty,
+              value.utf8.count <= (maximumBytes * 4 + 2) / 3,
+              value.utf8.allSatisfy(TeamAuthWire.urlByte) else { return nil }
+        let padded = value.replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+            + String(repeating: "=", count: (4 - value.utf8.count % 4) % 4)
+        guard let result = Data(base64Encoded: padded), result.count <= maximumBytes,
+              TeamDeviceEnrollmentWire.encode(result) == value else { return nil }
+        return result
+    }
+
+    private static func sha256(_ data: Data) -> String {
+        let alphabet = Array("0123456789abcdef".utf8)
+        var result = [UInt8](); result.reserveCapacity(64)
+        for byte in SHA256.hash(data: data) {
+            result.append(alphabet[Int(byte >> 4)])
+            result.append(alphabet[Int(byte & 15)])
+        }
+        return String(decoding: result, as: UTF8.self)
     }
 }
 
@@ -293,6 +367,54 @@ extension TeamAuthHTTPClient {
             "confirmation": TeamDeviceEnrollmentWire.encode(confirmation)
         ], ticket: ticket)
         return try TeamDeviceRequestHTTPWire.agreement(reply.data, expected: expected, request: request)
+    }
+
+    func deliveryFetchChallenge(expected: TeamDeviceRequestWire.Binding,
+                                publicKey: TeamDeviceEnrollmentWire.PublicKey,
+                                request: TeamDeliveryFetchRequest,
+                                ticket: TeamAccountAccessTicket) async throws -> TeamPreparedDeviceRequestChallenge {
+        guard acceptsDeviceRequestBinding(expected, key: publicKey, ticket: ticket),
+              expected.operation == .deliveryFetch, expected.requestID == request.deliveryID else {
+            throw TeamAuthHTTPError.invalidRequest
+        }
+        let digest: String
+        do { digest = try TeamDeviceRequestWire.bodySHA256(request.body) }
+        catch { throw TeamAuthHTTPError.invalidRequest }
+        let reply = try await onboarding(.deliveryChallenge, fields: [
+            "enrollmentId": expected.enrollmentID,
+            "binding": ["operation": expected.operation.rawValue, "teamId": expected.teamID,
+                        "requestId": expected.requestID, "bodySha256": digest]
+        ], ticket: ticket)
+        do {
+            return try .init(validating: reply.data, expected: expected,
+                publicKey: publicKey, request: request, now: reply.receivedAt)
+        } catch { throw TeamAuthHTTPError.invalidResponse }
+    }
+
+    func fetchDelivery(challenge: TeamPreparedDeviceRequestChallenge,
+                       signature: Data, expected: TeamDeviceRequestWire.Binding,
+                       publicKey: TeamDeviceEnrollmentWire.PublicKey,
+                       request: TeamDeliveryFetchRequest,
+                       ticket: TeamAccountAccessTicket) async throws -> TeamDeliveryFetchResult {
+        guard acceptsDeviceRequestBinding(expected, key: publicKey, ticket: ticket),
+              expected.operation == .deliveryFetch, expected.requestID == request.deliveryID,
+              signature.count == 64,
+              let parsed = try? P256.Signing.ECDSASignature(rawRepresentation: signature) else {
+            throw TeamAuthHTTPError.invalidRequest
+        }
+        let message: Data
+        do { message = try challenge.message(expected: expected, publicKey: publicKey,
+            request: request, now: onboardingTime()) }
+        catch { throw TeamAuthHTTPError.invalidRequest }
+        guard publicKey.key.isValidSignature(parsed, for: message) else {
+            throw TeamAuthHTTPError.invalidRequest
+        }
+        let reply = try await onboarding(.deliveryFetch, fields: [
+            "challengeId": challenge.challengeID,
+            "signature": TeamDeviceEnrollmentWire.encode(signature),
+            "body": TeamDeviceEnrollmentWire.encode(request.body)
+        ], ticket: ticket)
+        return try TeamDeviceRequestHTTPWire.delivery(reply.data, expected: expected, request: request)
     }
 
     private func acceptsDeviceRequestBinding(_ binding: TeamDeviceRequestWire.Binding,

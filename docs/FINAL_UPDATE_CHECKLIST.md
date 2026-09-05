@@ -73,6 +73,16 @@ checkboxes deliberately remain open until checked against the exact next candida
 
 ## Current local implementation checkpoint
 
+- The committed Android/server delivery-fetch source contract now has a matching
+  inactive iOS transport boundary. It signs the exact delivery ID/body through the
+  current account/device/enrollment proof, uses dedicated challenge/fetch routes,
+  accepts only an exact immutable 30-day encrypted response, verifies canonical
+  base64url/size/SHA-256 and caps decoded/HTTP bytes. Focused **21/21**, complete
+  exact-current Simulator **408 + 4 expected physical-only skips** and unchanged-
+  identity unsigned production Release pass. This does not yet decrypt, archive,
+  ACK, display or reconcile a team delivery and does not activate production
+  infrastructure. See `TEAM_DELIVERY_FETCH_IOS.md`.
+
 - Personal Google Drive sync is wired into the production runtime and localized
   Backup & Recovery UI. It remains disconnected until explicit user consent and is
   isolated from team sign-in. The protected non-synchronizing Keychain stores the

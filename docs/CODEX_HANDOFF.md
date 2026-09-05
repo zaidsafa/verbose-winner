@@ -49,6 +49,20 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Android/server commit
+  `f11f6383665bb1489fb402272302137ef4c683f6` now has an exact inactive iOS
+  authenticated delivery-fetch boundary. The canonical request is signed by the
+  existing current device proof and uses dedicated `deliveries/challenge` and
+  `deliveries/fetch` routes. The response must preserve the signed delivery ID,
+  immutable 30-day expiry, canonical base64url, 1...100,000-byte encrypted body,
+  exact size and lowercase SHA-256 under an independent 140,000-byte HTTP cap.
+  The focused onboarding suite passes **21/21**, including three new fetch cases, on iOS
+  26.5 Simulator; the complete exact-current app-host passes **408 + 4 expected
+  physical-only skips** (412 total), and the unchanged-identity unsigned
+  production Release passes. No origin/runtime/UI/retry/decryption/archive/ACK,
+  deployment, source push or TestFlight action occurred. See
+  `TEAM_DELIVERY_FETCH_IOS.md` and `VALIDATION.md`.
+
 - Dedicated personal Drive Google iOS clients are now allocated in project
   `pinbook-507110` for production and the separate QA bundle, both under Apple team
   `F98S3VN5NL`; Drive API is enabled. Their public client IDs and exact reversed

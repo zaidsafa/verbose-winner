@@ -5,6 +5,7 @@ enum TeamOnboardingRoute: String {
     case deviceChallenge = "devices/challenge", deviceComplete = "devices/complete", deviceLookup = "devices/lookup", deviceRevoke = "devices/revoke"
     case deviceRequestChallenge = "device-requests/challenge", deviceRequestExecute = "device-requests/execute"
     case agreementChallenge = "device-agreements/challenge", agreementExecute = "device-agreements/execute"
+    case deliveryChallenge = "deliveries/challenge", deliveryFetch = "deliveries/fetch"
     case createTeam = "teams/create", currentTeam = "teams/current", acceptInvitation = "teams/accept", acceptance = "teams/acceptance"
     case issueInvitation = "teams/invites", listInvitations = "teams/invites/list", revokeInvitation = "teams/invites/revoke"
     var requiresSession: Bool { ![.preview, .invitedChallenge, .invitedExchange].contains(self) }
