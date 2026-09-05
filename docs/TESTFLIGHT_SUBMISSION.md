@@ -63,6 +63,13 @@ Build `0.1.0 (2)` has been uploaded, both existing test groups assigned, and ext
 
 The existing app record is `6807481054`; do not create a duplicate. The SKU is an internal permanent identifier and is not shown to customers. Every uploaded build must have a unique build number; keep version `0.1.0` and increment the app and widget build numbers together for replacements.
 
+The live App Store product-page draft is currently labeled **1.0**, which does
+not match the `0.1.0` builds. Before selecting the final build for App Store
+review, change that editable draft Version field to `0.1.0` and save it, or make
+an explicit product decision to release marketing version 1.0 and rebuild both
+targets accordingly. The current plan is the smaller metadata correction to
+`0.1.0`; never attach or upload a mismatched binary.
+
 ## TestFlight information
 
 ### Beta app description
@@ -187,7 +194,7 @@ Highlights:
 ## Upload checklist
 
 1. In Xcode, open **Pinbook.xcodeproj**. Under **Signing & Capabilities**, confirm team `Zaid Alsheikh (F98S3VN5NL)` and **Automatically manage signing** for both `Pinbook` and `PinbookWidgets`.
-2. In App Store Connect, open the existing **Pinbook: Expense Ledger** app (`6807481054`). Do not create another app or bundle ID.
+2. In App Store Connect, open the existing **Pinbook: Expense Ledger** app (`6807481054`). Do not create another app or bundle ID. On its App Store version page, change the current draft Version from `1.0` to `0.1.0` before choosing a build.
 3. Complete the Google OAuth release gate above; external testers must not depend on the current one-user Testing configuration.
 4. Add the privacy-policy URL and publish the Drive data disclosures listed under **App privacy and compliance**.
 5. Add the TestFlight beta description, feedback email, review contact, and review notes.
