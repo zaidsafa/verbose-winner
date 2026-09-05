@@ -176,9 +176,12 @@ struct AppShellView: View {
     @State private var personalDriveRuntime: PersonalGoogleDriveRuntime
     @State private var automaticSyncTask: Task<Void, Never>?
     private let launchConfiguration: PinbookLaunchConfiguration
+    private let teamWorkspaceRuntime: TeamWorkspaceRuntimeConfiguration
 
-    init(launchConfiguration: PinbookLaunchConfiguration = .production) {
+    init(launchConfiguration: PinbookLaunchConfiguration = .production,
+         teamWorkspaceRuntime: TeamWorkspaceRuntimeConfiguration = .productionDefault) {
         self.launchConfiguration = launchConfiguration
+        self.teamWorkspaceRuntime = teamWorkspaceRuntime
         _selection = State(initialValue: launchConfiguration.initialTab)
         _personalDriveRuntime = State(initialValue: PersonalGoogleDriveRuntime(
             allowsExternalRequests: !launchConfiguration.usesEphemeralStore
@@ -289,6 +292,7 @@ struct AppShellView: View {
         }
         .task {
             do {
+                _ = await teamWorkspaceRuntime.recoverAccountDeletionsAtAppStart()
                 try PinbookBootstrap.prepare(modelContext)
 #if DEBUG
                 try PinbookDebugFixtures.prepare(modelContext, configuration: launchConfiguration)

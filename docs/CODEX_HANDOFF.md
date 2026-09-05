@@ -35,10 +35,9 @@ Updated: 2026-09-05 (Asia/Shanghai)
 - Keep build `0.1.0 (3)` available. Do not upload or distribute further interim
   TestFlight builds. The next update must contain the complete agreed feature set
   and pass final integration/regression checks before publication.
-- Remote `origin/codex/team-delivery-foundation` was independently verified at
-  exact commit `4651e45` after the Pinbook Android task reported pushing that
-  already-tested commit. No later documentation-only evidence is pushed, and no
-  archive, TestFlight build or live service changed with that source push.
+- Remote `origin/codex/team-delivery-foundation` was verified at parent commit
+  `f828dd6ccd5c67c3e8cb975ddeca35521930ee8b` before the account-global deletion
+  correction. No archive, TestFlight build or live service changed.
 - Continue local implementation and validation. Reconcile the agreed scope with
   a feature acceptance checklist before declaring the final candidate ready;
   inactive foundations do not count as completed user-facing features.
@@ -56,21 +55,23 @@ Updated: 2026-09-05 (Asia/Shanghai)
   injection-only composition maps Apple and Google into the same strict account
   challenge/session path and binds every remote workspace call to the exact live
   session generation. It embeds no origin, credential or guessed endpoint.
-  Account deletion now persists a stable operation and immutable original
-  origin/provider/authority/account/team/custody binding. A random 256-bit,
-  deletion-status-only credential is stored in non-synchronizing ThisDeviceOnly
-  Keychain custody before the journal durably moves `PREPARED -> DISPATCHED` and
-  before the request. Lost responses become `UNCERTAIN`; startup blocks team
-  actions and reconciliation uses only the status credential after ordinary
-  session revocation. Definitive rejection preserves data and unblocks normal
-  use. Authenticated acceptance alone begins exact-binding idempotent cleanup of
-  team cache/archive, agreement key, device signing identity, Terms and session.
-  No production status transport or concrete cleanup is supplied before the
-  frozen server 027/028 API. Focused workspace **13/13**, complete Swift
-  **399/399**, `git diff --check` and unsigned Release Simulator build pass at
-  `/private/tmp/pinbook-deletion-recovery-derived`. No device/provider/server/
-  TestFlight/release action occurred. Physical Keychain and injected end-to-end
-  acceptance remain open. See `TEAM_WORKSPACE_IOS.md`.
+  Account deletion now matches frozen migration 027 as one account-global record,
+  with no team ID in the binding or startup gate. A protected, backup-excluded,
+  synchronously committed SQLite journal replaces UserDefaults; failed saves
+  prevent dispatch. The status-only 32-byte credential stays in non-synchronizing
+  ThisDeviceOnly Keychain and uses canonical 43-character unpadded base64url.
+  Request/status bodies and the four frozen states are exact; errors remain
+  ambiguous and there is no fabricated rejection. Pre-session app startup can
+  enumerate/resume records without a live account session. Local cleanup begins
+  only after authoritative revocation and the record remains until server
+  `COMPLETED`; exact authenticated replay reuses the same request ID/token.
+  Focused workspace **16/16**, complete Swift **402/402**, `git diff --check` and
+  unsigned arm64+x86_64 Release Simulator build pass at
+  `/private/tmp/pinbook-account-global-deletion-derived`. Runtime/network remains
+  default-off. Server 028 workers, Infrastructure staging, concrete HTTP and
+  exact-account custody cleanup, physical Keychain and injected end-to-end
+  acceptance remain open. No device/provider/server/TestFlight/release action
+  occurred. See `TEAM_WORKSPACE_IOS.md`.
 
 - A default-off local Team workspace now appears under Options with connection,
   exact invitation QR/ShareLink, manual encrypted-note, foreground inbox,

@@ -1,31 +1,28 @@
 # Validation plan
 
-## 2026-09-05 default-off account-deletion recovery
+## 2026-09-05 account-global deletion recovery correction
 
-- Added a transport-abstract, restart-safe deletion state machine that persists
-  one immutable original origin/provider/authority/account/team/custody binding,
-  stable operation ID and ordered cleanup progress without storing secrets in
-  the journal.
-- A fresh 256-bit status-only credential is placed in non-synchronizing,
-  `AfterFirstUnlockThisDeviceOnly` Keychain custody before dispatch. The journal
-  commits `PREPARED -> DISPATCHED` before network use and records `UNCERTAIN` for
-  every thrown dispatch/status result.
-- After dispatch, recovery uses only the original binding and status credential;
-  it does not restore or depend on the ordinary account session. Startup blocks
-  team actions in `DISPATCHED`, `UNCERTAIN` and accepted-but-incomplete cleanup.
-- Authenticated `ACCEPTED` alone begins the five exact-binding idempotent cleanup
-  steps. Definitive `REJECTED` removes only recovery metadata/credential,
-  preserves user data and unblocks normal use.
-- Focused `TeamWorkspaceTests`: **13/13 PASS**. Coverage includes response loss,
-  durable pre-dispatch ordering, restart after session loss/config change,
-  unknown schema version, exact-account isolation, rejection and a crash after
-  cleanup side effect but before its journal checkpoint.
-- Complete Swift package: **399 tests in 38 suites PASS**.
-- Unsigned Release iOS Simulator app build: **BUILD SUCCEEDED** for arm64 and
-  x86_64 at `/private/tmp/pinbook-deletion-recovery-derived`.
-- `git diff --check`: pass. Production transport, server 027/028 endpoints,
-  concrete account-content/key cleanup, physical-device Keychain acceptance,
-  provider, runtime UI and TestFlight remain unchanged/default-off.
+- Replaced the team-scoped binding/gate with one immutable account-global record,
+  matching migration 027's unique deletion per account. Cleanup remains
+  exact-account and must enumerate all team-scoped cache/archive/key material.
+- Replaced UserDefaults with a protected, backup-excluded SQLite journal using
+  `synchronous=EXTRA` and `fullfsync=ON`. A failed durable `DISPATCHED` checkpoint
+  prevents transport dispatch.
+- Request and unauthenticated status models use the exact frozen bodies and
+  canonical 32-byte/43-character unpadded base64url status token. State handling
+  accepts only `REVOCATION_REQUIRED`, `CLEANUP_SCHEDULING_REQUIRED`,
+  `PENDING_ERASURE`, and `COMPLETED`; no rejection result is fabricated.
+- The app-start seam enumerates/resumes records before ordinary session restore.
+  Only non-null `authorityRevokedAt` permits local cleanup; the status credential
+  remains until server `COMPLETED`. Transport and invalid-credential failures stay
+  ambiguous, while authenticated recovery can replay only the same request ID/token.
+- Focused `TeamWorkspaceTests`: **16/16 PASS**.
+- Complete Swift package: **402 tests in 38 suites PASS**.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-account-global-deletion-derived`.
+- `git diff --check`: pass. Runtime/network activation remains default-off. Server
+  028 workers, Infrastructure staging, concrete HTTP/custody cleanup, physical
+  Keychain acceptance, provider and TestFlight publication remain open.
 
 ## 2026-09-05 strict invitation Universal Link grammar
 

@@ -50,26 +50,44 @@ private final class WorkspaceDeletionProgressMemory:
     TeamAccountDeletionProgressStoring, @unchecked Sendable {
     private let lock = NSLock()
     private var values = [String: TeamAccountDeletionProgress]()
-    private func key(_ accountID: String, _ teamID: String) -> String {
-        accountID + "\u{0}" + teamID
+    func load(accountID: String) throws -> TeamAccountDeletionProgress? {
+        lock.withLock { values[accountID] }
     }
-    func load(accountID: String, teamID: String) throws -> TeamAccountDeletionProgress? {
-        lock.withLock { values[key(accountID, teamID)] }
+    func loadAll() throws -> [TeamAccountDeletionProgress] {
+        lock.withLock { values.values.sorted { $0.binding.accountID < $1.binding.accountID } }
     }
     func save(_ progress: TeamAccountDeletionProgress) throws {
         lock.withLock {
-            values[key(progress.binding.accountID, progress.binding.teamID)] = progress
+            values[progress.binding.accountID] = progress
         }
     }
     func remove(_ progress: TeamAccountDeletionProgress) throws {
         try lock.withLock {
-            let storageKey = key(progress.binding.accountID, progress.binding.teamID)
+            let storageKey = progress.binding.accountID
             guard values[storageKey] == progress else {
                 throw TeamWorkspaceError.bindingMismatch
             }
             values.removeValue(forKey: storageKey)
         }
     }
+}
+
+private final class WorkspaceFailingProgressStore:
+    TeamAccountDeletionProgressStoring, @unchecked Sendable {
+    let base: WorkspaceDeletionProgressMemory
+    private let failPhase: TeamAccountDeletionPhase
+    init(base: WorkspaceDeletionProgressMemory, failPhase: TeamAccountDeletionPhase) {
+        self.base = base; self.failPhase = failPhase
+    }
+    func load(accountID: String) throws -> TeamAccountDeletionProgress? {
+        try base.load(accountID: accountID)
+    }
+    func loadAll() throws -> [TeamAccountDeletionProgress] { try base.loadAll() }
+    func save(_ progress: TeamAccountDeletionProgress) throws {
+        if progress.phase == failPhase { throw WorkspaceStubError.stopped }
+        try base.save(progress)
+    }
+    func remove(_ progress: TeamAccountDeletionProgress) throws { try base.remove(progress) }
 }
 
 private final class WorkspaceDeletionCredentials:
@@ -133,7 +151,7 @@ private final class WorkspaceSecureCleanup: TeamAccountSecureCustodyDeleting,
     func delete(step: TeamAccountDeletionCleanupStep,
                 binding: TeamAccountDeletionBinding) throws {
         try lock.withLock {
-            guard remaining[binding.accountID] != nil, binding.teamID == "team" else {
+            guard remaining[binding.accountID] != nil else {
                 throw TeamWorkspaceError.bindingMismatch
             }
             attempts[binding.accountID, default: []].append(step)
@@ -149,41 +167,75 @@ private final class WorkspaceSecureCleanup: TeamAccountSecureCustodyDeleting,
 
 private actor WorkspaceDeletionTransport:
     TeamAccountDeletionDispatchTransport, TeamAccountDeletionStatusTransport {
-    private var dispatchState: TeamAccountDeletionRemoteState
-    private var statusState: TeamAccountDeletionRemoteState
+    private var dispatchState: TeamAccountDeletionServerState
+    private var statusState: TeamAccountDeletionServerState
     private var loseDispatchResponse: Bool
     private let progress: WorkspaceDeletionProgressMemory
-    private(set) var requests = [TeamAccountDeletionRequest]()
-    private(set) var statuses = [(TeamAccountDeletionBinding, String,
-                                  TeamAccountDeletionStatusCredential)]()
+    private(set) var requests = [(TeamAccountDeletionBinding, TeamAccountDeletionRequest)]()
+    private(set) var statuses = [(TeamAccountDeletionBinding,
+                                  TeamAccountDeletionStatusRequest)]()
     private(set) var dispatchObservedPhase: TeamAccountDeletionPhase?
 
     init(progress: WorkspaceDeletionProgressMemory,
-         dispatchState: TeamAccountDeletionRemoteState = .accepted,
-         statusState: TeamAccountDeletionRemoteState = .accepted,
+         dispatchState: TeamAccountDeletionServerState = .completed,
+         statusState: TeamAccountDeletionServerState = .completed,
          loseDispatchResponse: Bool = false) {
         self.progress = progress; self.dispatchState = dispatchState
         self.statusState = statusState
         self.loseDispatchResponse = loseDispatchResponse
     }
-    func requestDeletion(_ request: TeamAccountDeletionRequest) async throws
-        -> TeamAccountDeletionRemoteState {
-        requests.append(request)
-        dispatchObservedPhase = try progress.load(accountID: request.binding.accountID,
-                                                  teamID: request.binding.teamID)?.phase
+    func requestDeletion(binding: TeamAccountDeletionBinding,
+                         request: TeamAccountDeletionRequest) async throws
+        -> TeamAccountDeletionStatus {
+        requests.append((binding, request))
+        dispatchObservedPhase = try progress.load(accountID: binding.accountID)?.phase
         if loseDispatchResponse {
             loseDispatchResponse = false
             throw WorkspaceStubError.stopped
         }
-        return dispatchState
+        return try workspaceDeletionStatus(state: dispatchState,
+            deletionID: request.requestID, accountID: binding.accountID)
     }
-    func deletionStatus(binding: TeamAccountDeletionBinding, operationID: String,
-                        credential: TeamAccountDeletionStatusCredential) async throws
-        -> TeamAccountDeletionRemoteState {
-        statuses.append((binding, operationID, credential))
-        return statusState
+    func deletionStatus(binding: TeamAccountDeletionBinding,
+                        request: TeamAccountDeletionStatusRequest) async throws
+        -> TeamAccountDeletionStatus {
+        statuses.append((binding, request))
+        return try workspaceDeletionStatus(state: statusState,
+            deletionID: request.deletionID, accountID: binding.accountID)
     }
-    func setStatus(_ value: TeamAccountDeletionRemoteState) { statusState = value }
+    func setStatus(_ value: TeamAccountDeletionServerState) { statusState = value }
+}
+
+private actor WorkspaceAmbiguousDeletionStatus: TeamAccountDeletionStatusTransport {
+    func deletionStatus(binding: TeamAccountDeletionBinding,
+                        request: TeamAccountDeletionStatusRequest) async throws
+        -> TeamAccountDeletionStatus {
+        throw WorkspaceStubError.stopped
+    }
+}
+
+private func workspaceDeletionStatus(
+    state: TeamAccountDeletionServerState,
+    deletionID: String = "stable-delete-operation",
+    accountID: String = "alice"
+) throws -> TeamAccountDeletionStatus {
+    switch state {
+    case .revocationRequired:
+        return try .init(deletionID: deletionID, accountID: accountID,
+                         state: state, requestedAt: 10)
+    case .cleanupSchedulingRequired:
+        return try .init(deletionID: deletionID, accountID: accountID,
+                         state: state, requestedAt: 10, authorityRevokedAt: 20)
+    case .pendingErasure:
+        return try .init(deletionID: deletionID, accountID: accountID,
+                         state: state, requestedAt: 10, authorityRevokedAt: 20,
+                         cleanupScheduledAt: 30)
+    case .completed:
+        return try .init(deletionID: deletionID, accountID: accountID,
+                         state: state, requestedAt: 10, authorityRevokedAt: 20,
+                         cleanupScheduledAt: 30, completedAt: 40,
+                         statusExpiresAt: 3_196_800_040)
+    }
 }
 
 private func workspaceDeletionBinding(
@@ -191,17 +243,16 @@ private func workspaceDeletionBinding(
     providerID: String = "public-ios",
     authorityEpoch: String = "epoch",
     accountID: String = "alice",
-    teamID: String = "team",
     custodyID: String = "alice-custody"
 ) throws -> TeamAccountDeletionBinding {
     try .init(origin: origin, providerID: providerID, authorityEpoch: authorityEpoch,
-              accountID: accountID, teamID: teamID, custodyID: custodyID)
+              accountID: accountID, custodyID: custodyID)
 }
 
 private func workspaceDeletionCoordinator(
     binding: TeamAccountDeletionBinding,
     transport: WorkspaceDeletionTransport,
-    progress: WorkspaceDeletionProgressMemory,
+    progress: any TeamAccountDeletionProgressStoring,
     credentials: WorkspaceDeletionCredentials,
     cleanup: WorkspaceSecureCleanup,
     operationID: String = "stable-delete-operation",
@@ -353,181 +404,237 @@ private func withWorkspaceOutbox(_ body: (TeamOutgoingStore, URL) async throws -
         }
     }
 
-    @Test func lostResponsePersistsUncertaintyAndReconcilesWithStatusCredential() async throws {
+    @Test func lostResponseReconcilesWithoutRestoringOrdinarySession() async throws {
         let binding = try workspaceDeletionBinding()
         let progress = WorkspaceDeletionProgressMemory()
         let credentials = WorkspaceDeletionCredentials()
         let cleanup = WorkspaceSecureCleanup()
         let transport = WorkspaceDeletionTransport(progress: progress,
-            statusState: .accepted, loseDispatchResponse: true)
+            statusState: .completed, loseDispatchResponse: true)
         let deletion = try workspaceDeletionCoordinator(binding: binding,
             transport: transport, progress: progress, credentials: credentials,
             cleanup: cleanup)
         await #expect(throws: TeamWorkspaceError.invalidInput) {
-            try await deletion.delete(confirmation: "delete")
-        }
-        await #expect(throws: WorkspaceStubError.stopped) {
             try await deletion.delete(confirmation: "DELETE")
         }
-        let pending = try #require(try progress.load(accountID: "alice", teamID: "team"))
+        await #expect(throws: WorkspaceStubError.stopped) {
+            try await deletion.delete(confirmation: "DELETE_ACCOUNT")
+        }
+        let pending = try #require(try progress.load(accountID: "alice"))
         #expect(pending.phase == .uncertain)
-        #expect(pending.operationID == "stable-delete-operation")
-        #expect(pending.binding == binding)
         #expect(credentials.contains(pending.credentialReference))
         #expect(await transport.dispatchObservedPhase == .dispatched)
-        #expect(try await deletion.blocksTeamActionsOnStartup())
 
-        #expect(try await deletion.resumePending())
-        #expect(await transport.requests.count == 1)
-        let statuses = await transport.statuses
-        #expect(statuses.count == 1)
-        #expect(statuses.first?.0 == binding)
-        #expect(statuses.first?.1 == "stable-delete-operation")
-        #expect(statuses.first?.2.bytes == Data(repeating: 0xA5, count: 32))
+        let recovery = TeamAccountDeletionAppStartRecovery(status: transport,
+            progressStore: progress, credentialStore: credentials, cleanup: cleanup)
+        #expect(await recovery.resumeAll() == [
+            .init(accountID: "alice", outcome: .completed)
+        ])
         #expect(cleanup.remainingSteps(accountID: "alice").isEmpty)
-        #expect(try progress.load(accountID: "alice", teamID: "team") == nil)
+        #expect(try progress.load(accountID: "alice") == nil)
         #expect(!credentials.contains(pending.credentialReference))
-    }
-
-    @Test func restartUsesImmutableOriginalBindingAcrossConfigurationChange() async throws {
-        let original = try workspaceDeletionBinding()
-        let progress = WorkspaceDeletionProgressMemory()
-        let credentials = WorkspaceDeletionCredentials()
-        let cleanup = WorkspaceSecureCleanup()
-        let transport = WorkspaceDeletionTransport(progress: progress,
-            dispatchState: .pending, statusState: .accepted)
-        let first = try workspaceDeletionCoordinator(binding: original,
-            transport: transport, progress: progress, credentials: credentials,
-            cleanup: cleanup)
-        await #expect(throws: TeamWorkspaceError.deletionPending) {
-            try await first.delete(confirmation: "DELETE")
-        }
-        let pending = try #require(try progress.load(accountID: "alice", teamID: "team"))
-        #expect(pending.phase == .dispatched)
-        #expect(try await first.blocksTeamActionsOnStartup())
-
-        let changed = try workspaceDeletionBinding(origin: "https://changed.invalid",
-            providerID: "new-provider", authorityEpoch: "new-epoch",
-            custodyID: "new-custody")
-        let afterRestart = try workspaceDeletionCoordinator(binding: changed,
-            transport: transport, progress: progress, credentials: credentials,
-            cleanup: cleanup, operationID: "must-not-replace-operation",
-            credentialID: "must-not-replace-credential")
-        #expect(try await afterRestart.resumePending())
-        #expect(await transport.requests.count == 1)
         let statuses = await transport.statuses
-        #expect(statuses.count == 1 && statuses.first?.0 == original)
-        #expect(cleanup.observedBindings.allSatisfy { $0 == original })
-        #expect(try progress.load(accountID: "alice", teamID: "team") == nil)
+        #expect(statuses.first?.0 == binding)
+        #expect(statuses.first?.1.deletionID == "stable-delete-operation")
+        #expect(statuses.first?.1.statusToken.count == 43)
     }
 
-    @Test func definitiveRejectionPreservesDataAndUnblocksTeamActions() async throws {
+    @Test func deletionGateIsAccountGlobalAcrossTeams() async throws {
         let binding = try workspaceDeletionBinding()
         let progress = WorkspaceDeletionProgressMemory()
         let credentials = WorkspaceDeletionCredentials()
         let cleanup = WorkspaceSecureCleanup()
         let transport = WorkspaceDeletionTransport(progress: progress,
-                                                    dispatchState: .rejected)
+            dispatchState: .revocationRequired)
         let deletion = try workspaceDeletionCoordinator(binding: binding,
             transport: transport, progress: progress, credentials: credentials,
             cleanup: cleanup)
-
-        await #expect(throws: TeamWorkspaceError.deletionRejected) {
-            try await deletion.delete(confirmation: "DELETE")
+        await #expect(throws: TeamWorkspaceError.deletionPending) {
+            try await deletion.delete(confirmation: "DELETE_ACCOUNT")
         }
+        let gate = TeamAccountDeletionStartupGate(progressStore: progress)
+        #expect(try gate.blocksTeamActions(accountID: "alice"))
+        #expect(throws: TeamWorkspaceError.busy) {
+            try gate.requireTeamActionsAllowed(accountID: "alice")
+        }
+        #expect(!(try gate.blocksTeamActions(accountID: "bob")))
         #expect(cleanup.remainingSteps(accountID: "alice")
             == Set(TeamAccountDeletionCleanupStep.allCases))
-        #expect(try progress.load(accountID: "alice", teamID: "team") == nil)
-        #expect(!(try await deletion.blocksTeamActionsOnStartup()))
     }
 
-    @Test func acceptedDeletionCleansOnlyTheExactBoundAccount() async throws {
+    @Test func authorityRevocationStartsCleanupButCompletionStaysServerAuthoritative() async throws {
+        let binding = try workspaceDeletionBinding()
+        let progress = WorkspaceDeletionProgressMemory()
+        let credentials = WorkspaceDeletionCredentials()
+        let cleanup = WorkspaceSecureCleanup()
+        let transport = WorkspaceDeletionTransport(progress: progress,
+            dispatchState: .revocationRequired, statusState: .cleanupSchedulingRequired)
+        let deletion = try workspaceDeletionCoordinator(binding: binding,
+            transport: transport, progress: progress, credentials: credentials,
+            cleanup: cleanup)
+        await #expect(throws: TeamWorkspaceError.deletionPending) {
+            try await deletion.delete(confirmation: "DELETE_ACCOUNT")
+        }
+        await #expect(throws: TeamWorkspaceError.deletionPending) {
+            try await deletion.resumePending()
+        }
+        let locallyClean = try #require(try progress.load(accountID: "alice"))
+        #expect(locallyClean.phase == .authorityRevoked)
+        #expect(locallyClean.completedSteps == TeamAccountDeletionCleanupStep.allCases)
+        #expect(credentials.contains(locallyClean.credentialReference))
+        await transport.setStatus(.completed)
+        #expect(try await deletion.resumePending())
+        #expect(try progress.load(accountID: "alice") == nil)
+    }
+
+    @Test func exactRetryReusesRequestIDAndCanonicalStatusToken() async throws {
+        let binding = try workspaceDeletionBinding()
+        let progress = WorkspaceDeletionProgressMemory()
+        let credentials = WorkspaceDeletionCredentials()
+        let cleanup = WorkspaceSecureCleanup()
+        let transport = WorkspaceDeletionTransport(progress: progress,
+            dispatchState: .revocationRequired, loseDispatchResponse: true)
+        let deletion = try workspaceDeletionCoordinator(binding: binding,
+            transport: transport, progress: progress, credentials: credentials,
+            cleanup: cleanup)
+        await #expect(throws: WorkspaceStubError.stopped) {
+            try await deletion.delete(confirmation: "DELETE_ACCOUNT")
+        }
+        await #expect(throws: TeamWorkspaceError.deletionPending) {
+            try await deletion.retryExactRequest(confirmation: "DELETE_ACCOUNT")
+        }
+        let requests = await transport.requests
+        #expect(requests.count == 2)
+        #expect(requests[0].1.requestID == requests[1].1.requestID)
+        #expect(requests[0].1.statusToken == requests[1].1.statusToken)
+        #expect(requests[0].1.statusToken.count == 43)
+        #expect(!requests[0].1.statusToken.contains("="))
+        let body = try #require(JSONSerialization.jsonObject(
+            with: try JSONEncoder().encode(requests[0].1)) as? [String: Any])
+        #expect(Set(body.keys) == ["type", "requestId", "confirmation", "statusToken"])
+        #expect(body["confirmation"] as? String == "DELETE_ACCOUNT")
+    }
+
+    @Test func invalidStatusCredentialRemainsAmbiguousAndPreservesCustody() async throws {
+        let binding = try workspaceDeletionBinding()
+        let progress = WorkspaceDeletionProgressMemory()
+        let credentials = WorkspaceDeletionCredentials()
+        let cleanup = WorkspaceSecureCleanup()
+        let transport = WorkspaceDeletionTransport(progress: progress,
+            dispatchState: .revocationRequired)
+        let deletion = try workspaceDeletionCoordinator(binding: binding,
+            transport: transport, progress: progress, credentials: credentials,
+            cleanup: cleanup)
+        await #expect(throws: TeamWorkspaceError.deletionPending) {
+            try await deletion.delete(confirmation: "DELETE_ACCOUNT")
+        }
+        let saved = try #require(try progress.load(accountID: "alice"))
+        let recovery = TeamAccountDeletionAppStartRecovery(
+            status: WorkspaceAmbiguousDeletionStatus(), progressStore: progress,
+            credentialStore: credentials, cleanup: cleanup)
+        #expect(await recovery.resumeAll() == [
+            .init(accountID: "alice", outcome: .ambiguous)
+        ])
+        #expect(try progress.load(accountID: "alice")?.phase == .uncertain)
+        #expect(credentials.contains(saved.credentialReference))
+        #expect(cleanup.remainingSteps(accountID: "alice")
+            == Set(TeamAccountDeletionCleanupStep.allCases))
+    }
+
+    @Test func failedSynchronousCheckpointPreventsDispatch() async throws {
+        let binding = try workspaceDeletionBinding()
+        let base = WorkspaceDeletionProgressMemory()
+        let failing = WorkspaceFailingProgressStore(base: base, failPhase: .dispatched)
+        let credentials = WorkspaceDeletionCredentials()
+        let cleanup = WorkspaceSecureCleanup()
+        let transport = WorkspaceDeletionTransport(progress: base)
+        let deletion = try workspaceDeletionCoordinator(binding: binding,
+            transport: transport, progress: failing, credentials: credentials,
+            cleanup: cleanup)
+        await #expect(throws: WorkspaceStubError.stopped) {
+            try await deletion.delete(confirmation: "DELETE_ACCOUNT")
+        }
+        #expect(await transport.requests.isEmpty)
+        #expect(try base.load(accountID: "alice")?.phase == .prepared)
+    }
+
+    @Test func completedDeletionCleansOnlyTheExactAccount() async throws {
         let alice = try workspaceDeletionBinding()
         let progress = WorkspaceDeletionProgressMemory()
         let credentials = WorkspaceDeletionCredentials()
         let cleanup = WorkspaceSecureCleanup(accounts: ["alice", "bob"])
-        let transport = WorkspaceDeletionTransport(progress: progress,
-                                                    dispatchState: .accepted)
+        let transport = WorkspaceDeletionTransport(progress: progress)
         let deletion = try workspaceDeletionCoordinator(binding: alice,
             transport: transport, progress: progress, credentials: credentials,
             cleanup: cleanup)
 
-        try await deletion.delete(confirmation: "DELETE")
+        try await deletion.delete(confirmation: "DELETE_ACCOUNT")
         #expect(cleanup.remainingSteps(accountID: "alice").isEmpty)
         #expect(cleanup.remainingSteps(accountID: "bob")
             == Set(TeamAccountDeletionCleanupStep.allCases))
         #expect(cleanup.observedBindings.allSatisfy { $0 == alice })
-        #expect(try progress.load(accountID: "bob", teamID: "team") == nil)
-        #expect(!(try TeamAccountDeletionStartupGate(progressStore: progress)
-            .blocksTeamActions(accountID: "bob", teamID: "team")))
+        #expect(try progress.load(accountID: "bob") == nil)
     }
 
-    @Test func acceptedCleanupIsIdempotentAcrossRestartAfterSideEffect() async throws {
+    @Test func revokedCleanupIsIdempotentAcrossRestartAfterSideEffect() async throws {
         let binding = try workspaceDeletionBinding()
         let progress = WorkspaceDeletionProgressMemory()
         let credentials = WorkspaceDeletionCredentials()
         let cleanup = WorkspaceSecureCleanup(
             failAfterSideEffectOnceAt: .deviceSigningIdentity)
-        let transport = WorkspaceDeletionTransport(progress: progress,
-                                                    dispatchState: .accepted)
+        let transport = WorkspaceDeletionTransport(progress: progress)
         let first = try workspaceDeletionCoordinator(binding: binding,
             transport: transport, progress: progress, credentials: credentials,
             cleanup: cleanup)
         await #expect(throws: WorkspaceStubError.stopped) {
-            try await first.delete(confirmation: "DELETE")
+            try await first.delete(confirmation: "DELETE_ACCOUNT")
         }
-        let pending = try #require(try progress.load(accountID: "alice", teamID: "team"))
-        #expect(pending.phase == .accepted)
+        let pending = try #require(try progress.load(accountID: "alice"))
+        #expect(pending.phase == .serverCompleted)
         #expect(pending.completedSteps == [.teamCacheAndArchive, .agreementIdentity])
-        #expect(try await first.blocksTeamActionsOnStartup())
 
         let afterRestart = try workspaceDeletionCoordinator(binding: binding,
             transport: transport, progress: progress, credentials: credentials,
             cleanup: cleanup)
         #expect(try await afterRestart.resumePending())
-        #expect(await transport.requests.count == 1)
-        #expect(await transport.statuses.isEmpty)
         #expect(cleanup.attemptedSteps(accountID: "alice")
             .filter { $0 == .deviceSigningIdentity }.count == 2)
-        #expect(cleanup.remainingSteps(accountID: "alice").isEmpty)
-        #expect(try progress.load(accountID: "alice", teamID: "team") == nil)
+        #expect(try progress.load(accountID: "alice") == nil)
     }
 
-    @Test func persistedJournalRejectsUnknownSchemaVersion() throws {
+    @Test func sqliteJournalIsDurableEnumerableAndBackupExcluded() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("pinbook-deletion-store-\(UUID())", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
         let binding = try workspaceDeletionBinding()
-        let suite = "pinbook.deletion-journal-test.\(UUID())"
-        let store = try UserDefaultsTeamAccountDeletionProgressStore(suiteName: suite)
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
         let progress = TeamAccountDeletionProgress(
             version: TeamAccountDeletionProgress.currentVersion,
             binding: binding, operationID: "operation",
             credentialReference: .init(credentialID: "credential",
                                        bindingDigest: binding.digest),
             phase: .prepared, completedSteps: [])
+        let store = try SQLiteTeamAccountDeletionProgressStore(
+            applicationSupportDirectory: root)
         try store.save(progress)
+        #expect(try store.loadAll() == [progress])
+        #expect(try store.directoryURL.resourceValues(
+            forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup == true)
+        #expect(try store.databaseURL.resourceValues(
+            forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup == true)
+        let reopened = try SQLiteTeamAccountDeletionProgressStore(
+            applicationSupportDirectory: root)
+        #expect(try reopened.load(accountID: "alice") == progress)
         let changed = try workspaceDeletionBinding(origin: "https://changed.invalid",
             providerID: "changed-provider", authorityEpoch: "changed-epoch",
             custodyID: "changed-custody")
         let rebound = TeamAccountDeletionProgress(
             version: TeamAccountDeletionProgress.currentVersion,
             binding: changed, operationID: progress.operationID,
-            credentialReference: .init(
-                credentialID: progress.credentialReference.credentialID,
-                bindingDigest: changed.digest), phase: .prepared, completedSteps: [])
-        #expect(throws: TeamWorkspaceError.bindingMismatch) {
-            try store.save(rebound)
-        }
-        let digest = SHA256.hash(data: Data("alice\u{0}team".utf8))
-            .map { String(format: "%02x", $0) }.joined()
-        let key = "deletion-v2." + digest
-        var object = try #require(JSONSerialization.jsonObject(
-            with: try JSONEncoder().encode(progress)) as? [String: Any])
-        object["version"] = 99
-        defaults.set(try JSONSerialization.data(withJSONObject: object), forKey: key)
-        #expect(throws: TeamWorkspaceError.bindingMismatch) {
-            try store.load(accountID: "alice", teamID: "team")
-        }
+            credentialReference: .init(credentialID: "credential",
+                                       bindingDigest: changed.digest),
+            phase: .prepared, completedSteps: [])
+        #expect(throws: TeamWorkspaceError.bindingMismatch) { try reopened.save(rebound) }
     }
 
     @Test func termsAreExactScopeVersionedAndRequiredBeforeUpload() throws {

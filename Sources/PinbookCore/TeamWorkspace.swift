@@ -1,6 +1,8 @@
+import Darwin
 import CryptoKit
 import Foundation
 import Security
+import SQLite3
 
 enum TeamWorkspaceError: Error, Equatable {
     case invalidInput
@@ -9,7 +11,6 @@ enum TeamWorkspaceError: Error, Equatable {
     case unavailable
     case bindingMismatch
     case deletionPending
-    case deletionRejected
 }
 
 struct TeamTermsAcceptance: Codable, Equatable, Sendable {
@@ -401,36 +402,36 @@ actor TeamSafetyCoordinator {
     }
 }
 
+/// Immutable account-level recovery scope. Team IDs are deliberately absent:
+/// migration 027 permits only one deletion row per account.
 struct TeamAccountDeletionBinding: Codable, Equatable, Sendable,
     CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
-    static let currentVersion = 1
+    static let currentVersion = 2
     let version: Int
     let origin: String
     let providerID: String
     let authorityEpoch: String
     let accountID: String
-    let teamID: String
     let custodyID: String
 
     init(origin: String, providerID: String, authorityEpoch: String,
-         accountID: String, teamID: String, custodyID: String) throws {
+         accountID: String, custodyID: String) throws {
         guard TeamDeviceEnrollmentWire.canonicalAudience(origin),
               TeamAuthWire.identifier(providerID),
               TeamAuthWire.identifier(authorityEpoch),
               TeamAuthWire.identifier(accountID),
-              TeamAuthWire.identifier(teamID),
               TeamAuthWire.identifier(custodyID) else {
             throw TeamWorkspaceError.invalidInput
         }
         version = Self.currentVersion
         self.origin = origin; self.providerID = providerID
         self.authorityEpoch = authorityEpoch; self.accountID = accountID
-        self.teamID = teamID; self.custodyID = custodyID
+        self.custodyID = custodyID
     }
 
     var digest: String {
         let fields = [String(version), origin, providerID, authorityEpoch,
-                      accountID, teamID, custodyID].joined(separator: "\n")
+                      accountID, custodyID].joined(separator: "\n")
         return SHA256.hash(data: Data(fields.utf8))
             .map { String(format: "%02x", $0) }.joined()
     }
@@ -446,6 +447,9 @@ struct TeamAccountDeletionStatusCredential: Equatable, Sendable,
         guard bytes.count == 32 else { throw TeamWorkspaceError.invalidInput }
         self.bytes = bytes
     }
+    var canonicalValue: String {
+        TeamDeviceEnrollmentWire.encode(bytes)
+    }
     var description: String { "TeamAccountDeletionStatusCredential(<redacted>)" }
     var debugDescription: String { description }
     var customMirror: Mirror { Mirror(self, children: [:]) }
@@ -456,36 +460,156 @@ struct TeamAccountDeletionCredentialReference: Codable, Equatable, Sendable {
     let bindingDigest: String
 }
 
-enum TeamAccountDeletionRemoteState: String, Codable, Equatable, Sendable {
-    case pending = "PENDING"
-    case accepted = "ACCEPTED"
-    case rejected = "REJECTED"
+enum TeamAccountDeletionServerState: String, Codable, Equatable, Sendable {
+    case revocationRequired = "REVOCATION_REQUIRED"
+    case cleanupSchedulingRequired = "CLEANUP_SCHEDULING_REQUIRED"
+    case pendingErasure = "PENDING_ERASURE"
+    case completed = "COMPLETED"
 }
 
-struct TeamAccountDeletionRequest: Sendable,
+struct TeamAccountDeletionStatus: Codable, Equatable, Sendable {
+    static let type = "pinbook-account-deletion-status-v1"
+    let type: String
+    let deletionID: String
+    let accountID: String
+    let state: TeamAccountDeletionServerState
+    let requestedAt: Int64
+    let authorityRevokedAt: Int64?
+    let cleanupScheduledAt: Int64?
+    let completedAt: Int64?
+    let statusExpiresAt: Int64?
+
+    enum CodingKeys: String, CodingKey {
+        case type, state, requestedAt, authorityRevokedAt, cleanupScheduledAt,
+             completedAt, statusExpiresAt
+        case deletionID = "deletionId"
+        case accountID = "accountId"
+    }
+
+    init(deletionID: String, accountID: String, state: TeamAccountDeletionServerState,
+         requestedAt: Int64, authorityRevokedAt: Int64? = nil,
+         cleanupScheduledAt: Int64? = nil, completedAt: Int64? = nil,
+         statusExpiresAt: Int64? = nil) throws {
+        type = Self.type; self.deletionID = deletionID; self.accountID = accountID
+        self.state = state; self.requestedAt = requestedAt
+        self.authorityRevokedAt = authorityRevokedAt
+        self.cleanupScheduledAt = cleanupScheduledAt
+        self.completedAt = completedAt; self.statusExpiresAt = statusExpiresAt
+        try validate()
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        type = try values.decode(String.self, forKey: .type)
+        deletionID = try values.decode(String.self, forKey: .deletionID)
+        accountID = try values.decode(String.self, forKey: .accountID)
+        state = try values.decode(TeamAccountDeletionServerState.self, forKey: .state)
+        requestedAt = try values.decode(Int64.self, forKey: .requestedAt)
+        authorityRevokedAt = try values.decodeIfPresent(Int64.self, forKey: .authorityRevokedAt)
+        cleanupScheduledAt = try values.decodeIfPresent(Int64.self, forKey: .cleanupScheduledAt)
+        completedAt = try values.decodeIfPresent(Int64.self, forKey: .completedAt)
+        statusExpiresAt = try values.decodeIfPresent(Int64.self, forKey: .statusExpiresAt)
+        try validate()
+    }
+
+    private func validate() throws {
+        guard type == Self.type, TeamAuthWire.identifier(deletionID),
+              TeamAuthWire.identifier(accountID), requestedAt >= 0 else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        switch state {
+        case .revocationRequired:
+            guard authorityRevokedAt == nil, cleanupScheduledAt == nil,
+                  completedAt == nil, statusExpiresAt == nil else {
+                throw TeamWorkspaceError.invalidInput
+            }
+        case .cleanupSchedulingRequired:
+            guard let authorityRevokedAt, authorityRevokedAt >= requestedAt,
+                  cleanupScheduledAt == nil, completedAt == nil,
+                  statusExpiresAt == nil else { throw TeamWorkspaceError.invalidInput }
+        case .pendingErasure:
+            guard let authorityRevokedAt, let cleanupScheduledAt,
+                  authorityRevokedAt >= requestedAt,
+                  cleanupScheduledAt >= authorityRevokedAt,
+                  completedAt == nil, statusExpiresAt == nil else {
+                throw TeamWorkspaceError.invalidInput
+            }
+        case .completed:
+            guard let authorityRevokedAt, let cleanupScheduledAt, let completedAt,
+                  let statusExpiresAt, authorityRevokedAt >= requestedAt,
+                  cleanupScheduledAt >= authorityRevokedAt,
+                  completedAt >= cleanupScheduledAt else {
+                throw TeamWorkspaceError.invalidInput
+            }
+            let expected = completedAt.addingReportingOverflow(3_196_800_000)
+            guard !expected.overflow, statusExpiresAt == expected.partialValue else {
+                throw TeamWorkspaceError.invalidInput
+            }
+        }
+    }
+}
+
+struct TeamAccountDeletionRequest: Codable, Equatable, Sendable,
     CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
-    let binding: TeamAccountDeletionBinding
-    let operationID: String
-    let statusCredential: TeamAccountDeletionStatusCredential
+    static let type = "pinbook-account-deletion-request-v1"
+    static let confirmation = "DELETE_ACCOUNT"
+    let type: String
+    let requestID: String
+    let confirmation: String
+    let statusToken: String
+    enum CodingKeys: String, CodingKey {
+        case type, confirmation, statusToken
+        case requestID = "requestId"
+    }
+    init(requestID: String, credential: TeamAccountDeletionStatusCredential) throws {
+        guard TeamAuthWire.identifier(requestID), credential.canonicalValue.utf8.count == 43,
+              TeamDeviceEnrollmentWire.decode(credential.canonicalValue) == credential.bytes else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        type = Self.type; self.requestID = requestID
+        confirmation = Self.confirmation; statusToken = credential.canonicalValue
+    }
     var description: String { "TeamAccountDeletionRequest(<redacted>)" }
     var debugDescription: String { description }
     var customMirror: Mirror { Mirror(self, children: [:]) }
 }
 
-/// Uses the ordinary authenticated account session for the one initial request.
-/// A thrown error is always treated as ambiguous because the server may have
-/// committed before the response was lost.
-protocol TeamAccountDeletionDispatchTransport: Sendable {
-    func requestDeletion(_ request: TeamAccountDeletionRequest) async throws
-        -> TeamAccountDeletionRemoteState
+struct TeamAccountDeletionStatusRequest: Codable, Equatable, Sendable,
+    CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    static let type = "pinbook-account-deletion-status-request-v1"
+    let type: String
+    let deletionID: String
+    let statusToken: String
+    enum CodingKeys: String, CodingKey {
+        case type, statusToken
+        case deletionID = "deletionId"
+    }
+    init(deletionID: String, credential: TeamAccountDeletionStatusCredential) throws {
+        guard TeamAuthWire.identifier(deletionID), credential.canonicalValue.utf8.count == 43,
+              TeamDeviceEnrollmentWire.decode(credential.canonicalValue) == credential.bytes else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        type = Self.type; self.deletionID = deletionID
+        statusToken = credential.canonicalValue
+    }
+    var description: String { "TeamAccountDeletionStatusRequest(<redacted>)" }
+    var debugDescription: String { description }
+    var customMirror: Mirror { Mirror(self, children: [:]) }
 }
 
-/// Status-only recovery authority. It deliberately does not use or restore the
-/// ordinary account session, which may be revoked immediately after dispatch.
+/// Uses the ordinary authenticated account session for an exact idempotent request.
+protocol TeamAccountDeletionDispatchTransport: Sendable {
+    func requestDeletion(binding: TeamAccountDeletionBinding,
+                         request: TeamAccountDeletionRequest) async throws
+        -> TeamAccountDeletionStatus
+}
+
+/// Unauthenticated status-only recovery. Invalid credentials and transport errors
+/// remain ambiguous and must never be translated into a fabricated rejection.
 protocol TeamAccountDeletionStatusTransport: Sendable {
-    func deletionStatus(binding: TeamAccountDeletionBinding, operationID: String,
-                        credential: TeamAccountDeletionStatusCredential) async throws
-        -> TeamAccountDeletionRemoteState
+    func deletionStatus(binding: TeamAccountDeletionBinding,
+                        request: TeamAccountDeletionStatusRequest) async throws
+        -> TeamAccountDeletionStatus
 }
 
 enum TeamAccountDeletionCleanupStep: String, Codable, CaseIterable, Sendable {
@@ -500,16 +624,16 @@ enum TeamAccountDeletionPhase: String, Codable, Equatable, Sendable {
     case prepared = "PREPARED"
     case dispatched = "DISPATCHED"
     case uncertain = "UNCERTAIN"
-    case accepted = "ACCEPTED"
-    case rejected = "REJECTED"
+    case authorityRevoked = "AUTHORITY_REVOKED"
+    case serverCompleted = "SERVER_COMPLETED"
 
     var blocksTeamActions: Bool {
-        [.dispatched, .uncertain, .accepted].contains(self)
+        self != .prepared
     }
 }
 
 struct TeamAccountDeletionProgress: Codable, Equatable, Sendable {
-    static let currentVersion = 2
+    static let currentVersion = 3
     let version: Int
     let binding: TeamAccountDeletionBinding
     let operationID: String
@@ -519,71 +643,161 @@ struct TeamAccountDeletionProgress: Codable, Equatable, Sendable {
 }
 
 protocol TeamAccountDeletionProgressStoring: Sendable {
-    func load(accountID: String, teamID: String) throws -> TeamAccountDeletionProgress?
+    func load(accountID: String) throws -> TeamAccountDeletionProgress?
+    func loadAll() throws -> [TeamAccountDeletionProgress]
     func save(_ progress: TeamAccountDeletionProgress) throws
     func remove(_ progress: TeamAccountDeletionProgress) throws
 }
 
-/// Device-local restart journal. It contains identifiers and cleanup progress,
-/// never credentials, invitation tokens, note content or cryptographic material.
-final class UserDefaultsTeamAccountDeletionProgressStore:
+/// Device-local account-global restart journal. SQLite EXTRA synchronization means
+/// save returns only after the checkpoint commits. The dedicated protected
+/// directory and database are excluded from backup; status tokens remain in Keychain.
+final class SQLiteTeamAccountDeletionProgressStore:
     TeamAccountDeletionProgressStoring, @unchecked Sendable {
-    private let defaults: UserDefaults
     private let lock = NSLock()
-    init(suiteName: String = "com.zaidsafa.pinbook.team-account-deletion.v2") throws {
-        guard let defaults = UserDefaults(suiteName: suiteName) else {
+    let directoryURL: URL
+    let databaseURL: URL
+    private var database: OpaquePointer?
+
+    convenience init() throws {
+        guard let root = FileManager.default.urls(for: .applicationSupportDirectory,
+                                                  in: .userDomainMask).first else {
             throw TeamWorkspaceError.unavailable
         }
-        self.defaults = defaults
+        try self.init(applicationSupportDirectory: root)
     }
-    func load(accountID: String, teamID: String) throws -> TeamAccountDeletionProgress? {
-        try Self.validateIdentity(accountID, teamID)
-        return try lock.withLock {
-            guard let data = defaults.data(forKey: key(accountID, teamID)) else { return nil }
-            let value = try JSONDecoder().decode(TeamAccountDeletionProgress.self, from: data)
-            try Self.validate(value)
-            guard value.binding.accountID == accountID,
-                  value.binding.teamID == teamID else {
-                throw TeamWorkspaceError.bindingMismatch
-            }
-            return value
+
+    init(applicationSupportDirectory: URL) throws {
+        guard applicationSupportDirectory.isFileURL else { throw TeamWorkspaceError.invalidInput }
+        directoryURL = applicationSupportDirectory
+            .appendingPathComponent("PinbookTeamAccountDeletion", isDirectory: true)
+        databaseURL = directoryURL.appendingPathComponent("account-deletion-v3.sqlite")
+        let fm = FileManager.default
+        var directoryAttributes: [FileAttributeKey: Any] = [.posixPermissions: 0o700]
+        var fileAttributes: [FileAttributeKey: Any] = [.posixPermissions: 0o600]
+        #if os(iOS)
+        directoryAttributes[.protectionKey] = FileProtectionType.complete
+        fileAttributes[.protectionKey] = FileProtectionType.complete
+        #endif
+        try fm.createDirectory(at: directoryURL, withIntermediateDirectories: true,
+                               attributes: directoryAttributes)
+        guard try directoryURL.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else {
+            throw TeamWorkspaceError.invalidInput
         }
-    }
-    func save(_ progress: TeamAccountDeletionProgress) throws {
-        try Self.validate(progress)
-        try lock.withLock {
-            let storageKey = key(progress.binding.accountID, progress.binding.teamID)
-            if let data = defaults.data(forKey: storageKey) {
-                let current = try JSONDecoder().decode(TeamAccountDeletionProgress.self, from: data)
-                try Self.validate(current)
-                guard Self.validTransition(from: current, to: progress) else {
+        try fm.setAttributes(directoryAttributes, ofItemAtPath: directoryURL.path)
+        try Self.excludeFromBackup(directoryURL)
+        let descriptor = Darwin.open(databaseURL.path,
+            O_CREAT | O_EXCL | O_WRONLY | O_NOFOLLOW, 0o600)
+        if descriptor >= 0 { Darwin.close(descriptor) }
+        else if errno != EEXIST { throw TeamWorkspaceError.unavailable }
+        guard try databaseURL.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        try fm.setAttributes(fileAttributes, ofItemAtPath: databaseURL.path)
+        try Self.excludeFromBackup(databaseURL)
+        #if os(iOS) && !targetEnvironment(simulator)
+        for url in [directoryURL, databaseURL] {
+            guard try fm.attributesOfItem(atPath: url.path)[.protectionKey] as? String
+                    == FileProtectionType.complete.rawValue else {
+                throw TeamWorkspaceError.unavailable
+            }
+        }
+        #endif
+        var handle: OpaquePointer?
+        var flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
+        #if os(iOS)
+        flags |= SQLITE_OPEN_FILEPROTECTION_COMPLETE
+        #endif
+        let result = sqlite3_open_v2(databaseURL.path, &handle, flags, nil)
+        guard result == SQLITE_OK, let handle else {
+            if let handle { sqlite3_close(handle) }
+            throw TeamWorkspaceError.unavailable
+        }
+        database = handle
+        do {
+            sqlite3_busy_timeout(database, 2_000)
+            try execute("PRAGMA journal_mode=DELETE")
+            try execute("PRAGMA synchronous=EXTRA")
+            try execute("PRAGMA fullfsync=ON")
+            try execute("PRAGMA temp_store=MEMORY")
+            try transaction {
+                let version = try scalar("PRAGMA user_version")
+                guard version == 0 || version == 3 else {
                     throw TeamWorkspaceError.bindingMismatch
                 }
+                if version == 0 {
+                    try execute("CREATE TABLE deletion_progress (account_id TEXT PRIMARY KEY, payload BLOB NOT NULL) WITHOUT ROWID")
+                    try execute("PRAGMA user_version=3")
+                } else {
+                    _ = try scalar("SELECT count(*) FROM deletion_progress")
+                }
             }
-            defaults.set(try JSONEncoder().encode(progress), forKey: storageKey)
+        } catch {
+            sqlite3_close(database); database = nil; throw error
         }
     }
+
+    deinit { sqlite3_close(database) }
+
+    func load(accountID: String) throws -> TeamAccountDeletionProgress? {
+        try Self.validateIdentity(accountID)
+        return try lock.withLock { try loadUnlocked(accountID: accountID) }
+    }
+
+    func loadAll() throws -> [TeamAccountDeletionProgress] {
+        try lock.withLock {
+            let statement = try prepare("SELECT account_id,payload FROM deletion_progress ORDER BY account_id")
+            defer { sqlite3_finalize(statement) }
+            var values = [TeamAccountDeletionProgress]()
+            while try step(statement) == SQLITE_ROW {
+                guard let rawAccount = sqlite3_column_text(statement, 0) else {
+                    throw TeamWorkspaceError.bindingMismatch
+                }
+                let accountID = String(cString: rawAccount)
+                let value = try decode(statement, column: 1)
+                guard value.binding.accountID == accountID else {
+                    throw TeamWorkspaceError.bindingMismatch
+                }
+                values.append(value)
+            }
+            return values
+        }
+    }
+
+    func save(_ progress: TeamAccountDeletionProgress) throws {
+        try Self.validate(progress)
+        let payload = try JSONEncoder().encode(progress)
+        try lock.withLock {
+            try transaction {
+                if let current = try loadUnlocked(accountID: progress.binding.accountID),
+                   !Self.validTransition(from: current, to: progress) {
+                    throw TeamWorkspaceError.bindingMismatch
+                }
+                try execute("INSERT INTO deletion_progress(account_id,payload) VALUES(?,?) ON CONFLICT(account_id) DO UPDATE SET payload=excluded.payload",
+                    [.text(progress.binding.accountID), .blob(payload)])
+            }
+        }
+    }
+
     func remove(_ progress: TeamAccountDeletionProgress) throws {
         try Self.validate(progress)
         try lock.withLock {
-            let storageKey = key(progress.binding.accountID, progress.binding.teamID)
-            guard let data = defaults.data(forKey: storageKey) else { return }
-            let current = try JSONDecoder().decode(TeamAccountDeletionProgress.self, from: data)
-            guard current == progress else { throw TeamWorkspaceError.bindingMismatch }
-            defaults.removeObject(forKey: storageKey)
+            try transaction {
+                guard let current = try loadUnlocked(accountID: progress.binding.accountID) else {
+                    return
+                }
+                guard current == progress else { throw TeamWorkspaceError.bindingMismatch }
+                try execute("DELETE FROM deletion_progress WHERE account_id=?",
+                            [.text(progress.binding.accountID)])
+            }
         }
     }
-    private func key(_ accountID: String, _ teamID: String) -> String {
-        let digest = SHA256.hash(data: Data((accountID + "\u{0}" + teamID).utf8))
-        return "deletion-v2." + digest.map { String(format: "%02x", $0) }.joined()
-    }
-    private static func validateIdentity(_ accountID: String, _ teamID: String) throws {
-        guard TeamAuthWire.identifier(accountID), TeamAuthWire.identifier(teamID) else {
-            throw TeamWorkspaceError.invalidInput
-        }
+
+    private static func validateIdentity(_ accountID: String) throws {
+        guard TeamAuthWire.identifier(accountID) else { throw TeamWorkspaceError.invalidInput }
     }
     private static func validate(_ progress: TeamAccountDeletionProgress) throws {
-        try validateIdentity(progress.binding.accountID, progress.binding.teamID)
+        try validateIdentity(progress.binding.accountID)
         let all = TeamAccountDeletionCleanupStep.allCases
         guard progress.version == TeamAccountDeletionProgress.currentVersion,
               progress.binding.version == TeamAccountDeletionBinding.currentVersion,
@@ -596,7 +810,8 @@ final class UserDefaultsTeamAccountDeletionProgressStore:
               progress.credentialReference.bindingDigest == progress.binding.digest,
               progress.completedSteps.count <= all.count,
               Array(all.prefix(progress.completedSteps.count)) == progress.completedSteps,
-              progress.phase == .accepted || progress.completedSteps.isEmpty else {
+              [.authorityRevoked, .serverCompleted].contains(progress.phase)
+                || progress.completedSteps.isEmpty else {
             throw TeamWorkspaceError.bindingMismatch
         }
     }
@@ -607,19 +822,101 @@ final class UserDefaultsTeamAccountDeletionProgressStore:
               current.credentialReference == next.credentialReference,
               next.completedSteps.starts(with: current.completedSteps) else { return false }
         if current.phase == next.phase {
-            return current.phase == .accepted || current.completedSteps == next.completedSteps
+            return [.authorityRevoked, .serverCompleted].contains(current.phase)
+                || current.completedSteps == next.completedSteps
         }
         switch (current.phase, next.phase) {
         case (.prepared, .dispatched),
              (.dispatched, .uncertain),
-             (.dispatched, .accepted),
-             (.dispatched, .rejected),
-             (.uncertain, .accepted),
-             (.uncertain, .rejected):
+             (.uncertain, .dispatched),
+             (.dispatched, .authorityRevoked),
+             (.dispatched, .serverCompleted),
+             (.uncertain, .authorityRevoked),
+             (.uncertain, .serverCompleted):
             return current.completedSteps.isEmpty && next.completedSteps.isEmpty
+        case (.authorityRevoked, .serverCompleted):
+            return current.completedSteps == next.completedSteps
         default:
             return false
         }
+    }
+
+    private static func excludeFromBackup(_ url: URL) throws {
+        var url = url, values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try url.setResourceValues(values)
+        guard try url.resourceValues(forKeys: [.isExcludedFromBackupKey])
+            .isExcludedFromBackup == true else { throw TeamWorkspaceError.unavailable }
+    }
+
+    private enum Value { case text(String), blob(Data) }
+    private func prepare(_ sql: String, _ values: [Value] = []) throws -> OpaquePointer {
+        var statement: OpaquePointer?
+        let result = sqlite3_prepare_v2(database, sql, -1, &statement, nil)
+        guard result == SQLITE_OK, let statement else { throw TeamWorkspaceError.unavailable }
+        do {
+            let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+            for (offset, value) in values.enumerated() {
+                let index = Int32(offset + 1), result: Int32
+                switch value {
+                case .text(let text):
+                    result = sqlite3_bind_text(statement, index, text, -1, transient)
+                case .blob(let data):
+                    result = data.withUnsafeBytes {
+                        sqlite3_bind_blob(statement, index, $0.baseAddress,
+                                          Int32($0.count), transient)
+                    }
+                }
+                guard result == SQLITE_OK else { throw TeamWorkspaceError.unavailable }
+            }
+        } catch { sqlite3_finalize(statement); throw error }
+        return statement
+    }
+    private func step(_ statement: OpaquePointer) throws -> Int32 {
+        let result = sqlite3_step(statement)
+        guard result == SQLITE_ROW || result == SQLITE_DONE else {
+            throw TeamWorkspaceError.unavailable
+        }
+        return result
+    }
+    private func execute(_ sql: String, _ values: [Value] = []) throws {
+        let statement = try prepare(sql, values)
+        defer { sqlite3_finalize(statement) }
+        _ = try step(statement)
+    }
+    private func scalar(_ sql: String) throws -> Int64 {
+        let statement = try prepare(sql)
+        defer { sqlite3_finalize(statement) }
+        guard try step(statement) == SQLITE_ROW else { throw TeamWorkspaceError.unavailable }
+        return sqlite3_column_int64(statement, 0)
+    }
+    private func decode(_ statement: OpaquePointer, column: Int32) throws
+        -> TeamAccountDeletionProgress {
+        let count = Int(sqlite3_column_bytes(statement, column))
+        guard count > 0, count <= 64 * 1024,
+              let bytes = sqlite3_column_blob(statement, column) else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let value = try JSONDecoder().decode(TeamAccountDeletionProgress.self,
+            from: Data(bytes: bytes, count: count))
+        try Self.validate(value)
+        return value
+    }
+    private func loadUnlocked(accountID: String) throws -> TeamAccountDeletionProgress? {
+        let statement = try prepare("SELECT payload FROM deletion_progress WHERE account_id=?",
+                                    [.text(accountID)])
+        defer { sqlite3_finalize(statement) }
+        guard try step(statement) == SQLITE_ROW else { return nil }
+        let value = try decode(statement, column: 0)
+        guard value.binding.accountID == accountID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        return value
+    }
+    private func transaction(_ body: () throws -> Void) throws {
+        try execute("BEGIN IMMEDIATE")
+        do { try body(); try execute("COMMIT") }
+        catch { try? execute("ROLLBACK"); throw error }
     }
 }
 
@@ -696,7 +993,8 @@ struct KeychainTeamAccountDeletionCredentialStore:
 
 /// Every stage must be idempotent: a crash can occur after the secure deletion
 /// commits but before its journal checkpoint. A production implementation must
-/// delete the exact account/team material named by each step and treat absence
+/// enumerate and delete every team-scoped item belonging to the exact account,
+/// and treat absence as success. The binding intentionally carries no team ID.
 /// as success. No incomplete built-in implementation is provided.
 protocol TeamAccountSecureCustodyDeleting: Sendable {
     func delete(step: TeamAccountDeletionCleanupStep,
@@ -705,28 +1003,25 @@ protocol TeamAccountSecureCustodyDeleting: Sendable {
 
 struct TeamAccountDeletionStartupGate: Sendable {
     let progressStore: any TeamAccountDeletionProgressStoring
-    func blocksTeamActions(accountID: String, teamID: String) throws -> Bool {
-        guard TeamAuthWire.identifier(accountID), TeamAuthWire.identifier(teamID) else {
-            throw TeamWorkspaceError.invalidInput
-        }
-        return try progressStore.load(accountID: accountID, teamID: teamID)?
+    func blocksTeamActions(accountID: String) throws -> Bool {
+        guard TeamAuthWire.identifier(accountID) else { throw TeamWorkspaceError.invalidInput }
+        return try progressStore.load(accountID: accountID)?
             .phase.blocksTeamActions == true
     }
-    func requireTeamActionsAllowed(accountID: String, teamID: String) throws {
-        if try blocksTeamActions(accountID: accountID, teamID: teamID) {
+    func requireTeamActionsAllowed(accountID: String) throws {
+        if try blocksTeamActions(accountID: accountID) {
             throw TeamWorkspaceError.busy
         }
     }
 }
 
-/// Default-off account deletion recovery. PREPARED is durable before status
-/// credential creation; DISPATCHED is durable before network dispatch. Any thrown
-/// transport error becomes UNCERTAIN and can only reconcile through status-only
-/// authority. Local account material is erased only after authenticated ACCEPTED.
+/// PREPARED and DISPATCHED are synchronously durable before their following side
+/// effects. Cleanup starts only after an authoritative status proves revocation;
+/// the journal and status token remain until the server reaches COMPLETED.
 actor TeamAccountDeletionCoordinator {
-    static let confirmation = "DELETE"
+    static let confirmation = TeamAccountDeletionRequest.confirmation
     private let initialBinding: TeamAccountDeletionBinding
-    private let dispatch: any TeamAccountDeletionDispatchTransport
+    private let dispatch: (any TeamAccountDeletionDispatchTransport)?
     private let status: any TeamAccountDeletionStatusTransport
     private let progressStore: any TeamAccountDeletionProgressStoring
     private let credentialStore: any TeamAccountDeletionCredentialStoring
@@ -737,7 +1032,7 @@ actor TeamAccountDeletionCoordinator {
     private var working = false
 
     init(binding: TeamAccountDeletionBinding,
-         dispatch: any TeamAccountDeletionDispatchTransport,
+         dispatch: (any TeamAccountDeletionDispatchTransport)?,
          status: any TeamAccountDeletionStatusTransport,
          progressStore: any TeamAccountDeletionProgressStoring,
          credentialStore: any TeamAccountDeletionCredentialStoring,
@@ -765,24 +1060,48 @@ actor TeamAccountDeletionCoordinator {
         try await run(createIfMissing: true)
     }
     func resumePending() async throws -> Bool {
-        guard try progressStore.load(accountID: initialBinding.accountID,
-                                     teamID: initialBinding.teamID) != nil else {
+        guard try progressStore.load(accountID: initialBinding.accountID) != nil else {
             return false
         }
         try await run(createIfMissing: false)
         return true
     }
+    /// Requires a freshly authenticated caller, but reuses the exact durable
+    /// request ID and status token after an ambiguous HTTP boundary.
+    func retryExactRequest(confirmation: String) async throws {
+        guard confirmation == Self.confirmation, let dispatch else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        guard !working else { throw TeamWorkspaceError.busy }
+        working = true; defer { working = false }
+        guard var progress = try progressStore.load(accountID: initialBinding.accountID),
+              [.dispatched, .uncertain].contains(progress.phase) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        let credential = try requireCredential(progress)
+        progress.phase = .dispatched
+        try progressStore.save(progress)
+        let remote: TeamAccountDeletionStatus
+        do {
+            remote = try await dispatch.requestDeletion(binding: progress.binding,
+                request: try .init(requestID: progress.operationID, credential: credential))
+        } catch {
+            progress.phase = .uncertain
+            try progressStore.save(progress)
+            throw error
+        }
+        try finishRemote(remote, progress: &progress)
+        try finishIfAuthorized(&progress)
+    }
     func blocksTeamActionsOnStartup() throws -> Bool {
         try TeamAccountDeletionStartupGate(progressStore: progressStore)
-            .blocksTeamActions(accountID: initialBinding.accountID,
-                               teamID: initialBinding.teamID)
+            .blocksTeamActions(accountID: initialBinding.accountID)
     }
     private func run(createIfMissing: Bool) async throws {
         guard !working else { throw TeamWorkspaceError.busy }
         working = true; defer { working = false }
         var progress: TeamAccountDeletionProgress
-        if let current = try progressStore.load(accountID: initialBinding.accountID,
-                                                teamID: initialBinding.teamID) {
+        if let current = try progressStore.load(accountID: initialBinding.accountID) {
             progress = current
         } else {
             guard createIfMissing else { return }
@@ -799,26 +1118,15 @@ actor TeamAccountDeletionCoordinator {
         }
         switch progress.phase {
         case .prepared:
+            guard let dispatch else { throw TeamWorkspaceError.deletionPending }
             let credential = try ensureCredential(progress)
             progress.phase = .dispatched
             try progressStore.save(progress)
-            let remote: TeamAccountDeletionRemoteState
             do {
-                remote = try await dispatch.requestDeletion(.init(
-                    binding: progress.binding, operationID: progress.operationID,
-                    statusCredential: credential))
-            } catch {
-                progress.phase = .uncertain
-                try progressStore.save(progress)
-                throw error
-            }
-            try finishRemote(remote, progress: &progress)
-        case .dispatched, .uncertain:
-            let credential = try requireCredential(progress)
-            let remote: TeamAccountDeletionRemoteState
-            do {
-                remote = try await status.deletionStatus(binding: progress.binding,
-                    operationID: progress.operationID, credential: credential)
+                let remote = try await dispatch.requestDeletion(binding: progress.binding,
+                    request: try .init(requestID: progress.operationID,
+                                       credential: credential))
+                try finishRemote(remote, progress: &progress)
             } catch {
                 if progress.phase == .dispatched {
                     progress.phase = .uncertain
@@ -826,28 +1134,51 @@ actor TeamAccountDeletionCoordinator {
                 }
                 throw error
             }
-            try finishRemote(remote, progress: &progress)
-        case .accepted:
-            break
-        case .rejected:
-            try finishRejected(progress)
-            throw TeamWorkspaceError.deletionRejected
-        }
-        guard progress.phase == .accepted else {
-            if progress.phase == .rejected {
-                try finishRejected(progress)
-                throw TeamWorkspaceError.deletionRejected
+        case .dispatched, .uncertain:
+            let credential = try requireCredential(progress)
+            do {
+                let remote = try await status.deletionStatus(binding: progress.binding,
+                    request: try .init(deletionID: progress.operationID,
+                                       credential: credential))
+                try finishRemote(remote, progress: &progress)
+            } catch {
+                if progress.phase == .dispatched {
+                    progress.phase = .uncertain
+                    try progressStore.save(progress)
+                }
+                throw error
             }
+        case .authorityRevoked:
+            try performLocalCleanup(&progress)
+            let credential = try requireCredential(progress)
+            let remote = try await status.deletionStatus(binding: progress.binding,
+                request: try .init(deletionID: progress.operationID,
+                                   credential: credential))
+            try finishRemote(remote, progress: &progress)
+        case .serverCompleted:
+            break
+        }
+        try finishIfAuthorized(&progress)
+    }
+    private func finishIfAuthorized(_ progress: inout TeamAccountDeletionProgress) throws {
+        guard [.authorityRevoked, .serverCompleted].contains(progress.phase) else {
             throw TeamWorkspaceError.deletionPending
         }
+        try performLocalCleanup(&progress)
+        if progress.phase == .serverCompleted {
+            try credentialStore.remove(progress.credentialReference)
+            try progressStore.remove(progress)
+        } else {
+            throw TeamWorkspaceError.deletionPending
+        }
+    }
+    private func performLocalCleanup(_ progress: inout TeamAccountDeletionProgress) throws {
         for step in TeamAccountDeletionCleanupStep.allCases
             .dropFirst(progress.completedSteps.count) {
             try cleanup.delete(step: step, binding: progress.binding)
             progress.completedSteps.append(step)
             try progressStore.save(progress)
         }
-        try credentialStore.remove(progress.credentialReference)
-        try progressStore.remove(progress)
     }
     private func ensureCredential(_ progress: TeamAccountDeletionProgress) throws
         -> TeamAccountDeletionStatusCredential {
@@ -867,22 +1198,79 @@ actor TeamAccountDeletionCoordinator {
         }
         return value
     }
-    private func finishRemote(_ remote: TeamAccountDeletionRemoteState,
+    private func finishRemote(_ remote: TeamAccountDeletionStatus,
                               progress: inout TeamAccountDeletionProgress) throws {
-        switch remote {
-        case .pending:
+        guard remote.deletionID == progress.operationID,
+              remote.accountID == progress.binding.accountID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        switch remote.state {
+        case .revocationRequired:
             break
-        case .accepted:
-            progress.phase = .accepted
+        case .cleanupSchedulingRequired, .pendingErasure:
+            guard remote.authorityRevokedAt != nil else {
+                throw TeamWorkspaceError.bindingMismatch
+            }
+            progress.phase = .authorityRevoked
             try progressStore.save(progress)
-        case .rejected:
-            progress.phase = .rejected
+        case .completed:
+            guard remote.authorityRevokedAt != nil else {
+                throw TeamWorkspaceError.bindingMismatch
+            }
+            progress.phase = .serverCompleted
             try progressStore.save(progress)
         }
     }
-    private func finishRejected(_ progress: TeamAccountDeletionProgress) throws {
-        try credentialStore.remove(progress.credentialReference)
-        try progressStore.remove(progress)
+}
+
+enum TeamAccountDeletionRecoveryOutcome: Equatable, Sendable {
+    case authenticationRequired
+    case pending
+    case completed
+    case ambiguous
+}
+
+struct TeamAccountDeletionRecoveryResult: Equatable, Sendable {
+    let accountID: String
+    let outcome: TeamAccountDeletionRecoveryOutcome
+}
+
+/// Runs before ordinary session restoration and enumerates every durable account
+/// record. It never needs or recreates a TeamAccountSessionSnapshot.
+struct TeamAccountDeletionAppStartRecovery: Sendable {
+    let status: any TeamAccountDeletionStatusTransport
+    let progressStore: any TeamAccountDeletionProgressStoring
+    let credentialStore: any TeamAccountDeletionCredentialStoring
+    let cleanup: any TeamAccountSecureCustodyDeleting
+
+    func resumeAll() async -> [TeamAccountDeletionRecoveryResult] {
+        let pending: [TeamAccountDeletionProgress]
+        do { pending = try progressStore.loadAll() }
+        catch { return [.init(accountID: "unknown", outcome: .ambiguous)] }
+        var results = [TeamAccountDeletionRecoveryResult]()
+        for progress in pending {
+            if progress.phase == .prepared {
+                results.append(.init(accountID: progress.binding.accountID,
+                                     outcome: .authenticationRequired))
+                continue
+            }
+            do {
+                let coordinator = try TeamAccountDeletionCoordinator(
+                    binding: progress.binding, dispatch: nil, status: status,
+                    progressStore: progressStore, credentialStore: credentialStore,
+                    cleanup: cleanup)
+                _ = try await coordinator.resumePending()
+                results.append(.init(accountID: progress.binding.accountID,
+                                     outcome: .completed))
+            } catch TeamWorkspaceError.deletionPending {
+                results.append(.init(accountID: progress.binding.accountID,
+                                     outcome: .pending))
+            } catch {
+                results.append(.init(accountID: progress.binding.accountID,
+                                     outcome: .ambiguous))
+            }
+        }
+        return results
     }
 }
 
@@ -903,23 +1291,34 @@ struct TeamWorkspaceAccountComposition: Sendable {
     }
 }
 
+struct TeamWorkspaceProductionComposition: Sendable {
+    let accounts: TeamWorkspaceAccountComposition
+    let deletionRecovery: TeamAccountDeletionAppStartRecovery
+}
+
 /// Normal app composition is disabled. A future release host must deliberately
 /// inject every approved server/custody dependency; this type stores no origin,
 /// credential or fallback endpoint of its own.
 enum TeamWorkspaceRuntimeConfiguration: Sendable {
     case disabled
-    case injected(TeamWorkspaceAccountComposition)
+    case injected(TeamWorkspaceProductionComposition)
 
     static let productionDefault: Self = .disabled
     var isEnabled: Bool {
         if case .injected = self { return true }
         return false
     }
+    func recoverAccountDeletionsAtAppStart() async
+        -> [TeamAccountDeletionRecoveryResult] {
+        guard case .injected(let composition) = self else { return [] }
+        return await composition.deletionRecovery.resumeAll()
+    }
 }
 
 /// Approved production implementations conform once they can satisfy every
 /// frozen workspace operation. There is intentionally no default HTTP conformer:
-/// moderation and deletion routes remain unfrozen and cannot be guessed here.
+/// deletion 027 is frozen, but server 028 workers and Infrastructure staging are
+/// still required before any network activation.
 protocol TeamWorkspaceRemoteTransport: TeamWorkspaceAudienceProviding,
     TeamWorkspaceSubmissionTransport, TeamWorkspaceInboxTransport,
     TeamSafetyTransport, TeamAccountDeletionDispatchTransport {}
@@ -972,16 +1371,17 @@ actor TeamWorkspaceSessionBoundRemote: TeamWorkspaceRemoteTransport {
         try check(); try await remote.execute(accountID: accountID, teamID: teamID, action: action)
         try check()
     }
-    func requestDeletion(_ request: TeamAccountDeletionRequest) async throws
-        -> TeamAccountDeletionRemoteState {
-        guard request.binding.accountID == ticket.accountID,
-              request.binding.providerID == ticket.scope.providerID,
-              request.binding.origin + "/" == ticket.scope.origin.absoluteString,
-              TeamAuthWire.identifier(request.operationID) else {
+    func requestDeletion(binding: TeamAccountDeletionBinding,
+                         request: TeamAccountDeletionRequest) async throws
+        -> TeamAccountDeletionStatus {
+        guard binding.accountID == ticket.accountID,
+              binding.providerID == ticket.scope.providerID,
+              binding.origin + "/" == ticket.scope.origin.absoluteString,
+              TeamAuthWire.identifier(request.requestID) else {
             throw TeamWorkspaceError.bindingMismatch
         }
         try check()
-        let value = try await remote.requestDeletion(request)
+        let value = try await remote.requestDeletion(binding: binding, request: request)
         // A successful remote deletion may invalidate the session immediately,
         // so no post-dispatch session assertion is valid for this one operation.
         return value
@@ -1030,7 +1430,7 @@ struct TeamWorkspaceConnectedComposition: Sendable {
              Int64(Date().timeIntervalSince1970 * 1_000)
          }) throws {
         let ticket = try TeamAccountAccessTicket(snapshot: session)
-        let expectedDeletionCustody = try TeamAgreementScope(
+        let expectedAgreement = try TeamAgreementScope(
             origin: deletionBinding.origin, accountID: session.accountID,
             authorityEpoch: deletionBinding.authorityEpoch,
             enrollmentID: enrollmentID)
@@ -1040,11 +1440,10 @@ struct TeamWorkspaceConnectedComposition: Sendable {
               inbox.target.userId == session.accountID,
               inbox.teamId == teamID, inbox.target.enrollmentId == enrollmentID,
               deletionBinding.accountID == session.accountID,
-              deletionBinding.teamID == teamID,
               deletionBinding.providerID == session.scope.providerID,
               deletionBinding.origin + "/" == session.scope.origin.absoluteString,
-              deletionBinding.custodyID == expectedDeletionCustody.identifier,
-              agreement.scope == expectedDeletionCustody else {
+              deletionBinding.custodyID == session.generation.uuidString,
+              agreement.scope == expectedAgreement else {
             throw TeamWorkspaceError.bindingMismatch
         }
         self.accountID = session.accountID; self.teamID = teamID
@@ -1082,6 +1481,6 @@ struct TeamWorkspaceConnectedComposition: Sendable {
     }
     private func requireTeamActionsAllowed() throws {
         try TeamAccountDeletionStartupGate(progressStore: deletionProgress)
-            .requireTeamActionsAllowed(accountID: accountID, teamID: teamID)
+            .requireTeamActionsAllowed(accountID: accountID)
     }
 }
