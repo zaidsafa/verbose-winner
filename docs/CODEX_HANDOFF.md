@@ -1107,6 +1107,10 @@ Updated: 2026-09-05 (Asia/Shanghai)
   binaries are marketing version `0.1.0`. Correct the editable draft to `0.1.0`
   before build selection, unless the owner explicitly chooses a 1.0 binary release.
   No version field was changed during this audit.
+- App Store Connect also shows account-level Digital Services Act setup as open.
+  The owner must choose trader/non-trader status truthfully and review any public
+  contact disclosure; do not infer or submit it. This is a public App Store gate,
+  not a blocker for the current build 3 TestFlight status.
 - Still open: independent Drive download/revocation, Android interoperability on
   synthetic data, full final
   candidate regression, archive/upload/processing, exact TestFlight install, and

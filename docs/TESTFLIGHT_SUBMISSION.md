@@ -191,17 +191,27 @@ Highlights:
 - Copyright: `© 2026 <YOUR LEGAL NAME OR COMPANY>`
 - Age rating: answer **None** for all objectionable-content categories based on the current build; App Store Connect calculates the final rating.
 
+### Account compliance still requiring the owner
+
+App Store Connect currently shows **Digital Services Act — Set Up**. Before public
+App Store distribution in the European Union, the account holder must truthfully
+choose whether they are a trader under EU law and complete any requested contact
+verification. Do not guess this status or publish personal address/phone details
+without the owner's action-time review. This account-level declaration is separate
+from TestFlight, the app's privacy answers and its age rating.
+
 ## Upload checklist
 
 1. In Xcode, open **Pinbook.xcodeproj**. Under **Signing & Capabilities**, confirm team `Zaid Alsheikh (F98S3VN5NL)` and **Automatically manage signing** for both `Pinbook` and `PinbookWidgets`.
 2. In App Store Connect, open the existing **Pinbook: Expense Ledger** app (`6807481054`). Do not create another app or bundle ID. On its App Store version page, change the current draft Version from `1.0` to `0.1.0` before choosing a build.
 3. Complete the Google OAuth release gate above; external testers must not depend on the current one-user Testing configuration.
 4. Add the privacy-policy URL and publish the Drive data disclosures listed under **App privacy and compliance**.
-5. Add the TestFlight beta description, feedback email, review contact, and review notes.
-6. In Xcode select the `Pinbook` scheme and **Any iOS Device (arm64)**, then choose **Product → Archive**.
-7. In Organizer select the archive, choose **Distribute App → TestFlight & App Store → Upload**, and let Xcode manage distribution signing. Use **TestFlight Internal Only** only if the build will never be sent to external testers.
-8. Wait for App Store Connect to finish processing the build and answer any export-compliance prompt consistently with the declaration above.
-9. Under **TestFlight**, use the existing internal and external **Zaid testing** groups and attach the one newly processed final build. Submit for TestFlight App Review if Apple requests it. Do not reattach an older build, add new testers, or create a public link unless separately requested.
-10. Install Apple's TestFlight app on the iPhone, accept the invitation, and validate the exact processed build. TestFlight builds expire after 90 days.
+5. Complete the owner-reviewed Digital Services Act account declaration if public EU App Store availability is planned. TestFlight does not replace that later public-store requirement.
+6. Add the TestFlight beta description, feedback email, review contact, and review notes.
+7. In Xcode select the `Pinbook` scheme and **Any iOS Device (arm64)**, then choose **Product → Archive**.
+8. In Organizer select the archive, choose **Distribute App → TestFlight & App Store → Upload**, and let Xcode manage distribution signing. Use **TestFlight Internal Only** only if the build will never be sent to external testers.
+9. Wait for App Store Connect to finish processing the build and answer any export-compliance prompt consistently with the declaration above.
+10. Under **TestFlight**, use the existing internal and external **Zaid testing** groups and attach the one newly processed final build. Submit for TestFlight App Review if Apple requests it. Do not reattach an older build, add new testers, or create a public link unless separately requested.
+11. Install Apple's TestFlight app on the iPhone, accept the invitation, and validate the exact processed build. TestFlight builds expire after 90 days.
 
 Internal TestFlight supports up to 100 App Store Connect users. External TestFlight supports up to 10,000 testers and the first external build normally requires TestFlight App Review.
