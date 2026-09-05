@@ -45,12 +45,20 @@
   `/private/tmp/pinbook-personal-drive-active-release-derived`; bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`, production OAuth client,
   and the updated privacy manifest all compile into the app.
+- Live QA browser handoff: **1/1 PASS**. The isolated Simulator QA client opened
+  Google's loaded `accounts.google.com` sign-in page with the exact wording
+  **Sign in with Google** and **to continue to Pinbook**:
+  `/private/tmp/Pinbook-Live-Drive-Loaded-Inspect-Retry-20260905.xcresult`.
+  This proves the configured QA OAuth client reaches Google's real authorization
+  UI and presents the expected app identity. The temporary network inspection
+  test was removed afterward. No email, password, token or Drive object was used.
 - Apple App Privacy guidance was re-audited for ongoing off-device sync. The
   manifest and submission guide now disclose Other Financial Info, Other User
   Content and Photos or Videos for App Functionality, linked to the user's Drive
   account, with no tracking. The policy describes private-folder scope, Keychain,
   automatic sync and disconnect retention.
-- Live Google consent, token issuance, remote object creation/revocation and the
+- Completed Google account consent, token issuance, remote object creation/
+  download/revocation and the
   Android-to-iOS-to-Android synthetic-data round trip are still open gates. The
   connected Samsung is reserved for that later compatible-build run and was not
   used. No source push, archive, TestFlight upload or App Store Connect mutation

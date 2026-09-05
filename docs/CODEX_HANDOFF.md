@@ -1072,11 +1072,16 @@ Updated: 2026-09-05 (Asia/Shanghai)
   mode timed out and is not acceptance evidence.
   Exact result paths are at the top of `VALIDATION.md`. The complete SwiftPM runner
   hung after compilation and was interrupted; it is not acceptance evidence.
+- The isolated QA OAuth client also reached Google's fully loaded live sign-in
+  page, which displayed **Sign in with Google** and **to continue to Pinbook**.
+  Exact result: `/private/tmp/Pinbook-Live-Drive-Loaded-Inspect-Retry-20260905.xcresult`.
+  No account credential, token or remote Drive object was used, so this closes
+  client routing/app-identity presentation only, not live sync acceptance.
 - App Privacy and the privacy manifest now disclose Other Financial Info, Other
   User Content and Photos or Videos for App Functionality, linked to the user's
   Google account, with no tracking. `PRIVACY_POLICY.md` still needs a public HTTPS
   host before App Store submission.
-- Still open: Google console branding/live consent, real token/Drive
+- Still open: completed Google account consent, real token/Drive
   create-download-revoke, Android interoperability on synthetic data, full final
   candidate regression, archive/upload/processing, exact TestFlight install, and
   final App Store Connect privacy metadata. No new TestFlight build or source push

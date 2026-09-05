@@ -46,7 +46,8 @@ checkboxes deliberately remain open until checked against the exact next candida
       simultaneous second automatic authority. Simulator and physical iPhone suites
       pass 47/47, complete UI passes 30/30, and the full signed app-host regression
       passes 404 + 4 expected physical-only skips. This checkbox stays open until
-      live consent/token/revocation/remote-object acceptance, published privacy
+      completed Google account consent/token/revocation/remote-object acceptance,
+      published privacy
       metadata, and Android -> iOS -> Android synthetic-data interoperability pass.
       Android has the exact contract and must not repeat its earlier first-page,
       unbounded-read or mutable-write risks. See `PERSONAL_CLOUD_SYNC_V1.md`.
