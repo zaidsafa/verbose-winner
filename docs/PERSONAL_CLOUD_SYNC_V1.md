@@ -66,6 +66,13 @@ physical recovery with synthetic data. The user-facing flow must clearly describ
 the private `appDataFolder` scope, remain disconnected until explicit consent, and
 offer manual sync even when automatic sync is enabled.
 
+Google currently classifies `drive.appdata` as non-sensitive. The OAuth project is
+still External / Testing, so only listed test users can authorize it and refresh
+authorization expires after seven days. Before external TestFlight availability,
+publish owned HTTPS privacy/support pages, complete Google Branding, change the
+Audience to In production, and verify authorization with a non-owner Google account.
+No broader Drive scope is needed or allowed for this design.
+
 Official implementation references:
 
 - https://developers.google.com/workspace/drive/api/guides/appdata

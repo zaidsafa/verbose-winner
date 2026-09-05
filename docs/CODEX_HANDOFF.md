@@ -1077,12 +1077,16 @@ Updated: 2026-09-05 (Asia/Shanghai)
   Exact result: `/private/tmp/Pinbook-Live-Drive-Loaded-Inspect-Retry-20260905.xcresult`.
   No account credential, token or remote Drive object was used, so this closes
   client routing/app-identity presentation only, not live sync acceptance.
+- The owner subsequently completed sign-in on the separate physical `Pinbook QA`
+  app and reported **backed up to Google Drive**. Treat this as owner-observed live
+  consent/token/upload evidence only; exact remote download bytes and revocation
+  remain to be independently accepted. The working TestFlight app was untouched.
 - App Privacy and the privacy manifest now disclose Other Financial Info, Other
   User Content and Photos or Videos for App Functionality, linked to the user's
   Google account, with no tracking. `PRIVACY_POLICY.md` still needs a public HTTPS
   host before App Store submission.
-- Still open: completed Google account consent, real token/Drive
-  create-download-revoke, Android interoperability on synthetic data, full final
+- Still open: independent Drive download/revocation, Android interoperability on
+  synthetic data, full final
   candidate regression, archive/upload/processing, exact TestFlight install, and
   final App Store Connect privacy metadata. No new TestFlight build or source push
   occurred. The existing TestFlight build remains unchanged.

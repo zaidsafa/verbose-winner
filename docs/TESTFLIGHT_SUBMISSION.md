@@ -101,6 +101,27 @@ No Pinbook account is required. Pinbook is offline-first and stores financial re
 
 Publish `docs/PRIVACY_POLICY.md` at the HTTPS privacy-policy URL before completing App Privacy. If any data handling changes before upload, re-audit these answers rather than copying them unchanged.
 
+## Google OAuth release gate
+
+- The configured `drive.appdata` permission is a Google-listed **non-sensitive**
+  scope. Sensitive/restricted-scope verification and a restricted-scope security
+  assessment are not required for this scope.
+- The Google Auth Platform project is currently **External / Testing** with only
+  the owner's account as a test user. Testing authorizations expire after seven
+  days and other TestFlight users cannot authorize the app.
+- Before external TestFlight distribution, publish the privacy/support pages on
+  an owned HTTPS domain, finish Google OAuth Branding with those URLs, add the
+  authorized domain, and change Audience to **In production**. Complete Google's
+  lighter brand verification if requested for the app name/logo.
+- Do not describe external Drive sync as available until that production audience
+  state and a fresh non-owner account authorization are verified.
+
+Official references:
+
+- https://developers.google.com/workspace/drive/api/guides/api-specific-auth
+- https://developers.google.com/identity/protocols/oauth2
+- https://support.google.com/cloud/answer/15549945
+
 ## App Store listing copy
 
 Screenshots and the full listing are not required to begin internal TestFlight testing, but the following copy is prepared for the later App Store version.
@@ -150,12 +171,13 @@ Highlights:
 
 1. In Xcode, open **Pinbook.xcodeproj**. Under **Signing & Capabilities**, confirm team `Zaid Alsheikh (F98S3VN5NL)` and **Automatically manage signing** for both `Pinbook` and `PinbookWidgets`.
 2. In App Store Connect, open the existing **Pinbook: Expense Ledger** app (`6807481054`). Do not create another app or bundle ID.
-3. Add the privacy-policy URL and publish the Drive data disclosures listed under **App privacy and compliance**.
-4. Add the TestFlight beta description, feedback email, review contact, and review notes.
-5. In Xcode select the `Pinbook` scheme and **Any iOS Device (arm64)**, then choose **Product → Archive**.
-6. In Organizer select the archive, choose **Distribute App → TestFlight & App Store → Upload**, and let Xcode manage distribution signing. Use **TestFlight Internal Only** only if the build will never be sent to external testers.
-7. Wait for App Store Connect to finish processing the build and answer any export-compliance prompt consistently with the declaration above.
-8. Under **TestFlight**, use the existing internal and external **Zaid testing** groups and attach build `0.1.0 (2)`. Submit for TestFlight App Review if Apple requests it. Do not add new testers or create a public link unless separately requested.
-9. Install Apple's TestFlight app on the iPhone, accept the invitation, and validate the exact processed build. TestFlight builds expire after 90 days.
+3. Complete the Google OAuth release gate above; external testers must not depend on the current one-user Testing configuration.
+4. Add the privacy-policy URL and publish the Drive data disclosures listed under **App privacy and compliance**.
+5. Add the TestFlight beta description, feedback email, review contact, and review notes.
+6. In Xcode select the `Pinbook` scheme and **Any iOS Device (arm64)**, then choose **Product → Archive**.
+7. In Organizer select the archive, choose **Distribute App → TestFlight & App Store → Upload**, and let Xcode manage distribution signing. Use **TestFlight Internal Only** only if the build will never be sent to external testers.
+8. Wait for App Store Connect to finish processing the build and answer any export-compliance prompt consistently with the declaration above.
+9. Under **TestFlight**, use the existing internal and external **Zaid testing** groups and attach the one newly processed final build. Submit for TestFlight App Review if Apple requests it. Do not reattach an older build, add new testers, or create a public link unless separately requested.
+10. Install Apple's TestFlight app on the iPhone, accept the invitation, and validate the exact processed build. TestFlight builds expire after 90 days.
 
 Internal TestFlight supports up to 100 App Store Connect users. External TestFlight supports up to 10,000 testers and the first external build normally requires TestFlight App Review.

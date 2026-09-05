@@ -1,8 +1,8 @@
 # Pinbook Privacy Policy
 
-Effective date: September 1, 2026
+Effective date: September 5, 2026
 
-Pinbook is designed as a private, offline-first expense notebook. It does not require a Pinbook account and does not send personal data, financial records, receipts, usage analytics, advertising identifiers, or diagnostics to Pinbook or its developer.
+Pinbook is designed as a private, offline-first expense notebook. It does not require a Pinbook account and does not send personal data, financial records, receipts, usage analytics, advertising identifiers, or diagnostics to Pinbook or its developer. Your records stay on your device by default. If you explicitly enable Google Drive sync, Pinbook sends the backup content described below only to the private app-data folder in your own Google account.
 
 ## Data stored on your device
 

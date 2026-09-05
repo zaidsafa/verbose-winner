@@ -52,13 +52,17 @@
   This proves the configured QA OAuth client reaches Google's real authorization
   UI and presents the expected app identity. The temporary network inspection
   test was removed afterward. No email, password, token or Drive object was used.
+- The owner then completed Google sign-in and reported **backed up to Google
+  Drive** from the separate physical `Pinbook QA` app. This is owner-observed live
+  consent/token/upload evidence against the QA client, not an independently read
+  Drive object or exact-byte download/revocation result. The working TestFlight app
+  and its records were not used.
 - Apple App Privacy guidance was re-audited for ongoing off-device sync. The
   manifest and submission guide now disclose Other Financial Info, Other User
   Content and Photos or Videos for App Functionality, linked to the user's Drive
   account, with no tracking. The policy describes private-folder scope, Keychain,
   automatic sync and disconnect retention.
-- Completed Google account consent, token issuance, remote object creation/
-  download/revocation and the
+- Independent remote-object download/revocation acceptance and the
   Android-to-iOS-to-Android synthetic-data round trip are still open gates. The
   connected Samsung is reserved for that later compatible-build run and was not
   used. No source push, archive, TestFlight upload or App Store Connect mutation
