@@ -65,7 +65,8 @@ copy personal data into company memory unless the owner explicitly requests it.
 | Repository | `https://github.com/zaidsafa/verbose-winner.git` |
 | Branch | `codex/team-delivery-foundation` |
 | Remote source before this candidate | `4f4d1f6e6fc96a2a6ca3f0ab0333b8024b70a6e2` |
-| Validated candidate source | `c3bbbe0287d915c143a53ee113228e967468c70e` |
+| Base Team runtime candidate | `c3bbbe0287d915c143a53ee113228e967468c70e` |
+| Connected recovery candidate | `b731cd8880e9b6004af0e761af4538df1b480edd` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
 | Platform | iPhone, iOS 26.1+, Swift 6 |
 | Bundle | `com.zaidsafa.pinbook.ios` |
@@ -325,6 +326,7 @@ When responsibility moves, update this table in the same commit.
 | Restart-safe Team delivery checkpoint | `32d2b9d` | Durable deletion barrier and release acceptance framing |
 | Current remote production composition | `0637a20` | Default-off strict Team composition and current branch base |
 | Validated Team runtime candidate | `c3bbbe0` | Default-off source candidate; no provider, device, server, archive, or TestFlight acceptance is implied |
+| Connected received-note recovery | `b731cd8` | Normal connected navigation plus deletion-gated preview, restore and export; full recovery acceptance remains open |
 
 ## Dated history
 
@@ -377,6 +379,8 @@ When responsibility moves, update this table in the same commit.
 - Connected received-note recovery to the normal Team workspace, rechecked the
   deletion gate inside every recovery operation, and passed the complete 420-test
   suite plus the universal unsigned Release Simulator build.
+- Committed the connected recovery source and evidence at `b731cd8` as the next
+  exact rollback and continuation point.
 
 ## Open gates and exact next actions
 
