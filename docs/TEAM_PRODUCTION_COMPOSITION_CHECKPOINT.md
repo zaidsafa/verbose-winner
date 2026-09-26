@@ -21,6 +21,7 @@ Implemented:
   invitation opening through the same strict account/session owner;
 - persistent outgoing status and exact retry, account-scoped cleanup, agreement
   scope enumeration, recovery-key deletion, persisted blocks and policy links;
+- protected new-note draft restore, explicit save and exact-draft send or discard;
 - exact connected-account navigation to encrypted received-note Files recovery,
   with the deletion gate rechecked before import preview, restore and export;
 - opt-in Associated Domains entitlement plus deterministic AASA generation.
@@ -37,8 +38,8 @@ version/build number, provider console, server, device or store state is changed
 
 Validation at this checkpoint:
 
-- complete Swift package: 420 tests in 39 suites pass;
-- 392 localization keys are complete across English plus 15 translations, with
+- complete Swift package: 422 tests in 39 suites pass;
+- 397 localization keys are complete across English plus 15 translations, with
   compiled app/widget localization plists valid;
 - plist/project/entitlement lint and `git diff --check` pass;
 - unsigned Release Simulator build passes for arm64 and x86_64 at

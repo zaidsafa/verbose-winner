@@ -1472,6 +1472,65 @@ private func withWorkspaceOutbox(_ body: (TeamOutgoingStore, URL) async throws -
         }
     }
 
+    @Test func workspaceDraftPersistsUntilExplicitDiscardOrExactSend() async throws {
+        try await withWorkspaceOutbox { outbox, _ in
+            let termsStorage = WorkspaceTermsMemory()
+            let terms = TeamTermsGate(store: termsStorage)
+            let audience = TeamAudience(teamID: "team", membershipRevision: 3,
+                                        targets: [try workspaceTarget()])
+            let transport = WorkspaceSubmissionStub(), ids = WorkspaceIDs()
+            let coordinator = try TeamManualNoteSendCoordinator(accountID: "alice",
+                teamID: "team", enrollmentID: "alice-enrollment", outbox: outbox,
+                terms: terms, audience: WorkspaceAudienceStub(audience),
+                transport: transport, now: { 100 }, identifier: { ids.next() })
+
+            let saved = try await coordinator.saveDraft(body: "first version")
+            #expect(saved.draftId == "draft-id" && saved.version == 1)
+            let updated = try await coordinator.saveDraft(body: "final version")
+            #expect(updated.draftId == saved.draftId && updated.version == 2)
+            #expect(try outbox.drafts().first?.body == "final version")
+            await #expect(throws: TeamWorkspaceError.termsRequired) {
+                try await coordinator.queueAndSubmit(body: "final version")
+            }
+            #expect(try outbox.drafts().first == updated)
+            #expect(try outbox.pendingEvents().isEmpty)
+
+            _ = try terms.accept(accountID: "alice", teamID: "team",
+                acceptedAt: 99, explicitConsent: true)
+            await #expect(throws: WorkspaceStubError.stopped) {
+                try await coordinator.queueAndSubmit(body: "final version")
+            }
+            #expect(try outbox.drafts().isEmpty)
+            let event = try #require(try outbox.pendingEvents().first)
+            #expect(event.sourceDraftId == saved.draftId)
+            #expect(event.noteId == saved.noteId)
+            #expect(event.body == "final version")
+        }
+    }
+
+    @Test func workspaceDraftDiscardLeavesRevisionWorkUntouched() async throws {
+        try await withWorkspaceOutbox { outbox, _ in
+            _ = try outbox.createDraft(draftId: "revision-draft", noteId: "note",
+                kind: .noteCorrection, baseRevision: 4, body: "corrected",
+                createdAt: 1)
+            _ = try outbox.createDraft(draftId: "note-draft", noteId: "new-note",
+                kind: .noteSubmission, baseRevision: nil, body: "temporary",
+                createdAt: 2)
+            let coordinator = try TeamManualNoteSendCoordinator(accountID: "alice",
+                teamID: "team", enrollmentID: "alice-enrollment", outbox: outbox,
+                terms: TeamTermsGate(store: WorkspaceTermsMemory()),
+                audience: WorkspaceAudienceStub(.init(teamID: "team",
+                    membershipRevision: 1, targets: [try workspaceTarget()])),
+                transport: WorkspaceSubmissionStub(), identifier: { "unused" })
+
+            try await coordinator.discardDraft()
+            try await coordinator.discardDraft()
+            let remaining = try outbox.drafts()
+            #expect(remaining.map(\.draftId) == ["revision-draft"])
+            #expect(remaining.first?.kind == .noteCorrection)
+        }
+    }
+
     @Test func onlyExactAcceptedHashRetiresEncryptedOutbox() async throws {
         try await withWorkspaceOutbox { outbox, _ in
             let draft = try outbox.createDraft(draftId: "draft", noteId: "note",

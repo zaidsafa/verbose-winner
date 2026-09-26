@@ -13,7 +13,7 @@ the exact iOS/Android source commits, artifacts, versions, signing identities,
 staging migration and the physical Android-to-iPhone matrix.
 
 Current 2026-09-27 local candidate evidence: the complete serial Swift suite
-passes **420 tests in 39 suites**, **392 localization keys** pass across English
+passes **422 tests in 39 suites**, **397 localization keys** pass across English
 plus 15 translated locales, and the unsigned universal Release Simulator build
 passes with all nine Team production values empty. The opt-in Team Google callback
 scheme now matches the approved redirect scheme, and agreement-key cleanup is
@@ -174,8 +174,11 @@ checkboxes deliberately remain open until checked against the exact next candida
   finalize into immutable, distinct note/correction/approval/changes-requested
   events. Reading/saving does not approve, exact enrollment owns its queue,
   finalized draft identities cannot be reused while their pending event exists,
-  and no unauthenticated event-retirement path exists. This remains inactive and
-  has no encrypted wire/submission/reconciliation UI. See `TEAM_OUTGOING_IOS.md`.
+  and no unauthenticated event-retirement path exists. The normal connected
+  workspace now restores, saves, discards and sends one new-note draft through
+  the exact encrypted retry path. Correction and review kinds remain hidden
+  because the shared encrypted payload does not yet carry kind or base revision.
+  See `TEAM_OUTGOING_IOS.md`.
 
 - `TEAM_AGREEMENT_CONFIRMATION_PROPOSAL.md` is superseded historical design. Its
   proposed bytes must not replace the accepted shared possession contract.

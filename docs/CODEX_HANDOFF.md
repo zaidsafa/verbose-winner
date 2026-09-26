@@ -48,6 +48,17 @@ Updated: 2026-09-27 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Durable Team note draft checkpoint: the normal connected workspace now restores
+  one protected exact-enrollment new-note draft and exposes simple Save and
+  Discard controls. Saving is local and does not imply Terms acceptance, delivery,
+  or review. Sending finalizes that same draft identity only after Terms acceptance
+  and keeps the existing exact encrypted retry behavior. Corrections and review
+  decisions remain hidden until the shared encrypted cross-platform payload is
+  frozen. Complete serial Swift **422/422 in 39 suites**, localization **397 keys
+  across 16 locales**, strict String Catalog JSON, `git diff --check`, and the
+  unsigned arm64+x86_64 Release Simulator build pass. No provider, server,
+  signing, device, archive or TestFlight state changed.
+
 - Connected recovery checkpoint: the normal Team workspace now exposes the
   existing encrypted received-note Files recovery flow only when the runtime
   supplies an exact connected account context. The link carries the bound inbox,

@@ -172,6 +172,7 @@ private struct TeamWorkspaceView: View {
     @State private var isWorking = false
     @State private var confirmingDeletion = false
     @State private var recoveryContext: TeamWorkspaceRecoveryContext?
+    @State private var loadedDraftID: String?
 
     var body: some View {
         List {
@@ -252,12 +253,26 @@ private struct TeamWorkspaceView: View {
             Section("Send a note") {
                 TextField("Write a short team note", text: $note, axis: .vertical)
                     .lineLimit(3...7)
+                if presentation.draft != nil {
+                    Label("Saved draft", systemImage: "doc.badge.clock")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Button("Save draft", systemImage: "square.and.arrow.down") {
+                    run(.saveNoteDraft(cleanedNote))
+                }
+                .disabled(!actionsEnabled || cleanedNote.isEmpty)
+                if presentation.draft != nil {
+                    Button("Discard draft", systemImage: "trash", role: .destructive) {
+                        run(.discardNoteDraft) { note = "" }
+                    }
+                    .disabled(!actionsEnabled)
+                }
                 Toggle("I accept the Team Terms", isOn: $acceptsTerms)
                 Button("Encrypt and send", systemImage: "lock.paperclip") {
                     runSend()
                 }
-                .disabled(!actionsEnabled || note.trimmingCharacters(
-                    in: .whitespacesAndNewlines).isEmpty || !acceptsTerms)
+                .disabled(!actionsEnabled || cleanedNote.isEmpty || !acceptsTerms)
                 Button("Retry pending note", systemImage: "arrow.clockwise.circle") {
                     run(.retryPendingNote)
                 }
@@ -426,15 +441,20 @@ private struct TeamWorkspaceView: View {
     }
 
     private func runSend() {
-        let body = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        let body = cleanedNote
         guard !body.isEmpty, acceptsTerms else { return }
         runSequence([.acceptTerms, .sendNote(body)]) {
             note = ""; acceptsTerms = false
         }
     }
 
-    private func run(_ action: TeamWorkspaceUserAction) {
-        runSequence([action]) {}
+    private var cleanedNote: String {
+        note.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func run(_ action: TeamWorkspaceUserAction,
+                     success: @escaping () -> Void = {}) {
+        runSequence([action], success: success)
     }
 
     private func runSequence(_ actions: [TeamWorkspaceUserAction],
@@ -460,6 +480,8 @@ private struct TeamWorkspaceView: View {
         case .createTeam: "Team created"
         case .issueInvitation, .openInvitation: "Invitation ready"
         case .acceptTerms: "Terms accepted"
+        case .saveNoteDraft: "Draft saved"
+        case .discardNoteDraft: "Draft discarded"
         case .sendNote: "Note sent"
         case .retryPendingNote, .refreshPendingNoteStatus: "Delivery updated"
         case .refreshInbox: "Inbox refreshed"
@@ -476,7 +498,16 @@ private struct TeamWorkspaceView: View {
             recoveryContext = nil
             return
         }
-        do { presentation = try await runtime.presentation() }
+        do {
+            let current = try await runtime.presentation()
+            if let draft = current.draft, loadedDraftID != draft.id {
+                note = draft.body
+                loadedDraftID = draft.id
+            } else if current.draft == nil {
+                loadedDraftID = nil
+            }
+            presentation = current
+        }
         catch {
             presentation = .empty
             actionMessage = "Setup could not continue. Close this screen and reopen the invitation."

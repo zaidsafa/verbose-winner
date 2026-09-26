@@ -1,5 +1,25 @@
 # Validation plan
 
+## 2026-09-27 connected durable note drafts
+
+- The normal connected Team workspace now restores the newest saved note draft
+  from the protected exact-enrollment outbox and offers explicit Save draft and
+  Discard draft actions.
+- Saving never creates a delivery or review decision and does not require Terms
+  acceptance. Sending still requires Terms, finalizes the same draft identity,
+  and retains the exact encrypted retry behavior.
+- Discarding affects only the current new-note draft. Stored correction and
+  review work remains untouched and is not exposed until a shared encrypted
+  cross-platform payload contract is approved.
+- Focused draft tests: **2 tests PASS**. Complete serial Swift package:
+  **422 tests in 39 suites PASS**.
+- Localization validation: **397 keys complete across English plus 15 translated
+  locales**. The String Catalog also passes strict JSON parsing.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-goal-derived`.
+- `git diff --check`: pass. No provider, server, signing, physical device,
+  archive, TestFlight or production state changed.
+
 ## 2026-09-27 connected received-note recovery
 
 - The normal Team workspace now shows one simple received-note recovery link only

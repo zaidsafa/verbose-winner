@@ -64,7 +64,7 @@ copy personal data into company memory unless the owner explicitly requests it.
 | --- | --- |
 | Repository | `https://github.com/zaidsafa/verbose-winner.git` |
 | Branch | `codex/team-delivery-foundation` |
-| Remote source before this candidate | `4f4d1f6e6fc96a2a6ca3f0ab0333b8024b70a6e2` |
+| Remote source before this candidate | `1107fc3b40c08be72142f307c4b4d87bab8bc52c` |
 | Base Team runtime candidate | `c3bbbe0287d915c143a53ee113228e967468c70e` |
 | Connected recovery candidate | `b731cd8880e9b6004af0e761af4538df1b480edd` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
@@ -85,8 +85,8 @@ the final acceptance gates.
 The source candidate is committed at `c3bbbe0`. It is not a TestFlight release.
 Its exact 2026-09-27 evidence:
 
-- 420 Swift tests in 39 suites passed in a serial run;
-- 392 localization keys passed across English plus 15 translated locales;
+- 422 Swift tests in 39 suites passed in a serial run;
+- 397 localization keys passed across English plus 15 translated locales;
 - unsigned Release Simulator build passed for arm64 and x86_64;
 - bundle, version, and build remained `com.zaidsafa.pinbook.ios`, `0.1.0`, and `3`;
 - all nine Team production configuration values remained empty;
@@ -110,6 +110,14 @@ account-global deletion gate before preview, restore and export. Disabled,
 disconnected and deletion-blocked runtimes expose no recovery destination.
 Recovery still excludes remote authority, outgoing drafts, revisions, attachments
 and ACK receipts.
+
+The connected Team composer now restores one protected exact-enrollment new-note
+draft and exposes explicit Save draft and Discard draft actions. Saving remains
+local and never accepts Terms, creates a delivery, or creates a review decision.
+Sending after Terms acceptance updates and finalizes the same draft identity, then
+uses the existing exact encrypted retry path. Discard removes only that new-note
+draft. Correction and review drafts remain hidden because the shared encrypted
+payload does not yet carry kind or base revision.
 
 The untracked `tmp/` directory is user-owned scratch state. Do not stage it.
 
@@ -303,6 +311,7 @@ When responsibility moves, update this table in the same commit.
 | 2026-09-27 | Bind the Team Google callback URL type to the configured redirect scheme | Opt-in builds must return from the native browser to the exact approved app scheme |
 | 2026-09-27 | Register agreement cleanup scope before Keychain insertion | A failure must not leave a valid but unenumerated agreement identity |
 | 2026-09-27 | Expose received-note recovery only through the exact connected runtime context | Keeps the UI simple while preventing stale or disconnected access to protected Team stores |
+| 2026-09-27 | Expose one explicit durable new-note draft without inventing a revision wire format | Gives users real save, restore, discard and exact-draft send while preserving cross-platform compatibility |
 
 ## Recovery points
 
@@ -381,22 +390,30 @@ When responsibility moves, update this table in the same commit.
   suite plus the universal unsigned Release Simulator build.
 - Committed the connected recovery source and evidence at `b731cd8` as the next
   exact rollback and continuation point.
+- Connected protected new-note draft restore, Save draft, Discard draft and
+  exact-draft send to the normal Team workspace. Corrections and review decisions
+  remain local-only until their shared encrypted payload contract is approved.
+- Passed 422 Swift tests in 39 suites, 397 localization keys across 16 locales,
+  strict String Catalog JSON parsing and the universal unsigned Release Simulator
+  build. No provider, server, signing, device, archive or TestFlight state changed.
 
 ## Open gates and exact next actions
 
-1. Have TC Infrastructure admit and deploy the exact Team service and migration
+1. Freeze the shared Android, iOS and server encrypted payload for correction and
+   review kind, base revision and conflict behavior before exposing those actions.
+2. Have TC Infrastructure admit and deploy the exact Team service and migration
    028 workers with recovery evidence.
-2. Supply the complete ignored Team build configuration, publish and verify AASA,
+3. Supply the complete ignored Team build configuration, publish and verify AASA,
    enable the required Apple App ID capabilities and profiles, and finish Apple
    and Google provider setup.
-3. Run signed isolated iPhone QA plus Android physical acceptance with synthetic
+4. Run signed isolated iPhone QA plus Android physical acceptance with synthetic
    records for sign-in, invitation, device registration, encrypted send, receive,
    archive-before-ACK, exact retry, block/report, deletion, and restart recovery.
-4. Complete personal Drive remote read-back, disconnect/revocation, non-owner
+5. Complete personal Drive remote read-back, disconnect/revocation, non-owner
    consent, and Android to iOS to Android recovery acceptance.
-5. Close every item in `docs/FINAL_UPDATE_CHECKLIST.md` before calling the next
+6. Close every item in `docs/FINAL_UPDATE_CHECKLIST.md` before calling the next
    build final.
-6. Only after the complete candidate is accepted, request fresh authorization for
+7. Only after the complete candidate is accepted, request fresh authorization for
    archive, upload, TestFlight group changes, external review, or public release.
 
 ## Durable references

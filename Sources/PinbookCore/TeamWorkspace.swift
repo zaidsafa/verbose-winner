@@ -320,12 +320,26 @@ actor TeamManualNoteSendCoordinator {
         guard !working else { throw TeamWorkspaceError.busy }
         working = true; defer { working = false }
         let createdAt = now()
-        let draftID = identifier(), noteID = identifier(), eventID = identifier()
-        let draft = try outbox.createDraft(draftId: draftID, noteId: noteID,
-            kind: .noteSubmission, baseRevision: nil, body: body, createdAt: createdAt)
+        let draft = try saveDraftUnlocked(body: body, at: createdAt)
+        let eventID = identifier()
         let event = try outbox.finalizeDraft(draftId: draft.draftId,
-            expectedVersion: draft.version, eventId: eventID, finalizedAt: createdAt)
+            expectedVersion: draft.version, eventId: eventID,
+            finalizedAt: max(createdAt, draft.updatedAt))
         return try await submit(event)
+    }
+
+    func saveDraft(body: String) throws -> TeamOutgoingDraft {
+        guard !working else { throw TeamWorkspaceError.busy }
+        working = true; defer { working = false }
+        return try saveDraftUnlocked(body: body, at: now())
+    }
+
+    func discardDraft() throws {
+        guard !working else { throw TeamWorkspaceError.busy }
+        working = true; defer { working = false }
+        guard let draft = try currentNoteDraft() else { return }
+        try outbox.discardDraft(draftId: draft.draftId,
+                                expectedVersion: draft.version)
     }
 
     func retryNext() async throws -> TeamDeliverySubmissionReservation? {
@@ -371,6 +385,23 @@ actor TeamManualNoteSendCoordinator {
                 expectedJWESHA256: plan.intent.jweSha256)
         }
         return result
+    }
+
+    private func saveDraftUnlocked(body: String, at time: Int64) throws
+        -> TeamOutgoingDraft {
+        if let draft = try currentNoteDraft() {
+            guard draft.body != body else { return draft }
+            return try outbox.updateDraft(draftId: draft.draftId,
+                expectedVersion: draft.version, body: body,
+                updatedAt: max(time, draft.updatedAt))
+        }
+        return try outbox.createDraft(draftId: identifier(), noteId: identifier(),
+            kind: .noteSubmission, baseRevision: nil, body: body,
+            createdAt: time)
+    }
+
+    private func currentNoteDraft() throws -> TeamOutgoingDraft? {
+        try outbox.drafts().first { $0.kind == .noteSubmission }
     }
 }
 
@@ -2343,7 +2374,8 @@ actor TeamWorkspaceOnboardingActionHandler: TeamWorkspaceUserActionHandling,
             try await createTeam()
         case .openInvitation(let url):
             try await previewInvitation(url)
-        case .issueInvitation, .acceptTerms, .sendNote, .retryPendingNote,
+        case .issueInvitation, .acceptTerms, .saveNoteDraft, .discardNoteDraft,
+             .sendNote, .retryPendingNote,
              .refreshPendingNoteStatus, .refreshInbox,
              .reportNote, .reportUser, .blockUser, .unblockUser, .deleteAccount:
             throw TeamWorkspaceError.unavailable
@@ -2356,7 +2388,8 @@ actor TeamWorkspaceOnboardingActionHandler: TeamWorkspaceUserActionHandling,
             return .init(notes: value.notes, members: value.members,
                 invitation: value.invitation,
                 connection: .connected(accountID: account?.ticket.accountID ?? "",
-                                       teamID: connectedTeamID ?? ""))
+                                       teamID: connectedTeamID ?? ""),
+                draft: value.draft)
         }
         if let pendingInvitation {
             return .init(notes: [], members: [], invitation: nil,
@@ -2604,6 +2637,8 @@ enum TeamWorkspaceUserAction: Equatable, Sendable {
     case createTeam
     case issueInvitation(TeamInvitationRole)
     case acceptTerms
+    case saveNoteDraft(String)
+    case discardNoteDraft
     case sendNote(String)
     case retryPendingNote
     case refreshPendingNoteStatus
@@ -2632,6 +2667,12 @@ struct TeamWorkspacePresentedMember: Identifiable, Equatable, Sendable {
     let isBlocked: Bool
 }
 
+struct TeamWorkspacePresentedDraft: Identifiable, Equatable, Sendable {
+    let id: String
+    let body: String
+    let updatedAt: Int64
+}
+
 enum TeamWorkspaceConnectionState: Equatable, Sendable {
     case disconnected
     case invitationReady(teamID: String, role: TeamInvitationRole, expiresAt: Int64)
@@ -2646,13 +2687,16 @@ struct TeamWorkspacePresentation: Equatable, Sendable {
     let members: [TeamWorkspacePresentedMember]
     let invitation: TeamInvitationShareItem?
     let connection: TeamWorkspaceConnectionState
+    let draft: TeamWorkspacePresentedDraft?
 
     init(notes: [TeamWorkspacePresentedNote],
          members: [TeamWorkspacePresentedMember],
          invitation: TeamInvitationShareItem?,
-         connection: TeamWorkspaceConnectionState = .disconnected) {
+         connection: TeamWorkspaceConnectionState = .disconnected,
+         draft: TeamWorkspacePresentedDraft? = nil) {
         self.notes = notes; self.members = members; self.invitation = invitation
         self.connection = connection
+        self.draft = draft
     }
 }
 
@@ -3352,6 +3396,10 @@ actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
             _ = try TeamTermsGate(store: connected.terms).accept(
                 accountID: connected.accountID, teamID: connected.teamID,
                 acceptedAt: receipt.acceptedAt, explicitConsent: true)
+        case .saveNoteDraft(let body):
+            _ = try await connected.sender().saveDraft(body: body)
+        case .discardNoteDraft:
+            try await connected.sender().discardDraft()
         case .sendNote(let body):
             _ = try await connected.sender().queueAndSubmit(body: body)
         case .retryPendingNote:
@@ -3387,6 +3435,12 @@ actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
     }
 
     func presentation() async throws -> TeamWorkspacePresentation {
+        let draft = try connected.outbox.drafts().first {
+            $0.kind == .noteSubmission
+        }.map {
+            TeamWorkspacePresentedDraft(id: $0.draftId, body: $0.body,
+                                        updatedAt: $0.updatedAt)
+        }
         let notes = try connected.inbox.archivePage(limit: 50).notes.map {
             TeamWorkspacePresentedNote(id: $0.envelope.noteId,
                 authorID: $0.envelope.authorUserId, body: $0.envelope.body,
@@ -3404,7 +3458,7 @@ actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
         }
         return .init(notes: notes, members: members, invitation: latestInvitation,
             connection: .connected(accountID: connected.accountID,
-                                   teamID: connected.teamID))
+                                   teamID: connected.teamID), draft: draft)
     }
 
     func recoveryContext() async throws -> TeamWorkspaceRecoveryContext? {

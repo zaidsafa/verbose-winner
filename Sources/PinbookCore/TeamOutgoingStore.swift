@@ -83,7 +83,8 @@ public struct PendingTeamEncryptedSubmission: Equatable, Sendable, CustomStringC
     public var customMirror: Mirror { Mirror(self, children: [:]) }
 }
 
-/// Inactive local foundation. No production screen, transport, or crypto route instantiates it.
+/// Protected local outbox. The default-off Team workspace uses the new-note path;
+/// correction and review drafts remain hidden until their shared wire contract exists.
 /// Draft finalization atomically creates one immutable event and removes the editable draft.
 public final class TeamOutgoingStore: @unchecked Sendable {
     public static let maximumDrafts = 100

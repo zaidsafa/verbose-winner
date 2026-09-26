@@ -19,6 +19,20 @@ Updated: 2026-09-27 (Asia/Shanghai)
   16 locales**, and unsigned arm64+x86_64 Release Simulator build pass. No live
   Team origin, provider, server, signing, device or TestFlight state changed.
 
+## 2026-09-27 durable new-note drafts
+
+- The connected composer restores one protected exact-enrollment note draft and
+  exposes explicit Save draft and Discard draft actions.
+- Saving is local. It does not accept Terms, finalize an event, encrypt content,
+  upload bytes, or create a review decision.
+- Sending after Terms acceptance updates and finalizes the same draft identity,
+  then continues through the existing exact JWE retry path. A failed submission
+  remains in the protected outbox.
+- Discard removes only the new-note draft. Correction and review drafts remain
+  untouched and hidden until their shared encrypted payload is approved.
+- Complete serial Swift **422/422 in 39 suites**, localization **397 keys across
+  16 locales**, and unsigned arm64+x86_64 Release Simulator build pass.
+
 ## Implemented locally
 
 - Options now contains a polished Team workspace screen describing connection,
@@ -34,6 +48,9 @@ Updated: 2026-09-27 (Asia/Shanghai)
   and submit intent in the protected SQLite outbox, and reuses those exact bytes
   after failure. Only exact authenticated accepted/cleanup/purged status retires
   the outbox item.
+- Manual new-note drafting is now connected to the production-default-off
+  workspace. Save and discard are explicit, reopening restores the saved body,
+  and send finalizes that same draft rather than creating a duplicate.
 - One bounded foreground inbox refresh lists pending deliveries, reconstructs
   the sender-excluded recipient audience, fetches/decrypts/imports, commits the
   protected archive plus receipt, and only then attempts ACK. Failed ACKs remain
