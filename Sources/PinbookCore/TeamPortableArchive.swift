@@ -326,14 +326,20 @@ public struct TeamRecoveryPreview: Identifiable, Sendable, CustomStringConvertib
 /// Actor isolation keeps parsing/storage work away from the UI's main actor.
 public actor TeamArchiveRecoverySession {
     private let store: TeamInboxStore
+    private let requireAccess: @Sendable () throws -> Void
     private var pending: (id: UUID, candidate: TeamArchiveImport)?
 
-    public init(store: TeamInboxStore) { self.store = store }
+    public init(store: TeamInboxStore,
+                requireAccess: @escaping @Sendable () throws -> Void = {}) {
+        self.store = store
+        self.requireAccess = requireAccess
+    }
 
     public func prepare(_ compact: String, recoveryKey: SymmetricKey) throws -> TeamRecoveryPreview {
         try Task.checkCancellation()
         // A new attempt invalidates any previous confirmation, even if it fails.
         pending = nil
+        try requireAccess()
         let candidate = try TeamArchiveImport.prepare(compact, recoveryKey: recoveryKey,
                                                        expectedAccountId: store.target.userId)
         let changes = try store.previewArchiveRestore(candidate)
@@ -358,6 +364,7 @@ public actor TeamArchiveRecoverySession {
         }
         pending = nil
         try Task.checkCancellation()
+        try requireAccess()
         // Revalidates current database conflicts atomically. Once commit succeeds,
         // cancellation must not disguise that success or pretend it was rolled back.
         return try store.restorePreparedArchive(prepared.candidate)
@@ -365,6 +372,7 @@ public actor TeamArchiveRecoverySession {
 
     public func export(exportedAt: Int64, recoveryKey: SymmetricKey) throws -> String {
         try Task.checkCancellation()
+        try requireAccess()
         let compact = try store.exportEncryptedAccountArchive(exportedAt: exportedAt, recoveryKey: recoveryKey)
         try Task.checkCancellation()
         return compact

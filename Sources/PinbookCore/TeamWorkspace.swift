@@ -2253,6 +2253,16 @@ extension TeamWorkspaceNativeIdentityProviders {
 protocol TeamWorkspaceConnectedActions: TeamWorkspaceUserActionHandling,
     TeamWorkspacePresentationProviding {}
 
+struct TeamWorkspaceRecoveryContext: Sendable {
+    let accountID: String
+    let keyStore: TeamRecoveryKeyStore
+    let session: TeamArchiveRecoverySession
+}
+
+protocol TeamWorkspaceRecoveryProviding: Sendable {
+    func recoveryContext() async throws -> TeamWorkspaceRecoveryContext?
+}
+
 protocol TeamWorkspaceConnectedActionBuilding: Sendable {
     func makeConnected(session: TeamAccountSessionSnapshot,
                        device: TeamDeviceSnapshot,
@@ -2266,7 +2276,8 @@ protocol TeamWorkspaceConnectedActionBuilding: Sendable {
 /// is the separate consent that signs in (or reuses the exact displayed account),
 /// registers the device, joins, and mounts the connected handler.
 actor TeamWorkspaceOnboardingActionHandler: TeamWorkspaceUserActionHandling,
-    TeamWorkspacePresentationProviding, TeamWorkspaceSessionBootstrapping {
+    TeamWorkspacePresentationProviding, TeamWorkspaceRecoveryProviding,
+    TeamWorkspaceSessionBootstrapping {
     private struct AccountContext: Sendable {
         let provider: TeamNativeSignInProvider
         let session: TeamAccountSessionSnapshot
@@ -2358,6 +2369,14 @@ actor TeamWorkspaceOnboardingActionHandler: TeamWorkspaceUserActionHandling,
                 connection: .accountReady(accountID: account.ticket.accountID))
         }
         return .empty
+    }
+
+    func recoveryContext() async throws -> TeamWorkspaceRecoveryContext? {
+        guard let connected,
+              let provider = connected as? any TeamWorkspaceRecoveryProviding else {
+            return nil
+        }
+        return try await provider.recoveryContext()
     }
 
     func bootstrap(blockedAccountIDs: Set<String>) async throws {
@@ -2785,6 +2804,13 @@ enum TeamWorkspaceRuntimeConfiguration: Sendable {
         }
         return try await provider.presentation()
     }
+    func recoveryContext() async throws -> TeamWorkspaceRecoveryContext? {
+        guard case .injected(let composition) = self,
+              let provider = composition.userActions as? any TeamWorkspaceRecoveryProviding else {
+            return nil
+        }
+        return try await provider.recoveryContext()
+    }
     func invitation(from url: URL) -> TeamInvitationLink? {
         guard case .injected(let composition) = self else { return nil }
         return try? composition.invitationRouter.route(url)
@@ -3111,6 +3137,7 @@ struct TeamWorkspaceConnectedComposition: Sendable {
     let outbox: TeamOutgoingStore
     let inbox: TeamInboxStore
     let agreement: TeamAgreementKeyCustody
+    let recoveryKeys: TeamRecoveryKeyStore
     let remote: TeamWorkspaceSessionBoundRemote
     let deletionBinding: TeamAccountDeletionBinding
     let deletionStatus: any TeamAccountDeletionStatusTransport
@@ -3122,6 +3149,7 @@ struct TeamWorkspaceConnectedComposition: Sendable {
          teamID: String, enrollmentID: String,
          terms: any TeamTermsStoring, outbox: TeamOutgoingStore,
          inbox: TeamInboxStore, agreement: TeamAgreementKeyCustody,
+         recoveryKeys: TeamRecoveryKeyStore,
          deletionBinding: TeamAccountDeletionBinding,
          deletionStatus: any TeamAccountDeletionStatusTransport,
          deletionProgress: any TeamAccountDeletionProgressStoring,
@@ -3152,6 +3180,7 @@ struct TeamWorkspaceConnectedComposition: Sendable {
         self.enrollmentID = enrollmentID; self.session = session
         self.sessions = sessions; self.terms = terms
         self.outbox = outbox; self.inbox = inbox; self.agreement = agreement
+        self.recoveryKeys = recoveryKeys
         self.deletionBinding = deletionBinding; self.deletionStatus = deletionStatus
         self.deletionProgress = deletionProgress
         self.deletionCredentials = deletionCredentials
@@ -3181,6 +3210,17 @@ struct TeamWorkspaceConnectedComposition: Sendable {
             dispatch: remote, status: deletionStatus,
             progressStore: deletionProgress, credentialStore: deletionCredentials,
             cleanup: accountCleanup)
+    }
+    func recoveryContext() throws -> TeamWorkspaceRecoveryContext {
+        try requireTeamActionsAllowed()
+        let accountID = accountID
+        let progressStore = deletionProgress
+        let session = TeamArchiveRecoverySession(store: inbox) {
+            try TeamAccountDeletionStartupGate(progressStore: progressStore)
+                .requireTeamActionsAllowed(accountID: accountID)
+        }
+        return .init(accountID: accountID, keyStore: recoveryKeys,
+                     session: session)
     }
     private func requireTeamActionsAllowed() throws {
         try TeamAccountDeletionStartupGate(progressStore: deletionProgress)
@@ -3256,7 +3296,8 @@ struct TeamWorkspaceProductionConnectedBuilder: TeamWorkspaceConnectedActionBuil
         let connected = try TeamWorkspaceConnectedComposition(session: session,
             sessions: sessions, teamID: membership.teamID,
             enrollmentID: enrollmentID, terms: terms, outbox: outbox,
-            inbox: inbox, agreement: agreement, deletionBinding: binding,
+            inbox: inbox, agreement: agreement, recoveryKeys: recoveryKeys,
+            deletionBinding: binding,
             deletionStatus: TeamStoreComplianceHTTPTransport(http: http),
             deletionProgress: deletionProgress,
             deletionCredentials: deletionCredentials, accountCleanup: cleanup,
@@ -3274,7 +3315,8 @@ struct TeamWorkspaceProductionConnectedBuilder: TeamWorkspaceConnectedActionBuil
 /// pre-connection sign-in/create/join remains the responsibility of the explicit
 /// onboarding owner so no UI action can invent missing authority.
 actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
-    TeamWorkspacePresentationProviding, TeamWorkspaceConnectedActions {
+    TeamWorkspacePresentationProviding, TeamWorkspaceRecoveryProviding,
+    TeamWorkspaceConnectedActions {
     private let connected: TeamWorkspaceConnectedComposition
     private let http: TeamAuthHTTPClient
     private let termsTransport: any TeamStoreTermsTransport
@@ -3363,5 +3405,9 @@ actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
         return .init(notes: notes, members: members, invitation: latestInvitation,
             connection: .connected(accountID: connected.accountID,
                                    teamID: connected.teamID))
+    }
+
+    func recoveryContext() async throws -> TeamWorkspaceRecoveryContext? {
+        try connected.recoveryContext()
     }
 }

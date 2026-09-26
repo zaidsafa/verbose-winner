@@ -1273,6 +1273,8 @@ private func withWorkspaceOutbox(_ body: (TeamOutgoingStore, URL) async throws -
         let composition = try TeamWorkspaceConnectedComposition(session: session,
             sessions: sessions, teamID: "team", enrollmentID: "alice-enrollment",
             terms: terms, outbox: outbox, inbox: inbox, agreement: agreement,
+            recoveryKeys: TeamRecoveryKeyStore(
+                testService: "workspace-concurrent-recovery"),
             deletionBinding: binding, deletionStatus: remote,
             deletionProgress: progress, deletionCredentials: credentials,
             accountCleanup: cleanup, remote: remote, clock: { 2_000 })
@@ -1280,6 +1282,10 @@ private func withWorkspaceOutbox(_ body: (TeamOutgoingStore, URL) async throws -
         let receiver = try composition.receiver()
         let safety = try composition.safety()
         let deletion = try composition.deletion()
+        let recovery = try composition.recoveryContext()
+        let recoveryKey = SymmetricKey(data: Data(repeating: 0xA5, count: 32))
+        _ = try await recovery.session.export(exportedAt: 1_900,
+                                               recoveryKey: recoveryKey)
 
         let deletionTask = Task {
             try await deletion.delete(confirmation: "DELETE_ACCOUNT")
@@ -1293,6 +1299,10 @@ private func withWorkspaceOutbox(_ body: (TeamOutgoingStore, URL) async throws -
         }
         await #expect(throws: TeamWorkspaceError.busy) {
             try await safety.execute(.blockUser(userID: "bob"))
+        }
+        await #expect(throws: TeamWorkspaceError.busy) {
+            try await recovery.session.export(exportedAt: 2_000,
+                                               recoveryKey: recoveryKey)
         }
         #expect(await remote.protectedCalls == 0)
         try await remote.finishDeletion()

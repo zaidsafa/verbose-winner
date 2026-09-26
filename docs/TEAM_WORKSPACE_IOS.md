@@ -1,6 +1,23 @@
 # Default-off local team workspace checkpoint
 
-Updated: 2026-09-05 (Asia/Shanghai)
+Updated: 2026-09-27 (Asia/Shanghai)
+
+## 2026-09-27 connected recovery integration
+
+- A connected Team workspace now receives one exact recovery context containing
+  its account ID, protected inbox, device-only recovery-key custody and guarded
+  recovery session.
+- The visible workspace shows one simple received-note recovery link only while
+  that exact context is available. Disabled, disconnected and deletion-blocked
+  runtimes expose no recovery destination.
+- Export, import preview and restore confirmation recheck the account-global
+  deletion gate. Retaining a previously issued context cannot recreate or export
+  account data after deletion starts.
+- Recovery remains intentionally limited to received text notes. It does not
+  restore remote authority, sent drafts, revisions, attachments or ACK receipts.
+- Complete serial Swift **420/420 in 39 suites**, localization **392 keys across
+  16 locales**, and unsigned arm64+x86_64 Release Simulator build pass. No live
+  Team origin, provider, server, signing, device or TestFlight state changed.
 
 ## Implemented locally
 

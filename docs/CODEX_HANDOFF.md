@@ -48,6 +48,18 @@ Updated: 2026-09-27 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Connected recovery checkpoint: the normal Team workspace now exposes the
+  existing encrypted received-note Files recovery flow only when the runtime
+  supplies an exact connected account context. The link carries the bound inbox,
+  device-only recovery-key store and access-guarded recovery session. Import,
+  preview, restore and export cannot proceed after account deletion begins, even
+  if the screen retained an older context. Complete serial Swift **420/420 in 39
+  suites**, localization **392 keys across 16 locales**, and the unsigned
+  arm64+x86_64 Release Simulator build pass. Team production remains default-off.
+  Full archive coverage, secure-screen/device acceptance, Infrastructure staging
+  and cross-platform recovery remain open. No provider/server, signing, device,
+  archive or TestFlight state changed.
+
 - Exact resumed candidate checkpoint: the pre-account Apple/Google create/join
   owner and connected Team runtime are composed while normal production values
   remain empty. The opt-in Google callback URL type now resolves to the approved

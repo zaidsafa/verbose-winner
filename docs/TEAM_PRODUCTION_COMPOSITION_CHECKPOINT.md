@@ -21,6 +21,8 @@ Implemented:
   invitation opening through the same strict account/session owner;
 - persistent outgoing status and exact retry, account-scoped cleanup, agreement
   scope enumeration, recovery-key deletion, persisted blocks and policy links;
+- exact connected-account navigation to encrypted received-note Files recovery,
+  with the deletion gate rechecked before import preview, restore and export;
 - opt-in Associated Domains entitlement plus deterministic AASA generation.
 
 No live origin, provider credential, secret or fallback domain is committed.

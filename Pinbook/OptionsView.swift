@@ -171,6 +171,7 @@ private struct TeamWorkspaceView: View {
     @State private var actionMessage: String?
     @State private var isWorking = false
     @State private var confirmingDeletion = false
+    @State private var recoveryContext: TeamWorkspaceRecoveryContext?
 
     var body: some View {
         List {
@@ -295,6 +296,20 @@ private struct TeamWorkspaceView: View {
                 Text("Foreground refresh, import, and acknowledgements are explicit. Pinbook does not rely on push notifications for delivery safety.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+            }
+
+            if let recoveryContext {
+                Section("Backup") {
+                    NavigationLink {
+                        TeamReceivedArchiveRecoveryView(context: recoveryContext)
+                    } label: {
+                        Label("Received-note recovery", systemImage: "lock.doc")
+                    }
+                    .accessibilityIdentifier("team-recovery-open")
+                    Text("Only received text notes are included. This does not restore team access, sent drafts, revisions or attachments.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section("Safety") {
@@ -458,10 +473,16 @@ private struct TeamWorkspaceView: View {
     private func refreshPresentation() async {
         guard runtime.isEnabled, startup.allowsTeamWorkspace else {
             presentation = .empty
+            recoveryContext = nil
             return
         }
         do { presentation = try await runtime.presentation() }
-        catch { actionMessage = "Setup could not continue. Close this screen and reopen the invitation." }
+        catch {
+            presentation = .empty
+            actionMessage = "Setup could not continue. Close this screen and reopen the invitation."
+        }
+        do { recoveryContext = try await runtime.recoveryContext() }
+        catch { recoveryContext = nil }
     }
 }
 

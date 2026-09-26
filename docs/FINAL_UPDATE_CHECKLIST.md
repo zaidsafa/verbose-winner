@@ -93,6 +93,10 @@ checkboxes deliberately remain open until checked against the exact next candida
 - [ ] Recovery-key custody/consent, secure Files export/import and cleanup, preview,
       lost-key/backup-health explanations, sender/revision/media coverage, and
       Android -> iOS -> Android full recovery without restoring remote authority.
+      The received-text recovery flow is now reachable from the exact connected
+      Team workspace and rechecks account deletion before preview, restore and
+      export. Full archive coverage, imported-key retention, secure-screen policy,
+      physical acceptance and cross-platform recovery remain open.
 - [ ] Isolated Infrastructure admission/staging, privacy metadata and accurate
       retention/deletion wording, provider purge/restore tests. No direct shared
       infrastructure access or deployment outside its owning task.
@@ -282,15 +286,17 @@ checkboxes deliberately remain open until checked against the exact next candida
   public cross-platform fixture round trip passed. No production entry point.
 - Bounded file reader and immutable authenticated restore candidate implemented.
   Preview is read-only; confirmation revalidates conflicts atomically.
-- Bounded local inbox paging and device-only recovery-key custody implemented
-  behind inactive APIs. No normal app screen opens the team store or creates keys.
+- Bounded local inbox paging and device-only recovery-key custody implemented.
+  The normal connected Team workspace can now open the exact account-scoped
+  recovery flow; disabled and disconnected runtimes still expose nothing.
 - Shared human-readable recovery-key parser and single-use preview session now
   implemented, plus an inactive received-text Files screen and public DEBUG UI
   test host. Background teardown rejects late operations and preserves an uncertain
   restore warning until a fresh authoritative preview. Key setup/copy now requires
   explicit consent, file read-back and separate-copy confirmation before custody.
-  Final UI/provider/physical acceptance, imported-key retention, secure-screen
-  policy and full archive coverage remain open; this is not complete team recovery.
+  Connected navigation and deletion-gated operations are now integrated. Final
+  provider/physical acceptance, imported-key retention, secure-screen policy and
+  full archive coverage remain open; this is not complete team recovery.
 - See `VALIDATION.md` for exact tested checkpoints. This is not a complete user
   recovery flow or a physical-device acceptance claim.
 - Crypto audit/version/fix assessment: `OPENMLS_AUDIT_ADOPTION_20260904.md`.

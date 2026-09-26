@@ -1,5 +1,25 @@
 # Validation plan
 
+## 2026-09-27 connected received-note recovery
+
+- The normal Team workspace now shows one simple received-note recovery link only
+  after the connected runtime supplies the exact account-scoped inbox, recovery
+  key custody and recovery session.
+- Import preview, restore confirmation and encrypted export recheck the
+  account-global deletion gate at execution time. A context obtained before
+  deletion cannot export or restore after deletion begins.
+- The disconnected and default-off runtime exposes no recovery context. Recovery
+  remains limited to received text notes and does not restore team authority,
+  outgoing drafts, revisions, attachments or delivery receipts.
+- Exact deletion-concurrency test: **PASS**. Complete serial Swift package:
+  **420 tests in 39 suites PASS**.
+- Localization validation: **392 keys complete across English plus 15 translated
+  locales**. The integration reuses already translated recovery copy.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-goal-derived`.
+- No provider, server, signing, physical device, archive, TestFlight or production
+  state changed.
+
 ## 2026-09-27 resumed final-candidate audit
 
 - Connected the pre-account Apple/Google create/join owner and the strict signed

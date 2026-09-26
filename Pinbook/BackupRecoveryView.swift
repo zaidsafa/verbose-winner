@@ -628,8 +628,8 @@ private func backupActivitySummary(_ activity: BackupActivityItem) -> String {
     String(localized: "v\(activity.formatVersion) · \(activity.recordCount) records · \(activity.changedCount) changes · \(activity.conflictCount) conflicts", bundle: PinbookLanguage.localizedBundle, locale: PinbookLanguage.currentLocale)
 }
 
-/// Not linked from production navigation. A future authenticated team entry point
-/// must supply its scoped store after the full activation gates are satisfied.
+/// Linked only from an exact connected Team workspace context. Disabled or
+/// disconnected runtimes cannot open a store or create recovery-key custody.
 struct TeamReceivedArchiveRecoveryView: View {
     @Environment(\.pinbookSkin) private var skin
     @Environment(\.scenePhase) private var scenePhase
@@ -653,6 +653,12 @@ struct TeamReceivedArchiveRecoveryView: View {
         accountId = store.target.userId
         self.keyStore = keyStore
         _session = State(initialValue: TeamArchiveRecoverySession(store: store))
+    }
+
+    init(context: TeamWorkspaceRecoveryContext) {
+        accountId = context.accountID
+        keyStore = context.keyStore
+        _session = State(initialValue: context.session)
     }
 
     var body: some View {

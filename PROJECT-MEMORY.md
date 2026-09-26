@@ -101,6 +101,15 @@ agreement scope before Keychain insertion so cleanup can enumerate every inserte
 identity. These facts must not be described as released until every remaining
 external acceptance gate is complete.
 
+The resumed 2026-09-27 recovery slice connects the existing encrypted
+received-note Files flow to the normal Team workspace only after an exact
+connected account context exists. The context binds the account-scoped inbox,
+device-only recovery-key custody and a recovery session that rechecks the
+account-global deletion gate before preview, restore and export. Disabled,
+disconnected and deletion-blocked runtimes expose no recovery destination.
+Recovery still excludes remote authority, outgoing drafts, revisions, attachments
+and ACK receipts.
+
 The untracked `tmp/` directory is user-owned scratch state. Do not stage it.
 
 ## Architecture
@@ -292,6 +301,7 @@ When responsibility moves, update this table in the same commit.
 | 2026-09-27 | Make this file mandatory project continuity | Architecture, decisions, recovery, current truth, and future releases must survive beyond chat history |
 | 2026-09-27 | Bind the Team Google callback URL type to the configured redirect scheme | Opt-in builds must return from the native browser to the exact approved app scheme |
 | 2026-09-27 | Register agreement cleanup scope before Keychain insertion | A failure must not leave a valid but unenumerated agreement identity |
+| 2026-09-27 | Expose received-note recovery only through the exact connected runtime context | Keeps the UI simple while preventing stale or disconnected access to protected Team stores |
 
 ## Recovery points
 
@@ -364,6 +374,9 @@ When responsibility moves, update this table in the same commit.
 - Passed 420 Swift tests in 39 suites, 392 localization keys across 16 locales,
   the generated AASA check, and an unsigned universal Release Simulator build.
 - No build number, provider, device, infrastructure, or TestFlight state changed.
+- Connected received-note recovery to the normal Team workspace, rechecked the
+  deletion gate inside every recovery operation, and passed the complete 420-test
+  suite plus the universal unsigned Release Simulator build.
 
 ## Open gates and exact next actions
 
