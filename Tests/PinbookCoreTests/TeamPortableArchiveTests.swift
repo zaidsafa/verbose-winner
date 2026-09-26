@@ -42,6 +42,53 @@ private final class SetupMemoryKeychain: TeamRecoveryKeychain, @unchecked Sendab
     }
 }
 
+@Test func importedKeyRetentionRequiresConsentAuthenticationAndNeverReplaces() throws {
+    let backend = SetupMemoryKeychain()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-import-retention",
+                                     keychain: backend)
+    let retention = try TeamImportedRecoveryKeyRetention(accountId: "alice",
+                                                          store: store)
+    let imported = SymmetricKey(data: Data(repeating: 0xA5, count: 32))
+    #expect(throws: TeamImportedRecoveryKeyRetentionError.consentRequired) {
+        try retention.retain(imported, authenticatedArchive: true,
+                             explicitConsent: false)
+    }
+    #expect(throws: TeamImportedRecoveryKeyRetentionError.authenticatedArchiveRequired) {
+        try retention.retain(imported, authenticatedArchive: false,
+                             explicitConsent: true)
+    }
+    #expect(backend.insertionCount == 0)
+
+    try retention.retain(imported, authenticatedArchive: true,
+                         explicitConsent: true)
+    try retention.retain(imported, authenticatedArchive: true,
+                         explicitConsent: true)
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == imported)
+
+    let different = SymmetricKey(data: Data(repeating: 0x5A, count: 32))
+    #expect(throws: TeamImportedRecoveryKeyRetentionError.keyConflict) {
+        try retention.retain(different, authenticatedArchive: true,
+                             explicitConsent: true)
+    }
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == imported)
+}
+
+@Test func importedKeyRetentionReconcilesAmbiguousMatchingInsertion() throws {
+    let backend = SetupMemoryKeychain()
+    backend.failOneAddAfterStoring()
+    let store = TeamRecoveryKeyStore(testService: "synthetic-import-ambiguous",
+                                     keychain: backend)
+    let retention = try TeamImportedRecoveryKeyRetention(accountId: "alice",
+                                                          store: store)
+    let imported = SymmetricKey(data: Data(repeating: 0xA5, count: 32))
+    try retention.retain(imported, authenticatedArchive: true,
+                         explicitConsent: true)
+    #expect(backend.insertionCount == 1)
+    #expect(try store.load(accountId: "alice") == imported)
+}
+
 @Test func keySetupRequiresConsentExportAndSavedCopyConfirmationBeforeCustody() async throws {
     let backend = SetupMemoryKeychain()
     let store = TeamRecoveryKeyStore(testService: "synthetic-setup", keychain: backend)

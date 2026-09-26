@@ -646,6 +646,7 @@ struct TeamReceivedArchiveRecoveryView: View {
     @State private var restored = false
     @State private var showingKeySetup = false
     @State private var operationTask: Task<Void, Never>?
+    @State private var retainImportedKey = false
 
     private var isWorking: Bool { presentation.isWorking }
 
@@ -684,9 +685,19 @@ struct TeamReceivedArchiveRecoveryView: View {
                     operationTask = Task { await loadSavedKey() }
                 }
                 Button("Manage recovery key", systemImage: "key.horizontal") { showingKeySetup = true }
-                Text("Enter 64 hexadecimal characters without separators. Imported keys are used only for this restore and are not saved.")
+                Toggle("Save this imported key on this device", isOn: $retainImportedKey)
+                Text("Enter 64 hexadecimal characters without separators.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                if retainImportedKey {
+                    Text("Selected keys are saved only after the archive is verified. Existing keys are never replaced.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Imported keys are used only for this restore and are not saved.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
             Section("Backup") {
                 Button("Import and preview", systemImage: "doc.badge.plus") { showingImporter = true }
@@ -700,11 +711,22 @@ struct TeamReceivedArchiveRecoveryView: View {
             }
         }
         .disabled(isWorking)
+        .privacySensitive()
         .scrollContentBackground(.hidden)
         .background(skin.backdrop.ignoresSafeArea())
         .navigationTitle("Received-note recovery")
         .navigationBarTitleDisplayMode(.inline)
         .overlay { if isWorking { ProgressView().controlSize(.large) } }
+        .overlay {
+            if scenePhase != .active {
+                ZStack {
+                    Rectangle().fill(.ultraThinMaterial).ignoresSafeArea()
+                    ContentUnavailableView("Recovery locked", systemImage: "lock.fill",
+                        description: Text("Return to Pinbook to continue."))
+                }
+                .accessibilityIdentifier("team-recovery-privacy-shield")
+            }
+        }
         .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.data]) { result in
             switch result {
             case .success(let url): operationTask = Task { await importArchive(url) }
@@ -758,6 +780,7 @@ struct TeamReceivedArchiveRecoveryView: View {
         showingKeySetup = false
         operationError = nil
         restored = false
+        retainImportedKey = false
         if let previousID { Task { await session.cancelPreview(previewID: previousID) } }
     }
 
@@ -812,6 +835,21 @@ struct TeamReceivedArchiveRecoveryView: View {
             guard data.allSatisfy({ $0 < 128 }) else { throw TeamArchiveError.invalidFormat }
             try Task.checkCancellation()
             let candidate = try await session.prepare(String(decoding: data, as: UTF8.self), recoveryKey: key)
+            if retainImportedKey {
+                do {
+                    try TeamImportedRecoveryKeyRetention(accountId: accountId,
+                        store: keyStore).retain(key, authenticatedArchive: true,
+                                               explicitConsent: true)
+                } catch {
+                    await session.cancelPreview(previewID: candidate.id)
+                    if error as? TeamImportedRecoveryKeyRetentionError == .keyConflict {
+                        operationError = "A different recovery key is already saved on this device. It was not replaced."
+                    } else {
+                        operationError = "The imported key could not be saved. The archive was not restored."
+                    }
+                    return
+                }
+            }
             guard !Task.isCancelled, presentation.acceptPreview(ticket) else {
                 await session.cancelPreview(previewID: candidate.id)
                 return

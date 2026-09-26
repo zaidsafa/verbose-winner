@@ -168,6 +168,53 @@ public enum TeamRecoveryKeySetupError: Error, Equatable {
     case consentRequired, expired, exportRequired, confirmationRequired, missingKey, keyChanged
 }
 
+public enum TeamImportedRecoveryKeyRetentionError: Error, Equatable {
+    case consentRequired, authenticatedArchiveRequired, keyConflict
+}
+
+/// Optional device-only retention after a recovery archive authenticates.
+/// Existing custody always wins and is never replaced.
+public struct TeamImportedRecoveryKeyRetention: Sendable {
+    private let accountId: String
+    private let store: TeamRecoveryKeyStore
+
+    public init(accountId: String, store: TeamRecoveryKeyStore) throws {
+        try TeamDeliveryRules.requireID(accountId)
+        self.accountId = accountId
+        self.store = store
+    }
+
+    public func retain(_ key: SymmetricKey, authenticatedArchive: Bool,
+                       explicitConsent: Bool) throws {
+        guard explicitConsent else {
+            throw TeamImportedRecoveryKeyRetentionError.consentRequired
+        }
+        guard authenticatedArchive else {
+            throw TeamImportedRecoveryKeyRetentionError.authenticatedArchiveRequired
+        }
+        if let existing = try store.load(accountId: accountId) {
+            guard existing == key else {
+                throw TeamImportedRecoveryKeyRetentionError.keyConflict
+            }
+            return
+        }
+        do {
+            try store.storeNew(key, accountId: accountId)
+        } catch {
+            if let stored = try? store.load(accountId: accountId), stored == key {
+                return
+            }
+            if error as? TeamRecoveryKeyError == .alreadyExists {
+                throw TeamImportedRecoveryKeyRetentionError.keyConflict
+            }
+            throw error
+        }
+        guard try store.load(accountId: accountId) == key else {
+            throw TeamImportedRecoveryKeyRetentionError.keyConflict
+        }
+    }
+}
+
 public enum TeamRecoveryKeySetupIntent: Sendable { case createNew, copyExisting }
 
 /// A volatile setup transaction, separate from archive restore and remote authority.
