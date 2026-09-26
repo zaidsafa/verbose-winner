@@ -1,5 +1,22 @@
 # Validation plan
 
+## 2026-09-27 localized Team action guidance
+
+- Team workspace success and failure status now uses localizable keys instead of
+  displaying dynamic English strings verbatim.
+- Typed guidance distinguishes Terms required, busy work, unavailable setup,
+  account deletion, connection failure, reauthentication, missing items,
+  uncertain results, full outbox and protected-store failure without exposing
+  identifiers, endpoints, tokens or raw server responses.
+- Localization validation: **408 keys complete across English plus 15 translated
+  locales**. The String Catalog passes strict JSON parsing.
+- The complete **422-test** Swift package evidence remains valid because this
+  slice changes only app presentation and localized copy.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-goal-derived`.
+- `git diff --check`: pass. No provider, server, signing, physical device,
+  archive, TestFlight or production state changed.
+
 ## 2026-09-27 connected durable note drafts
 
 - The normal connected Team workspace now restores the newest saved note draft

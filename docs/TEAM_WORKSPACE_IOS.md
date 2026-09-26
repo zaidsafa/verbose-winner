@@ -33,6 +33,18 @@ Updated: 2026-09-27 (Asia/Shanghai)
 - Complete serial Swift **422/422 in 39 suites**, localization **397 keys across
   16 locales**, and unsigned arm64+x86_64 Release Simulator build pass.
 
+## 2026-09-27 localized action guidance
+
+- Dynamic workspace status now uses localizable keys rather than verbatim English.
+- Typed failures provide a direct safe next step for Terms, busy work,
+  unavailable setup, deletion, connection, reauthentication, missing items,
+  uncertain results, full outbox and protected-store failure.
+- Guidance never includes identifiers, endpoints, credentials or raw provider and
+  server errors.
+- Localization is complete at **408 keys across 16 locales**. The unchanged core
+  retains its **422-test** pass and the unsigned arm64+x86_64 Release Simulator
+  build passes.
+
 ## Implemented locally
 
 - Options now contains a polished Team workspace screen describing connection,

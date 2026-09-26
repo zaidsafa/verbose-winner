@@ -87,7 +87,7 @@ The source candidate is committed at `c3bbbe0`. It is not a TestFlight release.
 Its exact 2026-09-27 evidence:
 
 - 422 Swift tests in 39 suites passed in a serial run;
-- 397 localization keys passed across English plus 15 translated locales;
+- 408 localization keys passed across English plus 15 translated locales;
 - unsigned Release Simulator build passed for arm64 and x86_64;
 - bundle, version, and build remained `com.zaidsafa.pinbook.ios`, `0.1.0`, and `3`;
 - all nine Team production configuration values remained empty;
@@ -119,6 +119,12 @@ Sending after Terms acceptance updates and finalizes the same draft identity, th
 uses the existing exact encrypted retry path. Discard removes only that new-note
 draft. Correction and review drafts remain hidden because the shared encrypted
 payload does not yet carry kind or base revision.
+
+Team workspace success and failure status now uses actual localized keys. Typed
+safe guidance distinguishes Terms, busy work, unavailable setup, account deletion,
+connection, reauthentication, missing items, uncertain results, full outbox and
+protected-store failures without displaying identifiers, endpoints, credentials
+or raw responses.
 
 The untracked `tmp/` directory is user-owned scratch state. Do not stage it.
 
@@ -400,6 +406,10 @@ When responsibility moves, update this table in the same commit.
   build. No provider, server, signing, device, archive or TestFlight state changed.
 - Committed and remotely verified the connected durable note draft source and
   evidence at `a6e3b3c7b62f8e335d8f5db560b199a80aeb485a`.
+- Replaced verbatim English Team status with localized typed action guidance,
+  completed 408 localization keys across 16 locales, and passed the universal
+  unsigned Release Simulator build. Core behavior remains the validated 422-test
+  candidate.
 
 ## Open gates and exact next actions
 

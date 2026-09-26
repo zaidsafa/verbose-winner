@@ -48,6 +48,14 @@ Updated: 2026-09-27 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Localized Team guidance checkpoint: workspace success and error status now uses
+  actual localizable keys, and typed failures give clear next actions for Terms,
+  busy work, unavailable setup, deletion, connection, sign-in, missing items,
+  uncertain results, full outbox and protected-store errors. The copy never shows
+  identifiers, endpoints, tokens or raw responses. Localization is complete at
+  **408 keys across 16 locales** and the unsigned universal Release Simulator
+  build passes. Core behavior is unchanged from the complete **422-test** run.
+
 - Durable Team note draft checkpoint: the normal connected workspace now restores
   one protected exact-enrollment new-note draft and exposes simple Save and
   Discard controls. Saving is local and does not imply Terms acceptance, delivery,

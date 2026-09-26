@@ -39,7 +39,7 @@ version/build number, provider console, server, device or store state is changed
 Validation at this checkpoint:
 
 - complete Swift package: 422 tests in 39 suites pass;
-- 397 localization keys are complete across English plus 15 translations, with
+- 408 localization keys are complete across English plus 15 translations, with
   compiled app/widget localization plists valid;
 - plist/project/entitlement lint and `git diff --check` pass;
 - unsigned Release Simulator build passes for arm64 and x86_64 at

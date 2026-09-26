@@ -168,7 +168,7 @@ private struct TeamWorkspaceView: View {
     @State private var acceptsTerms = false
     @State private var safetyReason: TeamReportReason = .spam
     @State private var presentation = TeamWorkspacePresentation.empty
-    @State private var actionMessage: String?
+    @State private var actionMessage: LocalizedStringKey?
     @State private var isWorking = false
     @State private var confirmingDeletion = false
     @State private var recoveryContext: TeamWorkspaceRecoveryContext?
@@ -468,13 +468,13 @@ private struct TeamWorkspaceView: View {
                 await refreshPresentation()
                 actionMessage = successMessage(for: actions.last)
             } catch {
-                actionMessage = "Setup could not continue. Close this screen and reopen the invitation."
+                actionMessage = errorMessage(error)
             }
             isWorking = false
         }
     }
 
-    private func successMessage(for action: TeamWorkspaceUserAction?) -> String {
+    private func successMessage(for action: TeamWorkspaceUserAction?) -> LocalizedStringKey {
         switch action {
         case .signIn: "Signed in"
         case .createTeam: "Team created"
@@ -488,6 +488,51 @@ private struct TeamWorkspaceView: View {
         case .reportNote, .reportUser, .blockUser, .unblockUser: "Safety action completed"
         case .deleteAccount: "Account deletion started"
         case nil: "Action completed"
+        }
+    }
+
+    private func errorMessage(_ error: any Error) -> LocalizedStringKey {
+        if let value = error as? TeamWorkspaceError {
+            switch value {
+            case .termsRequired: "Accept the Team Terms before sending."
+            case .busy: "Finish the current action and try again."
+            case .unavailable: "Team setup is not available in this build."
+            case .deletionPending: "Account deletion is still in progress"
+            case .invalidInput, .bindingMismatch:
+                "Team information changed. Close this screen and open it again."
+            }
+        } else if let value = error as? TeamAuthHTTPError {
+            switch value {
+            case .transport, .server(.requestTimeout), .server(.unavailable):
+                "Check your connection and try again."
+            case .busy, .server(.capacity):
+                "Finish the current action and try again."
+            case .server(.invalidCredentials), .server(.reauthenticationRequired):
+                "Sign in again to continue."
+            case .server(.termsRequired):
+                "Accept the Team Terms before sending."
+            case .server(.notFound), .server(.terminal):
+                "This item is no longer available."
+            case .server(.uncertain), .server(.conflict):
+                "The result could not be confirmed. Check status before trying again."
+            case .invalidConfiguration:
+                "Team setup is not available in this build."
+            case .invalidRequest, .invalidResponse, .responseTooLarge,
+                 .redirectRefused, .server(.invalidRequest), .server(.jsonRequired),
+                 .server(.requestTooLarge):
+                "Team information changed. Close this screen and open it again."
+            }
+        } else if let value = error as? TeamOutgoingError {
+            switch value {
+            case .queueFull:
+                "Your Team outbox is full. Retry pending notes first."
+            case .notFound, .staleDraft:
+                "This item is no longer available."
+            default:
+                "Pinbook could not save this Team action."
+            }
+        } else {
+            "Pinbook could not verify this Team action. No changes were assumed."
         }
     }
 

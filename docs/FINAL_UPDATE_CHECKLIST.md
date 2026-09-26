@@ -13,7 +13,7 @@ the exact iOS/Android source commits, artifacts, versions, signing identities,
 staging migration and the physical Android-to-iPhone matrix.
 
 Current 2026-09-27 local candidate evidence: the complete serial Swift suite
-passes **422 tests in 39 suites**, **397 localization keys** pass across English
+passes **422 tests in 39 suites**, **408 localization keys** pass across English
 plus 15 translated locales, and the unsigned universal Release Simulator build
 passes with all nine Team production values empty. The opt-in Team Google callback
 scheme now matches the approved redirect scheme, and agreement-key cleanup is
