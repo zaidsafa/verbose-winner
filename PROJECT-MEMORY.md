@@ -68,6 +68,7 @@ copy personal data into company memory unless the owner explicitly requests it.
 | Base Team runtime candidate | `c3bbbe0287d915c143a53ee113228e967468c70e` |
 | Connected recovery candidate | `b731cd8880e9b6004af0e761af4538df1b480edd` |
 | Durable note draft candidate | `a6e3b3c7b62f8e335d8f5db560b199a80aeb485a` |
+| Localized Team guidance candidate | `2d930f3bd893c7bc75a143e9e1048561056431cf` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
 | Platform | iPhone, iOS 26.1+, Swift 6 |
 | Bundle | `com.zaidsafa.pinbook.ios` |
@@ -344,6 +345,7 @@ When responsibility moves, update this table in the same commit.
 | Validated Team runtime candidate | `c3bbbe0` | Default-off source candidate; no provider, device, server, archive, or TestFlight acceptance is implied |
 | Connected received-note recovery | `b731cd8` | Normal connected navigation plus deletion-gated preview, restore and export; full recovery acceptance remains open |
 | Connected durable note draft | `a6e3b3c` | Restore, save, discard and exact-draft send for a new text note; correction and review wire work remains open |
+| Localized Team action guidance | `2d930f3` | Localized safe next steps replace verbatim English and raw-error ambiguity |
 
 ## Dated history
 
@@ -410,6 +412,8 @@ When responsibility moves, update this table in the same commit.
   completed 408 localization keys across 16 locales, and passed the universal
   unsigned Release Simulator build. Core behavior remains the validated 422-test
   candidate.
+- Committed and remotely verified localized Team action guidance at
+  `2d930f3bd893c7bc75a143e9e1048561056431cf`.
 
 ## Open gates and exact next actions
 

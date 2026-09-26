@@ -55,6 +55,7 @@ Updated: 2026-09-27 (Asia/Shanghai)
   identifiers, endpoints, tokens or raw responses. Localization is complete at
   **408 keys across 16 locales** and the unsigned universal Release Simulator
   build passes. Core behavior is unchanged from the complete **422-test** run.
+  Exact source checkpoint: `2d930f3bd893c7bc75a143e9e1048561056431cf`.
 
 - Durable Team note draft checkpoint: the normal connected workspace now restores
   one protected exact-enrollment new-note draft and exposes simple Save and
