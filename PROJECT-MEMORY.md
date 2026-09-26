@@ -64,7 +64,7 @@ copy personal data into company memory unless the owner explicitly requests it.
 | --- | --- |
 | Repository | `https://github.com/zaidsafa/verbose-winner.git` |
 | Branch | `codex/team-delivery-foundation` |
-| Source before this memory | `0637a20d6bf23586e90c1cba40e062ed80f1c5ea` |
+| Remote source before this candidate | `4f4d1f6e6fc96a2a6ca3f0ab0333b8024b70a6e2` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
 | Platform | iPhone, iOS 26.1+, Swift 6 |
 | Bundle | `com.zaidsafa.pinbook.ios` |
@@ -78,12 +78,12 @@ project evidence, not a fresh App Store Connect verification on 2026-09-27. No
 later TestFlight build may be uploaded until the complete agreed update passes
 the final acceptance gates.
 
-### Paused local candidate
+### Validated local candidate
 
-The working tree contains an uncommitted candidate based on `0637a20`. It is not
-remote source and is not a TestFlight release. Its recorded 2026-09-13 evidence:
+The working tree contains an uncommitted candidate based on `4f4d1f6`. It is not
+remote source and is not a TestFlight release. Its exact 2026-09-27 evidence:
 
-- 419 Swift tests in 39 suites passed in a serial run;
+- 420 Swift tests in 39 suites passed in a serial run;
 - 392 localization keys passed across English plus 15 translated locales;
 - unsigned Release Simulator build passed for arm64 and x86_64;
 - bundle, version, and build remained `com.zaidsafa.pinbook.ios`, `0.1.0`, and `3`;
@@ -91,11 +91,14 @@ remote source and is not a TestFlight release. Its recorded 2026-09-13 evidence:
 - plist, entitlement, project, diff, and generated AASA checks passed;
 - no signing, provider, server, device, or TestFlight state changed.
 
-The local candidate adds concrete Apple and Google onboarding composition,
+The candidate adds concrete Apple and Google onboarding composition,
 strict signed Team remote transport, persistent outbox retry/status UI,
 account-scoped cleanup, agreement-scope enumeration, recovery-key deletion,
-persisted block state, policy links, and action-specific status copy. These facts
-must not be described as remote or released until committed, pushed, and verified.
+persisted block state, policy links, and action-specific status copy. It also maps
+the Google callback URL type to the approved redirect scheme and registers an
+agreement scope before Keychain insertion so cleanup can enumerate every inserted
+identity. These facts must not be described as remote or released until committed,
+pushed, and verified.
 
 The untracked `tmp/` directory is user-owned scratch state. Do not stage it.
 
@@ -286,6 +289,8 @@ When responsibility moves, update this table in the same commit.
 | 2026-09-05 | Install physical development builds under a separate Pinbook QA identity | Protects the working TestFlight app and records |
 | 2026-09-05 | Keep Team production default-off | Backend migration, origin, AASA, capabilities, provider setup, and cross-device acceptance were not complete |
 | 2026-09-27 | Make this file mandatory project continuity | Architecture, decisions, recovery, current truth, and future releases must survive beyond chat history |
+| 2026-09-27 | Bind the Team Google callback URL type to the configured redirect scheme | Opt-in builds must return from the native browser to the exact approved app scheme |
+| 2026-09-27 | Register agreement cleanup scope before Keychain insertion | A failure must not leave a valid but unenumerated agreement identity |
 
 ## Recovery points
 
@@ -308,7 +313,7 @@ When responsibility moves, update this table in the same commit.
 | Live personal Drive upload evidence | `c0c5df5` | Owner-observed upload path, not full remote read-back or cross-platform acceptance |
 | Restart-safe Team delivery checkpoint | `32d2b9d` | Durable deletion barrier and release acceptance framing |
 | Current remote production composition | `0637a20` | Default-off strict Team composition and current branch base |
-| Paused local candidate | uncommitted, based on `0637a20` | Preserve working tree; validate, review, commit, and push only when implementation resumes |
+| Validated Team runtime candidate | pending candidate commit, based on `4f4d1f6` | Commit and push only after the exact validation and documentation checkpoint remains clean |
 
 ## Dated history
 
@@ -350,28 +355,30 @@ When responsibility moves, update this table in the same commit.
 ### 2026-09-27
 
 - Established this root project memory as a required release artifact.
-- No application source, build number, provider, device, infrastructure, or
-  TestFlight state changed for this documentation milestone.
+- Completed the resumed candidate audit, corrected the opt-in Team Google callback
+  mapping, and made agreement-key insertion fail before an unenumerated identity
+  can be stored.
+- Passed 420 Swift tests in 39 suites, 392 localization keys across 16 locales,
+  the generated AASA check, and an unsigned universal Release Simulator build.
+- No build number, provider, device, infrastructure, or TestFlight state changed.
 
 ## Open gates and exact next actions
 
-1. Resume the paused local candidate only on explicit owner instruction.
-2. Review the complete dirty diff, preserve `tmp/`, rerun the full serial Swift
-   suite, localization checks, lint, AASA generation, and unsigned Release build.
-3. Commit and push the candidate separately from this memory milestone.
-4. Have TC Infrastructure admit and deploy the exact Team service and migration
+1. Commit and push the validated candidate while preserving the user-owned
+   untracked `tmp/` directory.
+2. Have TC Infrastructure admit and deploy the exact Team service and migration
    028 workers with recovery evidence.
-5. Supply the complete ignored Team build configuration, publish and verify AASA,
+3. Supply the complete ignored Team build configuration, publish and verify AASA,
    enable the required Apple App ID capabilities and profiles, and finish Apple
    and Google provider setup.
-6. Run signed isolated iPhone QA plus Android physical acceptance with synthetic
+4. Run signed isolated iPhone QA plus Android physical acceptance with synthetic
    records for sign-in, invitation, device registration, encrypted send, receive,
    archive-before-ACK, exact retry, block/report, deletion, and restart recovery.
-7. Complete personal Drive remote read-back, disconnect/revocation, non-owner
+5. Complete personal Drive remote read-back, disconnect/revocation, non-owner
    consent, and Android to iOS to Android recovery acceptance.
-8. Close every item in `docs/FINAL_UPDATE_CHECKLIST.md` before calling the next
+6. Close every item in `docs/FINAL_UPDATE_CHECKLIST.md` before calling the next
    build final.
-9. Only after the complete candidate is accepted, request fresh authorization for
+7. Only after the complete candidate is accepted, request fresh authorization for
    archive, upload, TestFlight group changes, external review, or public release.
 
 ## Durable references

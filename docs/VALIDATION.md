@@ -1,5 +1,27 @@
 # Validation plan
 
+## 2026-09-27 resumed final-candidate audit
+
+- Connected the pre-account Apple/Google create/join owner and the strict signed
+  Team runtime while keeping normal production configuration empty.
+- Corrected the opt-in Google callback registration so the app URL type resolves
+  to the exact approved redirect scheme. A synthetic opt-in configuration read-back
+  confirmed the two values match.
+- Changed agreement-key custody to register its cleanup scope before Keychain
+  insertion. A new failure-path test proves registration failure prevents the
+  identity from being stored.
+- Complete serial Swift package: **420 tests in 39 suites PASS** with no compiler
+  warnings in the final run.
+- Localization source validation: **392 keys complete across English plus 15
+  translated locales**. All 32 compiled app/widget localization plists validate.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-goal-derived`; bundle `com.zaidsafa.pinbook.ios`, version
+  `0.1.0`, build `3`, with all nine Team production values empty.
+- Plist, project and entitlement lint pass. Generated AASA JSON is valid for app
+  ID `F98S3VN5NL.com.zaidsafa.pinbook.ios` and the `/join` route.
+- No signing, installed-device acceptance, provider setup, server deployment,
+  archive, TestFlight upload, or production activation occurred.
+
 ## 2026-09-05 default-off Team production composition
 
 - Added all-or-empty validation for the public Team service origin, Apple and

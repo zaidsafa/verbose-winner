@@ -1,7 +1,7 @@
 #if canImport(AppAuthCore)
 import Foundation
 import CryptoKit
-import AppAuthCore
+@preconcurrency import AppAuthCore
 import Testing
 #if SWIFT_PACKAGE
 @testable import PinbookCore
@@ -85,7 +85,7 @@ struct TeamGoogleOAuthRequestTests {
             #expect(response == nil && (error as NSError?)?.code == OIDErrorCode.userCanceledAuthorizationFlow.rawValue)
             replies += 1
         }
-        flow.cancel(completion: {})
+        await flow.cancel()
         #expect(replies == 1)
         let redirect = try #require(request.redirectURL)
         #expect(throws: (any Error).self) { try flow.resumeExternalUserAgentFlow(redirect) }

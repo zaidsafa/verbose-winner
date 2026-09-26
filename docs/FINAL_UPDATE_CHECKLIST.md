@@ -7,10 +7,19 @@ ones; neither compiled source nor a placeholder counts as a completed feature.
 
 The final archive is additionally blocked on a real receipt copied from
 `Config/FinalAcceptance.template.json` and accepted by
-`node Scripts/verify-final-acceptance.mjs <receipt>`. The template intentionally
+`node scripts/verify-final-acceptance.mjs <receipt>`. The template intentionally
 contains only `PENDING` states; it is not acceptance evidence. The receipt binds
 the exact iOS/Android source commits, artifacts, versions, signing identities,
 staging migration and the physical Android-to-iPhone matrix.
+
+Current 2026-09-27 local candidate evidence: the complete serial Swift suite
+passes **420 tests in 39 suites**, **392 localization keys** pass across English
+plus 15 translated locales, and the unsigned universal Release Simulator build
+passes with all nine Team production values empty. The opt-in Team Google callback
+scheme now matches the approved redirect scheme, and agreement-key cleanup is
+registered before identity insertion. This is source/build evidence only. It does
+not close the signed-device, provider, server, cross-platform, archive, TestFlight,
+or production gates below.
 
 Latest local-only progress: encrypted fetch now strictly decrypts and atomically
 archives each note with its ciphertext-bound pending receipt before any possible

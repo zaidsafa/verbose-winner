@@ -1,5 +1,34 @@
 import SwiftData
 import SwiftUI
+import UIKit
+
+@MainActor
+private enum PinbookTeamRuntime {
+    static func installed(allowsExternalRequests: Bool) -> TeamWorkspaceRuntimeConfiguration {
+        do {
+            return try .production(allowsExternalRequests: allowsExternalRequests,
+                presentationAnchor: { foregroundWindow() },
+                presenting: { foregroundPresenter() })
+        } catch {
+            return .disabled
+        }
+    }
+
+    private static func foregroundWindow() -> UIWindow? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+            .filter { $0.activationState == .foregroundActive }
+        return scenes.flatMap(\.windows).first(where: \.isKeyWindow)
+            ?? scenes.flatMap(\.windows).first(where: { !$0.isHidden && $0.alpha > 0 })
+    }
+
+    private static func foregroundPresenter() -> UIViewController? {
+        var controller = foregroundWindow()?.rootViewController
+        while let presented = controller?.presentedViewController {
+            controller = presented
+        }
+        return controller
+    }
+}
 
 enum PinbookLanguage: String, CaseIterable, Identifiable {
     case system
@@ -181,9 +210,11 @@ struct AppShellView: View {
     private let teamWorkspaceRuntime: TeamWorkspaceRuntimeConfiguration
 
     init(launchConfiguration: PinbookLaunchConfiguration = .production,
-         teamWorkspaceRuntime: TeamWorkspaceRuntimeConfiguration = .productionDefault) {
+         teamWorkspaceRuntime: TeamWorkspaceRuntimeConfiguration? = nil) {
         self.launchConfiguration = launchConfiguration
         self.teamWorkspaceRuntime = teamWorkspaceRuntime
+            ?? PinbookTeamRuntime.installed(
+                allowsExternalRequests: !launchConfiguration.usesEphemeralStore)
         _selection = State(initialValue: launchConfiguration.initialTab)
         _personalDriveRuntime = State(initialValue: PersonalGoogleDriveRuntime(
             allowsExternalRequests: !launchConfiguration.usesEphemeralStore
@@ -288,6 +319,7 @@ struct AppShellView: View {
         }
         .onOpenURL { url in
             if personalDriveRuntime.handleRedirect(url) { return }
+            if teamWorkspaceRuntime.handleGoogleRedirect(url) { return }
             if routeTeamInvitation(url) { return }
             guard let scheme = Bundle.main.object(forInfoDictionaryKey: "PinbookURLScheme") as? String,
                   let deepLink = PinbookDeepLink(url: url, expectedScheme: scheme) else { return }

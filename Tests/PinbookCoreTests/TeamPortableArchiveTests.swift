@@ -427,15 +427,37 @@ private final class FakeTeamRecoveryKeychain: TeamRecoveryKeychain, @unchecked S
     var copyResult: CFTypeRef?
     var added: [[String: Any]] = []
     var copied: [[String: Any]] = []
+    var deleteStatus: OSStatus = errSecSuccess
+    var deleted: [[String: Any]] = []
     func add(_ query: [String: Any]) -> OSStatus { added.append(query); return addStatus }
     func copy(_ query: [String: Any]) -> (OSStatus, CFTypeRef?) {
         copied.append(query)
         return (copyStatus, copyResult)
     }
+    func delete(_ query: [String: Any]) -> OSStatus {
+        deleted.append(query); return deleteStatus
+    }
 }
 
 @Suite(.serialized)
 struct TeamPortableArchiveTests {
+    @Test func accountDeletionRemovesExactRecoveryKeyAndIsIdempotent() throws {
+        let backend = FakeTeamRecoveryKeychain()
+        let store = TeamRecoveryKeyStore(testService: "public-cleanup-test",
+                                         keychain: backend)
+        try store.remove(accountId: "alice")
+        #expect(backend.deleted.count == 1)
+        #expect(backend.deleted[0][kSecAttrService as String] as? String
+            == "public-cleanup-test")
+        #expect(backend.deleted[0][kSecAttrAccount as String] as? String == "alice")
+        backend.deleteStatus = errSecItemNotFound
+        try store.remove(accountId: "alice")
+        backend.deleteStatus = errSecInteractionNotAllowed
+        #expect(throws: TeamRecoveryKeyError.unavailable(errSecInteractionNotAllowed)) {
+            try store.remove(accountId: "alice")
+        }
+    }
+
     @Test func recoveryKeyCustodyUsesDeviceOnlyProtectionAndRefusesReplacement() throws {
         let backend = FakeTeamRecoveryKeychain()
         let store = TeamRecoveryKeyStore(testService: "public-policy-test", keychain: backend)

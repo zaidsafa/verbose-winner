@@ -20,6 +20,14 @@ private final class AgreementMemoryStore: TeamAgreementKeyStoring, @unchecked Se
             return true
         }
     }
+    var count: Int { lock.withLock { values.count } }
+}
+private struct AgreementRejectingRegistry: TeamAgreementScopeRegistering {
+    func register(_ scope: TeamAgreementScope) throws { throw TeamAgreementKeyError.unavailable }
+    func identifiers(origin: String, accountID: String,
+                     authorityEpoch: String) throws -> [String] { [] }
+    func removeAll(origin: String, accountID: String,
+                   authorityEpoch: String) throws {}
 }
 private final class AgreementFixtureKeys: TeamAgreementKeyProviding, @unchecked Sendable {
     private let lock = NSLock()
@@ -87,6 +95,16 @@ struct TeamAgreementKeyCustodyTests {
         let first = try value.prepare()
         #expect(try value.current().keyThumbprint == first.keyThumbprint)
         #expect(keys.creates == 1)
+    }
+
+    @Test func failedCleanupRegistrationPreventsCustodyInsertion() throws {
+        let store = AgreementMemoryStore(), keys = AgreementFixtureKeys()
+        let value = try TeamAgreementKeyCustody(origin: "https://pinbook.invalid",
+            accountID: "account", authorityEpoch: "epoch", enrollmentID: "enrollment",
+            storage: store, keys: keys, registry: AgreementRejectingRegistry(),
+            requireAccess: {})
+        #expect(throws: TeamAgreementKeyError.unavailable) { try value.prepare() }
+        #expect(store.count == 0)
     }
 
     @Test func twoCustodiesDeriveEqualWrappingKeyAndRejectChangedThumbprint() throws {

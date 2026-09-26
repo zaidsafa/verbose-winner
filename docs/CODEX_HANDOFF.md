@@ -1,6 +1,6 @@
 # Pinbook iOS Codex handoff
 
-Updated: 2026-09-05 (Asia/Shanghai)
+Updated: 2026-09-27 (Asia/Shanghai)
 
 ## Owner release gate — no incremental TestFlight updates
 
@@ -48,6 +48,19 @@ Updated: 2026-09-05 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Exact resumed candidate checkpoint: the pre-account Apple/Google create/join
+  owner and connected Team runtime are composed while normal production values
+  remain empty. The opt-in Google callback URL type now resolves to the approved
+  redirect scheme, and agreement-key cleanup scope is registered before Keychain
+  insertion. Complete serial Swift **420/420 in 39 suites**, localization **392
+  keys across English plus 15 translations**, plist/project/entitlement lint,
+  valid generated AASA, all 32 compiled localization plists, and an unsigned
+  arm64+x86_64 Release Simulator build pass at
+  `/private/tmp/pinbook-goal-derived`. The app remains
+  `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`, with all nine Team
+  values empty. No signing, installed-device acceptance, provider/server change,
+  archive, TestFlight upload, or production activation occurred.
+
 - Production-composition checkpoint: the default-off Team workspace now has one
   all-or-empty public build configuration, a shared strict HTTPS/session client
   across authentication, onboarding, device, membership, invitations, delivery
@@ -59,14 +72,16 @@ Updated: 2026-09-05 (Asia/Shanghai)
   across every team store, device/join custody, agreement keys, Terms and the
   exact session. Associated Domains stays opt-in and the deterministic AASA
   generator produces `F98S3VN5NL.com.zaidsafa.pinbook.ios` without committing a
-  live host. Complete Swift **414/414 in 39 suites**, localization **371 keys
+  live host. This earlier checkpoint recorded Swift **414/414 in 39 suites** and
+  localization **371 keys
   across English plus 15 translations**, plist/project/entitlement lint,
   `git diff --check`, generated AASA JSON, and an unsigned arm64+x86_64 Release
   Simulator build pass at `/private/tmp/pinbook-composition-derived`. The built
   app remains `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`, with all
-  eight Team production values empty. Production remains inert. An ignored
-  complete production configuration, explicit pre-connection onboarding owner,
-  migration-028 worker evidence, published AASA/App ID/provisioning and physical
+  eight Team production values empty. The 2026-09-27 checkpoint above supersedes
+  those counts and closes the pre-connection owner source gap. Production remains
+  inert. An ignored complete production configuration, migration-028 worker
+  evidence, published AASA/App ID/provisioning, live provider setup and physical
   cross-platform staging acceptance remain required. No device/provider/server,
   signing, archive, TestFlight or production state changed in this checkpoint.
   See `TEAM_PRODUCTION_COMPOSITION_CHECKPOINT.md`.

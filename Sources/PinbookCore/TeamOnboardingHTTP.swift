@@ -254,9 +254,16 @@ extension TeamAuthHTTPClient {
               try TeamAuthWire.boolean(object, "active") == false else { throw TeamAuthHTTPError.invalidResponse }
     }
     func createTeam(teamID: String, enrollmentID: String, session: TeamAccountSessionSnapshot) async throws -> TeamMembership {
+        try await createTeam(teamID: teamID, enrollmentID: enrollmentID,
+            ticket: .init(snapshot: session))
+    }
+    func createTeam(teamID: String, enrollmentID: String,
+                    ticket: TeamAccountAccessTicket) async throws -> TeamMembership {
         try TeamOnboardingWire.ids(teamID, enrollmentID)
-        let reply = try await onboarding(.createTeam, fields: ["teamId": teamID, "enrollmentId": enrollmentID], session: session)
-        return try TeamOnboardingWire.membership(reply.data, teamID: teamID, enrollmentID: enrollmentID, accountID: session.accountID, role: .owner)
+        let reply = try await onboarding(.createTeam,
+            fields: ["teamId": teamID, "enrollmentId": enrollmentID], ticket: ticket)
+        return try TeamOnboardingWire.membership(reply.data, teamID: teamID,
+            enrollmentID: enrollmentID, accountID: ticket.accountID, role: .owner)
     }
     func currentTeam(teamID: String, enrollmentID: String, session: TeamAccountSessionSnapshot) async throws -> TeamMembership {
         try await currentTeam(teamID: teamID, enrollmentID: enrollmentID, ticket: .init(snapshot: session))

@@ -3,6 +3,9 @@ import CryptoKit
 import Foundation
 import Security
 import SQLite3
+#if canImport(UIKit)
+import UIKit
+#endif
 
 enum TeamWorkspaceError: Error, Equatable {
     case invalidInput
@@ -29,6 +32,81 @@ protocol TeamTermsStoring: Sendable {
 
 protocol TeamAccountTermsDeleting: Sendable {
     func removeAll(accountID: String) throws
+}
+
+protocol TeamBlockStateStoring: Sendable {
+    func blockedAccountIDs(accountID: String, teamID: String) throws -> Set<String>
+    func setBlocked(_ blocked: Bool, userID: String,
+                    accountID: String, teamID: String) throws
+}
+
+protocol TeamAccountBlockDeleting: Sendable {
+    func removeAllBlocks(accountID: String) throws
+}
+
+/// Durable device-local moderation preference. The server remains authoritative;
+/// local state changes only after the matching remote operation succeeds.
+final class UserDefaultsTeamBlockStore: TeamBlockStateStoring,
+    TeamAccountBlockDeleting, @unchecked Sendable {
+    private let defaults: UserDefaults
+    private let lock = NSLock()
+
+    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
+
+    func blockedAccountIDs(accountID: String, teamID: String) throws -> Set<String> {
+        try validate(accountID, teamID)
+        return try lock.withLock {
+            try loadUnlocked(accountID: accountID, teamID: teamID)
+        }
+    }
+
+    func setBlocked(_ blocked: Bool, userID: String,
+                    accountID: String, teamID: String) throws {
+        try validate(accountID, teamID)
+        guard TeamAuthWire.identifier(userID), userID != accountID else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        try lock.withLock {
+            var values = try loadUnlocked(accountID: accountID, teamID: teamID)
+            if blocked { values.insert(userID) } else { values.remove(userID) }
+            guard values.count <= 100 else { throw TeamWorkspaceError.unavailable }
+            defaults.set(values.sorted(), forKey: key(accountID, teamID))
+        }
+    }
+
+    func removeAllBlocks(accountID: String) throws {
+        guard TeamAuthWire.identifier(accountID) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        lock.withLock {
+            let prefix = "team-blocks." + accountID + "."
+            for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(prefix) {
+                defaults.removeObject(forKey: key)
+            }
+        }
+    }
+
+    private func loadUnlocked(accountID: String, teamID: String) throws -> Set<String> {
+        let values = defaults.stringArray(forKey: key(accountID, teamID)) ?? []
+        guard values.count <= 100, Set(values).count == values.count,
+              values.allSatisfy(TeamAuthWire.identifier) else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        return Set(values)
+    }
+
+    private func key(_ accountID: String, _ teamID: String) -> String {
+        let digest = SHA256.hash(data: Data((accountID + "\u{0}" + teamID).utf8))
+        return "team-blocks." + accountID + "." + digest.map {
+            String(format: "%02x", $0)
+        }.joined()
+    }
+
+    private func validate(_ accountID: String, _ teamID: String) throws {
+        guard TeamAuthWire.identifier(accountID), TeamAuthWire.identifier(teamID) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+    }
 }
 
 /// Device-local, non-synchronizing consent record. It contains no invitation,
@@ -1250,10 +1328,13 @@ protocol TeamAccountSecureCustodyDeleting: Sendable {
 struct TeamAccountLocalStoreCleanup: TeamAccountSecureCustodyDeleting, Sendable {
     let outbox: TeamOutgoingStore
     let inbox: TeamInboxStore
-    let agreements: [TeamAgreementKeyCustody]
+    let agreements: any TeamAccountAgreementDeleting
+    let recoveryKeys: TeamRecoveryKeyStore
     let device: TeamDeviceCustody
     let joins: TeamJoinStore
+    let owners: TeamOwnedTeamStore
     let terms: any TeamAccountTermsDeleting
+    let blocks: any TeamAccountBlockDeleting
     let sessions: TeamAccountSessionStore
 
     func delete(step: TeamAccountDeletionCleanupStep,
@@ -1270,14 +1351,21 @@ struct TeamAccountLocalStoreCleanup: TeamAccountSecureCustodyDeleting, Sendable 
             try joins.deleteAccount(audience: binding.origin,
                                     accountID: binding.accountID,
                                     authorityEpoch: binding.authorityEpoch)
+            try owners.deleteAccount(audience: binding.origin,
+                                     accountID: binding.accountID,
+                                     authorityEpoch: binding.authorityEpoch)
         case .agreementIdentity:
-            for agreement in agreements { try agreement.deleteIdentity() }
+            try agreements.removeAll(origin: binding.origin,
+                accountID: binding.accountID,
+                authorityEpoch: binding.authorityEpoch)
+            try recoveryKeys.remove(accountId: binding.accountID)
         case .deviceSigningIdentity:
             try device.deleteAccount(audience: binding.origin,
                                      accountID: binding.accountID,
                                      authorityEpoch: binding.authorityEpoch)
         case .termsAcceptance:
             try terms.removeAll(accountID: binding.accountID)
+            try blocks.removeAllBlocks(accountID: binding.accountID)
         case .accountSession:
             try sessions.removeCurrent(scope: scope, consent: true)
         }
@@ -1649,6 +1737,7 @@ struct TeamWorkspacePublicBuildConfiguration: Equatable, Sendable {
     static let appleClientIDKey = "PinbookTeamAppleClientID"
     static let googleNativeClientIDKey = "PinbookTeamGoogleNativeClientID"
     static let googleServerClientIDKey = "PinbookTeamGoogleServerClientID"
+    static let googleRedirectSchemeKey = "PinbookTeamGoogleRedirectScheme"
     static let authorityEpochKey = "PinbookTeamAuthorityEpoch"
     static let termsURLKey = "PinbookTeamTermsURL"
     static let privacyURLKey = "PinbookTeamPrivacyURL"
@@ -1658,6 +1747,7 @@ struct TeamWorkspacePublicBuildConfiguration: Equatable, Sendable {
     let appleClientID: String
     let googleNativeClientID: String
     let googleServerClientID: String
+    let googleRedirectScheme: String
     let authorityEpoch: String
     let termsURL: URL
     let privacyURL: URL
@@ -1665,7 +1755,8 @@ struct TeamWorkspacePublicBuildConfiguration: Equatable, Sendable {
 
     static func parse(_ values: [String: String]) throws -> TeamWorkspaceBuildConfiguration {
         let keys = [serviceOriginKey, appleClientIDKey, googleNativeClientIDKey,
-                    googleServerClientIDKey, authorityEpochKey, termsURLKey,
+                    googleServerClientIDKey, googleRedirectSchemeKey,
+                    authorityEpochKey, termsURLKey,
                     privacyURLKey, invitationHostKey]
         let normalized = Dictionary(uniqueKeysWithValues: keys.map {
             ($0, values[$0]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
@@ -1679,6 +1770,9 @@ struct TeamWorkspacePublicBuildConfiguration: Equatable, Sendable {
               validClientID(normalized[appleClientIDKey]!),
               validClientID(normalized[googleNativeClientIDKey]!),
               validClientID(normalized[googleServerClientIDKey]!),
+              normalized[googleRedirectSchemeKey]
+                == normalized[googleNativeClientIDKey]!.split(separator: ".")
+                    .reversed().joined(separator: "."),
               TeamAuthWire.identifier(normalized[authorityEpochKey]!),
               validHost(normalized[invitationHostKey]!),
               service.host?.lowercased() == normalized[invitationHostKey]!.lowercased() else {
@@ -1688,13 +1782,15 @@ struct TeamWorkspacePublicBuildConfiguration: Equatable, Sendable {
             appleClientID: normalized[appleClientIDKey]!,
             googleNativeClientID: normalized[googleNativeClientIDKey]!,
             googleServerClientID: normalized[googleServerClientIDKey]!,
+            googleRedirectScheme: normalized[googleRedirectSchemeKey]!,
             authorityEpoch: normalized[authorityEpochKey]!, termsURL: terms,
             privacyURL: privacy, invitationHost: normalized[invitationHostKey]!.lowercased()))
     }
 
     static func parse(bundle: Bundle) throws -> TeamWorkspaceBuildConfiguration {
         let keys = [serviceOriginKey, appleClientIDKey, googleNativeClientIDKey,
-                    googleServerClientIDKey, authorityEpochKey, termsURLKey,
+                    googleServerClientIDKey, googleRedirectSchemeKey,
+                    authorityEpochKey, termsURLKey,
                     privacyURLKey, invitationHostKey]
         return try parse(Dictionary(uniqueKeysWithValues: keys.map {
             ($0, bundle.object(forInfoDictionaryKey: $0) as? String ?? "")
@@ -1702,7 +1798,8 @@ struct TeamWorkspacePublicBuildConfiguration: Equatable, Sendable {
     }
 
     private static func validOrigin(_ url: URL) -> Bool {
-        guard canonicalHTTPS(url), url.path.isEmpty || url.path == "/" else { return false }
+        guard canonicalHTTPS(url), url.path.isEmpty,
+              !url.absoluteString.hasSuffix("/") else { return false }
         return url.query == nil && url.fragment == nil
     }
     private static func validPolicyURL(_ url: URL) -> Bool {
@@ -1768,12 +1865,715 @@ struct TeamWorkspaceHTTPComposition: Sendable {
     }
 }
 
+enum TeamOwnedTeamPhase: String, Sendable {
+    case prepared = "PREPARED"
+    case createPending = "CREATE_PENDING"
+    case confirmed = "CONFIRMED"
+}
+
+struct TeamOwnedTeamRecord: Equatable, Sendable, TeamOnboardingDiagnostic {
+    let scope: TeamDeviceScope
+    let providerID: String
+    let teamID: String
+    let enrollmentID: String
+    let revision: String
+    let phase: TeamOwnedTeamPhase
+    let checkedAt: Int64
+    let membershipRevision: Int64?
+}
+
+protocol TeamOwnedTeamMetadataStoring: Sendable {
+    func load() throws -> Data?
+    func replace(expected: Data?, next: Data) throws
+}
+
+private struct KeychainTeamOwnedTeamMetadata: TeamOwnedTeamMetadataStoring {
+    static let maximumBytes = 65_536
+    private let service = "com.zaidsafa.pinbook.ios.team-owned-teams.v1"
+    private let account = "bounded-owned-team-index"
+    private var base: [String: Any] {
+        [kSecClass as String: kSecClassGenericPassword,
+         kSecAttrService as String: service,
+         kSecAttrAccount as String: account,
+         kSecAttrSynchronizable as String: false,
+         kSecUseDataProtectionKeychain as String: true]
+    }
+
+    func load() throws -> Data? {
+        var query = base
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecReturnData as String] = true
+        query[kSecReturnAttributes as String] = true
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess,
+              let fields = result as? [String: Any],
+              fields[kSecAttrService as String] as? String == service,
+              fields[kSecAttrAccount as String] as? String == account,
+              fields[kSecAttrSynchronizable as String] as? Bool == false,
+              fields[kSecAttrAccessible as String] as? String
+                == kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly as String,
+              let data = fields[kSecValueData as String] as? Data,
+              (1...Self.maximumBytes).contains(data.count),
+              fields[kSecAttrGeneric as String] as? Data
+                == Data(SHA256.hash(data: data)) else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        return data
+    }
+
+    func replace(expected: Data?, next: Data) throws {
+        guard (1...Self.maximumBytes).contains(next.count),
+              expected.map({ (1...Self.maximumBytes).contains($0.count) }) ?? true else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        let payload: [String: Any] = [
+            kSecValueData as String: next,
+            kSecAttrGeneric as String: Data(SHA256.hash(data: next))
+        ]
+        let status: OSStatus
+        if let expected {
+            var query = base
+            query[kSecAttrAccessible as String] = kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+            query[kSecAttrGeneric as String] = Data(SHA256.hash(data: expected))
+            status = SecItemUpdate(query as CFDictionary, payload as CFDictionary)
+        } else {
+            var attributes = base.merging(payload) { _, new in new }
+            attributes[kSecAttrAccessible as String] = kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+            status = SecItemAdd(attributes as CFDictionary, nil)
+        }
+        if status == errSecDuplicateItem || status == errSecItemNotFound {
+            throw TeamWorkspaceError.busy
+        }
+        guard status == errSecSuccess else { throw TeamWorkspaceError.unavailable }
+    }
+}
+
+private struct TeamOwnedTeamIndex {
+    var generation = UUID()
+    var records = [TeamOwnedTeamRecord]()
+
+    private static func scopeKey(_ value: TeamOwnedTeamRecord) -> String {
+        value.scope.audience + "\n" + value.scope.accountID + "\n"
+            + value.scope.authorityEpoch + "\n" + value.providerID
+    }
+
+    func encoded() throws -> Data {
+        let grouped = Dictionary(grouping: records, by: Self.scopeKey)
+        guard records.count <= 80, grouped.count <= 8,
+              grouped.values.allSatisfy({ $0.count <= 10 }),
+              grouped.values.allSatisfy({
+                  $0.filter { $0.phase != .confirmed }.count <= 1
+              }) else { throw TeamWorkspaceError.invalidInput }
+        let rows: [[String: Any]] = records.map {
+            ["origin": $0.scope.audience, "accountId": $0.scope.accountID,
+             "authorityEpoch": $0.scope.authorityEpoch,
+             "providerId": $0.providerID, "teamId": $0.teamID,
+             "enrollmentId": $0.enrollmentID, "revision": $0.revision,
+             "phase": $0.phase.rawValue, "checkedAt": $0.checkedAt,
+             "membershipRevision": $0.membershipRevision as Any? ?? NSNull()]
+        }
+        let data = try JSONSerialization.data(withJSONObject: [
+            "version": 1, "generation": generation.uuidString, "records": rows
+        ], options: [.sortedKeys, .withoutEscapingSlashes])
+        guard data.count <= KeychainTeamOwnedTeamMetadata.maximumBytes else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        return data
+    }
+
+    static func decoded(_ data: Data?) throws -> Self {
+        guard let data else { return .init() }
+        do {
+            let object = try TeamStrictJSON.object(data,
+                maximumBytes: KeychainTeamOwnedTeamMetadata.maximumBytes)
+            guard Set(object.keys) == ["version", "generation", "records"],
+                  try TeamAuthWire.time(object, "version") == 1,
+                  let rawGeneration = object["generation"] as? String,
+                  let generation = UUID(uuidString: rawGeneration),
+                  generation.uuidString == rawGeneration,
+                  let rows = object["records"] as? [[String: Any]],
+                  rows.count <= 80 else { throw TeamWorkspaceError.bindingMismatch }
+            var result = Self(generation: generation)
+            var identities = Set<String>()
+            for row in rows {
+                guard Set(row.keys) == ["origin", "accountId", "authorityEpoch",
+                    "providerId", "teamId", "enrollmentId", "revision", "phase",
+                    "checkedAt", "membershipRevision"],
+                      let origin = row["origin"] as? String,
+                      let phaseText = row["phase"] as? String,
+                      let phase = TeamOwnedTeamPhase(rawValue: phaseText) else {
+                    throw TeamWorkspaceError.bindingMismatch
+                }
+                let scope = try TeamDeviceScope(audience: origin,
+                    accountID: TeamAuthWire.string(row, "accountId"),
+                    authorityEpoch: TeamAuthWire.string(row, "authorityEpoch"))
+                let providerID = try TeamAuthWire.string(row, "providerId")
+                let teamID = try TeamAuthWire.string(row, "teamId")
+                let enrollmentID = try TeamAuthWire.string(row, "enrollmentId")
+                let revision = try TeamAuthWire.string(row, "revision", secret: true)
+                let checkedAt = try TeamAuthWire.time(row, "checkedAt")
+                let membershipRevision: Int64?
+                if phase == .confirmed {
+                    membershipRevision = try TeamAuthWire.time(row, "membershipRevision")
+                } else {
+                    guard row["membershipRevision"] is NSNull else {
+                        throw TeamWorkspaceError.bindingMismatch
+                    }
+                    membershipRevision = nil
+                }
+                let identity = origin + "\n" + scope.accountID + "\n"
+                    + scope.authorityEpoch + "\n" + providerID + "\n" + teamID
+                guard identities.insert(identity).inserted else {
+                    throw TeamWorkspaceError.bindingMismatch
+                }
+                result.records.append(.init(scope: scope, providerID: providerID,
+                    teamID: teamID, enrollmentID: enrollmentID,
+                    revision: revision, phase: phase, checkedAt: checkedAt,
+                    membershipRevision: membershipRevision))
+            }
+            _ = try result.encoded()
+            return result
+        } catch {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+    }
+}
+
+/// Device-only metadata for stable owner-team creation and restart recovery. It
+/// stores no provider token, session token, invitation, private key or note.
+final class TeamOwnedTeamStore: @unchecked Sendable {
+    private let storage: any TeamOwnedTeamMetadataStoring
+    private let clock: @Sendable () -> Int64
+    private let identifier: @Sendable () throws -> String
+    private let lock = NSLock()
+
+    init() {
+        storage = KeychainTeamOwnedTeamMetadata()
+        clock = { Int64(Date().timeIntervalSince1970 * 1_000) }
+        identifier = Self.randomIdentifier
+    }
+
+    init(storage: any TeamOwnedTeamMetadataStoring,
+         clock: @escaping @Sendable () -> Int64,
+         identifier: @escaping @Sendable () throws -> String) {
+        self.storage = storage; self.clock = clock; self.identifier = identifier
+    }
+
+    func reserve(scope: TeamDeviceScope, providerID: String,
+                 enrollmentID: String) throws -> TeamOwnedTeamRecord {
+        guard TeamAuthWire.identifier(providerID),
+              TeamAuthWire.identifier(enrollmentID) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        return try update { index in
+            let rows = index.records.filter {
+                $0.scope == scope && $0.providerID == providerID
+            }
+            if let pending = rows.first(where: { $0.phase != .confirmed }) {
+                guard pending.enrollmentID == enrollmentID else {
+                    throw TeamWorkspaceError.bindingMismatch
+                }
+                return pending
+            }
+            guard rows.count < 10 else { throw TeamWorkspaceError.unavailable }
+            let value = TeamOwnedTeamRecord(scope: scope, providerID: providerID,
+                teamID: try identifier(), enrollmentID: enrollmentID,
+                revision: try identifier(), phase: .prepared,
+                checkedAt: try now(), membershipRevision: nil)
+            guard TeamAuthWire.credential(value.teamID),
+                  TeamAuthWire.credential(value.revision) else {
+                throw TeamWorkspaceError.invalidInput
+            }
+            index.records.append(value)
+            return value
+        }
+    }
+
+    func beginCreate(_ expected: TeamOwnedTeamRecord) throws -> TeamOwnedTeamRecord {
+        try transition(expected) { current in
+            guard current.phase != .confirmed else {
+                throw TeamWorkspaceError.bindingMismatch
+            }
+            return .init(scope: current.scope, providerID: current.providerID,
+                teamID: current.teamID, enrollmentID: current.enrollmentID,
+                revision: try identifier(), phase: .createPending,
+                checkedAt: try now(after: current.checkedAt), membershipRevision: nil)
+        }
+    }
+
+    func beginRecovery(_ expected: TeamOwnedTeamRecord) throws -> TeamOwnedTeamRecord {
+        try transition(expected) { current in
+            .init(scope: current.scope, providerID: current.providerID,
+                teamID: current.teamID, enrollmentID: current.enrollmentID,
+                revision: try identifier(), phase: current.phase,
+                checkedAt: try now(after: current.checkedAt),
+                membershipRevision: current.membershipRevision)
+        }
+    }
+
+    func confirm(_ expected: TeamOwnedTeamRecord,
+                 membership: TeamMembership) throws -> TeamOwnedTeamRecord {
+        try transition(expected) { current in
+            guard membership.teamID == current.teamID,
+                  membership.accountID == current.scope.accountID,
+                  membership.enrollmentID == current.enrollmentID,
+                  membership.role == .owner,
+                  membership.revision >= (current.membershipRevision ?? 0) else {
+                throw TeamWorkspaceError.bindingMismatch
+            }
+            return .init(scope: current.scope, providerID: current.providerID,
+                teamID: current.teamID, enrollmentID: current.enrollmentID,
+                revision: try identifier(), phase: .confirmed,
+                checkedAt: try now(after: current.checkedAt),
+                membershipRevision: membership.revision)
+        }
+    }
+
+    func records(scope: TeamDeviceScope, providerID: String) throws
+        -> [TeamOwnedTeamRecord] {
+        guard TeamAuthWire.identifier(providerID) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        return try lock.withLock {
+            try TeamOwnedTeamIndex.decoded(storage.load()).records.filter {
+                $0.scope == scope && $0.providerID == providerID
+            }.sorted { $0.teamID < $1.teamID }
+        }
+    }
+
+    func deleteAccount(audience: String, accountID: String,
+                       authorityEpoch: String) throws {
+        let scope = try TeamDeviceScope(audience: audience, accountID: accountID,
+                                        authorityEpoch: authorityEpoch)
+        try update { index in
+            index.records.removeAll { $0.scope == scope }
+        }
+    }
+
+    private func transition(_ expected: TeamOwnedTeamRecord,
+                            change: (TeamOwnedTeamRecord) throws
+                                -> TeamOwnedTeamRecord) throws -> TeamOwnedTeamRecord {
+        try update { index in
+            guard let offset = index.records.firstIndex(where: {
+                $0.scope == expected.scope && $0.providerID == expected.providerID
+                    && $0.teamID == expected.teamID
+            }), index.records[offset] == expected else {
+                throw TeamWorkspaceError.bindingMismatch
+            }
+            let value = try change(expected)
+            guard TeamAuthWire.credential(value.revision) else {
+                throw TeamWorkspaceError.invalidInput
+            }
+            index.records[offset] = value
+            return value
+        }
+    }
+
+    private func update<T>(_ body: (inout TeamOwnedTeamIndex) throws -> T) throws -> T {
+        try lock.withLock {
+            let previous = try storage.load()
+            var index = try TeamOwnedTeamIndex.decoded(previous)
+            let result = try body(&index)
+            index.generation = UUID()
+            try storage.replace(expected: previous, next: try index.encoded())
+            return result
+        }
+    }
+
+    private func now(after previous: Int64 = 0) throws -> Int64 {
+        let value = clock()
+        guard value >= previous, value <= TeamAuthWire.maximumSafeTime else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        return value
+    }
+
+    private static func randomIdentifier() throws -> String {
+        var bytes = Data(count: 32)
+        let status = bytes.withUnsafeMutableBytes {
+            SecRandomCopyBytes(kSecRandomDefault, 32, $0.baseAddress!)
+        }
+        guard status == errSecSuccess else { throw TeamWorkspaceError.unavailable }
+        return TeamDeviceEnrollmentWire.encode(bytes)
+    }
+}
+
+protocol TeamWorkspaceOnboardingTransport: TeamAccountSigningIn,
+    TeamInvitationAccountTransport, TeamDeviceRegistering, TeamMembershipTransport {
+    func createTeam(teamID: String, enrollmentID: String,
+                    ticket: TeamAccountAccessTicket) async throws -> TeamMembership
+}
+extension TeamAuthHTTPClient: TeamWorkspaceOnboardingTransport {}
+
+struct TeamWorkspaceNativeIdentityProviders: Sendable {
+    let apple: any TeamNativeIdentityAuthorizing
+    let google: any TeamNativeIdentityAuthorizing
+    let googleRedirect: @MainActor @Sendable (URL) -> Bool
+
+    init(apple: any TeamNativeIdentityAuthorizing,
+         google: any TeamNativeIdentityAuthorizing,
+         googleRedirect: @escaping @MainActor @Sendable (URL) -> Bool = { _ in false }) {
+        self.apple = apple; self.google = google
+        self.googleRedirect = googleRedirect
+    }
+
+    func identity(for provider: TeamNativeSignInProvider)
+        -> any TeamNativeIdentityAuthorizing {
+        provider == .apple ? apple : google
+    }
+}
+
+#if canImport(UIKit) && canImport(AuthenticationServices)
+@MainActor
+extension TeamWorkspaceNativeIdentityProviders {
+    static func live(configuration: TeamWorkspacePublicBuildConfiguration,
+                     bundle: Bundle = .main,
+                     presentationAnchor: @escaping @MainActor () -> UIWindow?,
+                     presenting: @escaping @MainActor () -> UIViewController?) throws -> Self {
+        let schemes = Set((bundle.object(forInfoDictionaryKey: "CFBundleURLTypes")
+            as? [[String: Any]] ?? []).flatMap {
+                $0["CFBundleURLSchemes"] as? [String] ?? []
+            })
+        let googleConfiguration = try TeamGoogleNativeConfiguration(
+            providerID: "google",
+            nativeClientID: configuration.googleNativeClientID,
+            serverClientID: configuration.googleServerClientID,
+            registeredURLSchemes: schemes)
+        let apple = TeamAppleIdentityAuthorizer(presentationAnchor: presentationAnchor)
+        let google = TeamGoogleIdentityAuthorizer(configuration: googleConfiguration,
+                                                   presenting: presenting)
+        return .init(apple: apple, google: google,
+                     googleRedirect: { google.handleRedirect($0) })
+    }
+}
+#endif
+
+protocol TeamWorkspaceConnectedActions: TeamWorkspaceUserActionHandling,
+    TeamWorkspacePresentationProviding {}
+
+protocol TeamWorkspaceConnectedActionBuilding: Sendable {
+    func makeConnected(session: TeamAccountSessionSnapshot,
+                       device: TeamDeviceSnapshot,
+                       membership: TeamMembership) async throws
+        -> any TeamWorkspaceConnectedActions
+}
+
+/// Explicit pre-connection owner. One action owns one full transition; a second
+/// action cannot interleave a provider callback, custody write or membership
+/// commit. Opening an invitation only previews it. The following provider button
+/// is the separate consent that signs in (or reuses the exact displayed account),
+/// registers the device, joins, and mounts the connected handler.
+actor TeamWorkspaceOnboardingActionHandler: TeamWorkspaceUserActionHandling,
+    TeamWorkspacePresentationProviding, TeamWorkspaceSessionBootstrapping {
+    private struct AccountContext: Sendable {
+        let provider: TeamNativeSignInProvider
+        let session: TeamAccountSessionSnapshot
+        let ticket: TeamAccountAccessTicket
+        let device: TeamDeviceSnapshot
+    }
+    private struct PendingInvitation: Sendable {
+        let link: TeamInvitationLink
+        let preview: TeamInvitationPreview
+    }
+
+    private let configuration: TeamWorkspacePublicBuildConfiguration
+    private let sessions: TeamAccountSessionStore
+    private let devices: TeamDeviceCustody
+    private let joins: TeamJoinStore
+    private let owners: TeamOwnedTeamStore
+    private let transport: any TeamWorkspaceOnboardingTransport
+    private let identities: TeamWorkspaceNativeIdentityProviders
+    private let connectedBuilder: any TeamWorkspaceConnectedActionBuilding
+    private let clock: @Sendable () -> TeamSignInMoment
+    private var account: AccountContext?
+    private var pendingInvitation: PendingInvitation?
+    private var connected: (any TeamWorkspaceConnectedActions)?
+    private var connectedTeamID: String?
+    private var working = false
+
+    init(configuration: TeamWorkspacePublicBuildConfiguration,
+         sessions: TeamAccountSessionStore,
+         devices: TeamDeviceCustody,
+         joins: TeamJoinStore,
+         owners: TeamOwnedTeamStore,
+         transport: any TeamWorkspaceOnboardingTransport,
+         identities: TeamWorkspaceNativeIdentityProviders,
+         connectedBuilder: any TeamWorkspaceConnectedActionBuilding,
+         clock: @escaping @Sendable () -> TeamSignInMoment = { .current() }) {
+        self.configuration = configuration; self.sessions = sessions
+        self.devices = devices; self.joins = joins; self.owners = owners
+        self.transport = transport; self.identities = identities
+        self.connectedBuilder = connectedBuilder; self.clock = clock
+    }
+
+    func perform(_ action: TeamWorkspaceUserAction) async throws {
+        guard !working else { throw TeamWorkspaceError.busy }
+        working = true
+        defer { working = false }
+        if let connected {
+            switch action {
+            case .signIn, .createTeam, .openInvitation:
+                throw TeamWorkspaceError.busy
+            default:
+                try await connected.perform(action)
+                return
+            }
+        }
+        switch action {
+        case .signIn(let provider):
+            if let invitation = pendingInvitation {
+                try await join(invitation, provider: provider)
+            } else {
+                account = try await signInAndRegister(provider: provider)
+            }
+        case .createTeam:
+            try await createTeam()
+        case .openInvitation(let url):
+            try await previewInvitation(url)
+        case .issueInvitation, .acceptTerms, .sendNote, .retryPendingNote,
+             .refreshPendingNoteStatus, .refreshInbox,
+             .reportNote, .reportUser, .blockUser, .unblockUser, .deleteAccount:
+            throw TeamWorkspaceError.unavailable
+        }
+    }
+
+    func presentation() async throws -> TeamWorkspacePresentation {
+        if let connected {
+            let value = try await connected.presentation()
+            return .init(notes: value.notes, members: value.members,
+                invitation: value.invitation,
+                connection: .connected(accountID: account?.ticket.accountID ?? "",
+                                       teamID: connectedTeamID ?? ""))
+        }
+        if let pendingInvitation {
+            return .init(notes: [], members: [], invitation: nil,
+                connection: .invitationReady(teamID: pendingInvitation.preview.teamID,
+                    role: pendingInvitation.preview.role,
+                    expiresAt: pendingInvitation.preview.expiresAt))
+        }
+        if let account {
+            return .init(notes: [], members: [], invitation: nil,
+                connection: .accountReady(accountID: account.ticket.accountID))
+        }
+        return .empty
+    }
+
+    func bootstrap(blockedAccountIDs: Set<String>) async throws {
+        guard !working, connected == nil else { return }
+        working = true
+        defer { working = false }
+        var restored: AccountContext?
+        for provider in [TeamNativeSignInProvider.apple, .google] {
+            let scope = try TeamAccountSessionScope(origin: configuration.serviceOrigin,
+                providerID: provider == .apple ? "apple" : "google")
+            do {
+                guard let session = try sessions.load(scope: scope),
+                      !blockedAccountIDs.contains(session.accountID) else { continue }
+                let ticket = try TeamAccountAccessTicket(snapshot: session)
+                try sessions.requireCurrentAccess(ticket, now: clock().wallTime)
+                let deviceScope = try scopeForDevice(accountID: ticket.accountID)
+                guard let device = try devices.load(scope: deviceScope),
+                      device.phase == .registered, device.enrollmentID != nil else {
+                    restored = nil
+                    continue
+                }
+                restored = .init(provider: provider, session: session,
+                    ticket: ticket, device: device)
+                break
+            } catch TeamAccountSessionError.scopeMismatch {
+                continue
+            } catch TeamAccountSessionError.reauthenticationRequired {
+                continue
+            }
+        }
+        account = restored
+        guard let restored, let enrollmentID = restored.device.enrollmentID else { return }
+        let owned = try owners.records(scope: restored.device.scope,
+            providerID: restored.ticket.scope.providerID).filter { $0.phase == .confirmed }
+        let joined = try joins.list(scope: restored.device.scope).filter { $0.phase == .confirmed }
+        guard owned.count + joined.count == 1 else { return }
+        let teamID = owned.first?.teamID ?? joined[0].teamID
+        let membership = try await transport.currentTeam(teamID: teamID,
+            enrollmentID: enrollmentID, ticket: restored.ticket)
+        try await mount(restored, membership: membership)
+    }
+
+    private func previewInvitation(_ url: URL) async throws {
+        guard pendingInvitation == nil else { throw TeamWorkspaceError.busy }
+        let origin = configuration.serviceOrigin.absoluteString
+        let link = try TeamInvitationLink(validating: url, expectedOrigin: origin)
+        guard let token = URLComponents(url: link.url,
+            resolvingAgainstBaseURL: false)?.queryItems?.first(where: {
+                $0.name == "invite"
+            })?.value else { throw TeamWorkspaceError.invalidInput }
+        let preview = try await transport.previewInvitation(token: token)
+        guard preview.expiresAt > clock().wallTime else {
+            throw TeamInvitationAccountError.expired
+        }
+        pendingInvitation = .init(link: link, preview: preview)
+    }
+
+    private func signInAndRegister(provider: TeamNativeSignInProvider) async throws
+        -> AccountContext {
+        let scope = try TeamAccountSessionScope(origin: configuration.serviceOrigin,
+            providerID: provider == .apple ? "apple" : "google")
+        let ticket: TeamAccountAccessTicket
+        if let existing = try? sessions.accessTicket(scope: scope, now: clock().wallTime) {
+            ticket = existing
+        } else {
+            let coordinator = TeamAccountSignInCoordinator(provider: provider,
+                scope: scope, store: sessions,
+                identity: identities.identity(for: provider), transport: transport,
+                clock: clock)
+            ticket = try await coordinator.signInAccess(consent: true)
+        }
+        guard let session = try sessions.load(scope: scope),
+              session.generation == ticket.generation else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let registration = try TeamDeviceRegistration(account: ticket,
+            authorityEpoch: configuration.authorityEpoch, sessions: sessions,
+            devices: TeamRegistrationCustodyDriver(custody: devices),
+            transport: transport, clock: clock)
+        let result = try await registration.register(consent: true)
+        guard case .registered(let device) = result,
+              device.enrollmentID != nil else { throw TeamWorkspaceError.unavailable }
+        return .init(provider: provider, session: session, ticket: ticket, device: device)
+    }
+
+    private func createTeam() async throws {
+        guard let account, let enrollmentID = account.device.enrollmentID else {
+            throw TeamWorkspaceError.unavailable
+        }
+        let prepared = try owners.reserve(scope: account.device.scope,
+            providerID: account.ticket.scope.providerID,
+            enrollmentID: enrollmentID)
+        let marker = try owners.beginCreate(prepared)
+        let membership = try await transport.createTeam(teamID: marker.teamID,
+            enrollmentID: marker.enrollmentID, ticket: account.ticket)
+        _ = try owners.confirm(marker, membership: membership)
+        try await mount(account, membership: membership)
+    }
+
+    private func join(_ pending: PendingInvitation,
+                      provider: TeamNativeSignInProvider) async throws {
+        let token = try invitationToken(pending.link)
+        let scope = try TeamAccountSessionScope(origin: configuration.serviceOrigin,
+            providerID: provider == .apple ? "apple" : "google")
+        let invited = TeamInvitedSignIn(provider: provider, scope: scope,
+            sessions: sessions, identity: identities.identity(for: provider),
+            transport: transport, clock: clock)
+        let display = try await invited.preview(code: token)
+        guard display.teamID == pending.preview.teamID,
+              display.role == pending.preview.role,
+              display.expiresAt == pending.preview.expiresAt else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let intent: TeamInviteJoinIntent
+        if display.accountID != nil {
+            intent = try await invited.existingAccountIntent(display)
+        } else {
+            let consent = try await invited.confirmAccountAccess(display, agreed: true)
+            intent = try await invited.signIn(consent)
+        }
+        let context = try await registerIntent(intent, provider: provider)
+        let membershipOwner = try TeamMembershipJoin(account: context.ticket,
+            authorityEpoch: configuration.authorityEpoch, sessions: sessions,
+            devices: TeamMembershipDeviceDriver(custody: devices),
+            metadata: TeamMembershipMetadataDriver(store: joins),
+            transport: transport, clock: clock)
+        let review = try await membershipOwner.prepare(intent)
+        let joined = try await membershipOwner.join(review, consent: true)
+        guard joined.phase == .confirmed, let revision = joined.membershipRevision else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let role: TeamMembershipRole = joined.role == .member ? .member : .reviewer
+        let membership = TeamMembership(teamID: joined.teamID,
+            accountID: joined.scope.accountID, enrollmentID: joined.enrollmentID,
+            role: role, revision: revision)
+        pendingInvitation = nil
+        try await mount(context, membership: membership)
+    }
+
+    private func registerIntent(_ intent: TeamInviteJoinIntent,
+                                provider: TeamNativeSignInProvider) async throws
+        -> AccountContext {
+        let scope = intent.account.scope
+        guard let session = try sessions.load(scope: scope),
+              session.generation == intent.account.generation else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let registration = try TeamDeviceRegistration(account: intent.account,
+            authorityEpoch: configuration.authorityEpoch, sessions: sessions,
+            devices: TeamRegistrationCustodyDriver(custody: devices),
+            transport: transport, clock: clock)
+        let result = try await registration.register(consent: true)
+        guard case .registered(let device) = result,
+              device.enrollmentID != nil else { throw TeamWorkspaceError.unavailable }
+        return .init(provider: provider, session: session,
+            ticket: intent.account, device: device)
+    }
+
+    private func mount(_ context: AccountContext,
+                       membership: TeamMembership) async throws {
+        guard membership.accountID == context.ticket.accountID,
+              membership.enrollmentID == context.device.enrollmentID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let handler = try await connectedBuilder.makeConnected(
+            session: context.session, device: context.device, membership: membership)
+        account = context
+        connected = handler
+        connectedTeamID = membership.teamID
+    }
+
+    private func scopeForDevice(accountID: String) throws -> TeamDeviceScope {
+        let raw = configuration.serviceOrigin.absoluteString
+        return try .init(audience: raw.hasSuffix("/") ? String(raw.dropLast()) : raw,
+            accountID: accountID, authorityEpoch: configuration.authorityEpoch)
+    }
+
+    private func invitationToken(_ link: TeamInvitationLink) throws -> String {
+        guard let items = URLComponents(url: link.url,
+            resolvingAgainstBaseURL: false)?.queryItems,
+              items.count == 1, items[0].name == "invite",
+              let token = items[0].value, TeamAuthWire.credential(token) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        return token
+    }
+
+}
+
 struct TeamWorkspaceProductionComposition: Sendable {
     let accounts: TeamWorkspaceAccountComposition
     let deletionRecovery: TeamAccountDeletionAppStartRecovery
     let sessionBootstrap: any TeamWorkspaceSessionBootstrapping
     let invitationRouter: TeamWorkspaceInvitationRouter
     let userActions: any TeamWorkspaceUserActionHandling
+    let googleRedirect: @MainActor @Sendable (URL) -> Bool
+    let policyLinks: TeamWorkspacePolicyLinks?
+
+    init(accounts: TeamWorkspaceAccountComposition,
+         deletionRecovery: TeamAccountDeletionAppStartRecovery,
+         sessionBootstrap: any TeamWorkspaceSessionBootstrapping,
+         invitationRouter: TeamWorkspaceInvitationRouter,
+         userActions: any TeamWorkspaceUserActionHandling,
+         googleRedirect: @escaping @MainActor @Sendable (URL) -> Bool = { _ in false },
+         policyLinks: TeamWorkspacePolicyLinks? = nil) {
+        self.accounts = accounts; self.deletionRecovery = deletionRecovery
+        self.sessionBootstrap = sessionBootstrap
+        self.invitationRouter = invitationRouter; self.userActions = userActions
+        self.googleRedirect = googleRedirect
+        self.policyLinks = policyLinks
+    }
+}
+
+struct TeamWorkspacePolicyLinks: Equatable, Sendable {
+    let terms: URL
+    let privacy: URL
 }
 
 protocol TeamWorkspaceSessionBootstrapping: Sendable {
@@ -1786,6 +2586,8 @@ enum TeamWorkspaceUserAction: Equatable, Sendable {
     case issueInvitation(TeamInvitationRole)
     case acceptTerms
     case sendNote(String)
+    case retryPendingNote
+    case refreshPendingNoteStatus
     case refreshInbox
     case reportNote(noteID: String, authorID: String, reason: String)
     case reportUser(userID: String, reason: String)
@@ -1811,11 +2613,28 @@ struct TeamWorkspacePresentedMember: Identifiable, Equatable, Sendable {
     let isBlocked: Bool
 }
 
+enum TeamWorkspaceConnectionState: Equatable, Sendable {
+    case disconnected
+    case invitationReady(teamID: String, role: TeamInvitationRole, expiresAt: Int64)
+    case accountReady(accountID: String)
+    case connected(accountID: String, teamID: String)
+}
+
 struct TeamWorkspacePresentation: Equatable, Sendable {
-    static let empty = Self(notes: [], members: [], invitation: nil)
+    static let empty = Self(notes: [], members: [], invitation: nil,
+                            connection: .disconnected)
     let notes: [TeamWorkspacePresentedNote]
     let members: [TeamWorkspacePresentedMember]
     let invitation: TeamInvitationShareItem?
+    let connection: TeamWorkspaceConnectionState
+
+    init(notes: [TeamWorkspacePresentedNote],
+         members: [TeamWorkspacePresentedMember],
+         invitation: TeamInvitationShareItem?,
+         connection: TeamWorkspaceConnectionState = .disconnected) {
+        self.notes = notes; self.members = members; self.invitation = invitation
+        self.connection = connection
+    }
 }
 
 protocol TeamWorkspacePresentationProviding: Sendable {
@@ -1861,6 +2680,92 @@ enum TeamWorkspaceRuntimeConfiguration: Sendable {
     case injected(TeamWorkspaceProductionComposition)
 
     static let productionDefault: Self = .disabled
+
+#if canImport(UIKit) && canImport(AuthenticationServices)
+    /// Normal app entry point. Empty build settings stay completely disabled;
+    /// an all-or-empty approved bundle creates every production dependency.
+    @MainActor
+    static func production(bundle: Bundle = .main,
+                           allowsExternalRequests: Bool,
+                           presentationAnchor: @escaping @MainActor () -> UIWindow?,
+                           presenting: @escaping @MainActor () -> UIViewController?) throws -> Self {
+        guard allowsExternalRequests else { return .disabled }
+        let build = try TeamWorkspacePublicBuildConfiguration.parse(bundle: bundle)
+        guard case .enabled(let configuration) = build else { return .disabled }
+        guard let root = FileManager.default.urls(for: .applicationSupportDirectory,
+                                                   in: .userDomainMask).first else {
+            throw TeamWorkspaceError.unavailable
+        }
+        let sessions = TeamAccountSessionStore()
+        let devices = TeamDeviceCustody()
+        let joins = TeamJoinStore()
+        let owners = TeamOwnedTeamStore()
+        let terms = try UserDefaultsTeamTermsStore()
+        let blocks = UserDefaultsTeamBlockStore()
+        let registry = try UserDefaultsTeamAgreementScopeRegistry()
+        let agreementCleanup = TeamEnumeratedAgreementCleanup(registry: registry)
+        let recoveryKeys = TeamRecoveryKeyStore()
+        let progress = try SQLiteTeamAccountDeletionProgressStore(
+            applicationSupportDirectory: root)
+        let credentials = KeychainTeamAccountDeletionCredentialStore()
+        let http = try TeamAuthHTTPClient(origin: configuration.serviceOrigin)
+
+        // Account cleanup stores are account-global SQLite handles. Their local
+        // constructor identity is never used as deletion authority.
+        let cleanupTarget = try DeliveryTarget(userId: "cleanup",
+            deviceId: "cleanup", enrollmentId: "cleanup")
+        let cleanup = TeamAccountLocalStoreCleanup(
+            outbox: try TeamOutgoingStore(applicationSupportDirectory: root,
+                sender: cleanupTarget, teamId: "cleanup"),
+            inbox: try TeamInboxStore(applicationSupportDirectory: root,
+                target: cleanupTarget, teamId: "cleanup"),
+            agreements: agreementCleanup, recoveryKeys: recoveryKeys,
+            device: devices, joins: joins, owners: owners, terms: terms,
+            blocks: blocks, sessions: sessions)
+        let recovery = TeamAccountDeletionAppStartRecovery(
+            status: TeamStoreComplianceHTTPTransport(http: http),
+            progressStore: progress, credentialStore: credentials,
+            cleanup: cleanup)
+        let builder = TeamWorkspaceProductionConnectedBuilder(
+            configuration: configuration, sessions: sessions,
+            devices: devices, joins: joins, owners: owners, http: http,
+            applicationSupportDirectory: root, terms: terms, blocks: blocks,
+            agreementRegistry: registry, agreementCleanup: agreementCleanup,
+            recoveryKeys: recoveryKeys, deletionProgress: progress,
+            deletionCredentials: credentials)
+        let identities = try TeamWorkspaceNativeIdentityProviders.live(
+            configuration: configuration, bundle: bundle,
+            presentationAnchor: presentationAnchor, presenting: presenting)
+        return try configured(build: build, identities: identities,
+            devices: devices, joins: joins, owners: owners,
+            deletionRecovery: recovery, connectedBuilder: builder,
+            sessions: sessions)
+    }
+#endif
+
+    static func configured(build: TeamWorkspaceBuildConfiguration,
+                           identities: TeamWorkspaceNativeIdentityProviders,
+                           devices: TeamDeviceCustody,
+                           joins: TeamJoinStore,
+                           owners: TeamOwnedTeamStore,
+                           deletionRecovery: TeamAccountDeletionAppStartRecovery,
+                           connectedBuilder: any TeamWorkspaceConnectedActionBuilding,
+                           sessions: TeamAccountSessionStore = .init()) throws -> Self {
+        guard case .enabled(let configuration) = build else { return .disabled }
+        let http = try TeamWorkspaceHTTPComposition(configuration: configuration,
+                                                     sessions: sessions)
+        let onboarding = TeamWorkspaceOnboardingActionHandler(
+            configuration: configuration, sessions: sessions, devices: devices,
+            joins: joins, owners: owners, transport: http.http,
+            identities: identities, connectedBuilder: connectedBuilder)
+        return .injected(.init(accounts: http.accounts,
+            deletionRecovery: deletionRecovery, sessionBootstrap: onboarding,
+            invitationRouter: try .init(
+                expectedOrigin: configuration.serviceOrigin.absoluteString),
+            userActions: onboarding, googleRedirect: identities.googleRedirect,
+            policyLinks: .init(terms: configuration.termsURL,
+                               privacy: configuration.privacyURL)))
+    }
     var isEnabled: Bool {
         if case .injected = self { return true }
         return false
@@ -1868,6 +2773,10 @@ enum TeamWorkspaceRuntimeConfiguration: Sendable {
     var userActions: (any TeamWorkspaceUserActionHandling)? {
         guard case .injected(let composition) = self else { return nil }
         return composition.userActions
+    }
+    var policyLinks: TeamWorkspacePolicyLinks? {
+        guard case .injected(let composition) = self else { return nil }
+        return composition.policyLinks
     }
     func presentation() async throws -> TeamWorkspacePresentation {
         guard case .injected(let composition) = self,
@@ -1879,6 +2788,11 @@ enum TeamWorkspaceRuntimeConfiguration: Sendable {
     func invitation(from url: URL) -> TeamInvitationLink? {
         guard case .injected(let composition) = self else { return nil }
         return try? composition.invitationRouter.route(url)
+    }
+    @MainActor
+    func handleGoogleRedirect(_ url: URL) -> Bool {
+        guard case .injected(let composition) = self else { return false }
+        return composition.googleRedirect(url)
     }
     func prepareForAppStart() async -> TeamWorkspaceStartupState {
         guard case .injected(let composition) = self else { return .disabled }
@@ -1902,6 +2816,206 @@ enum TeamWorkspaceRuntimeConfiguration: Sendable {
 protocol TeamWorkspaceRemoteTransport: TeamWorkspaceAudienceProviding,
     TeamWorkspaceSubmissionTransport, TeamWorkspaceInboxTransport,
     TeamSafetyTransport, TeamAccountDeletionDispatchTransport {}
+
+/// Live HTTP adapter for one exact session/device/team generation. Every relay
+/// request obtains a fresh server challenge and is signed by the registered
+/// device key only after rechecking the session and custody snapshot.
+actor TeamWorkspaceHTTPRemoteTransport: TeamWorkspaceRemoteTransport {
+    private let ticket: TeamAccountAccessTicket
+    private let sessions: TeamAccountSessionStore
+    private let device: TeamDeviceSnapshot
+    private let devices: TeamDeviceCustody
+    private let agreement: TeamAgreementKeyCustody
+    private let teamID: String
+    private let enrollmentID: String
+    private let http: TeamAuthHTTPClient
+    private let compliance: TeamStoreComplianceHTTPTransport
+    private let clock: @Sendable () -> Int64
+
+    init(ticket: TeamAccountAccessTicket, sessions: TeamAccountSessionStore,
+         device: TeamDeviceSnapshot, devices: TeamDeviceCustody,
+         agreement: TeamAgreementKeyCustody, teamID: String,
+         enrollmentID: String, http: TeamAuthHTTPClient,
+         clock: @escaping @Sendable () -> Int64 = {
+             Int64(Date().timeIntervalSince1970 * 1_000)
+         }) throws {
+        guard device.phase == .registered,
+              device.scope.accountID == ticket.accountID,
+              device.enrollmentID == enrollmentID,
+              device.publicKey != nil,
+              TeamAuthWire.identifier(teamID) else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        try sessions.requireCurrentAccess(ticket, now: clock())
+        self.ticket = ticket; self.sessions = sessions
+        self.device = device; self.devices = devices; self.agreement = agreement
+        self.teamID = teamID; self.enrollmentID = enrollmentID
+        self.http = http; self.compliance = .init(http: http, ticket: ticket)
+        self.clock = clock
+    }
+
+    func audience(teamID: String, enrollmentID: String) async throws -> TeamAudience {
+        try requireScope(teamID: teamID, enrollmentID: enrollmentID)
+        let lookup = try TeamAudienceLookup(account: ticket,
+            authorityEpoch: device.scope.authorityEpoch, sessions: sessions,
+            devices: TeamAudienceDeviceDriver(custody: devices), transport: http)
+        return try await lookup.audience(teamID: teamID, enrollmentID: enrollmentID)
+    }
+
+    func reserve(_ plan: TeamWorkspaceSendPlan) async throws
+        -> TeamDeliverySubmissionReservation {
+        try requireScope(teamID: plan.event.teamId,
+                         enrollmentID: plan.event.enrollmentId)
+        guard plan.event.accountId == ticket.accountID,
+              plan.intent.deliveryId == plan.event.eventId,
+              plan.audience.teamID == teamID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let binding = try makeBinding(operation: .deliverySubmit,
+                                      requestID: plan.intent.deliveryId)
+        let key = try publicKey()
+        let challenge = try await http.deliverySubmitChallenge(expected: binding,
+            publicKey: key, request: plan.request, ticket: ticket)
+        let signature = try sign(plan.request, challenge: challenge, binding: binding)
+        return try await http.reserveDelivery(challenge: challenge,
+            signature: signature, expected: binding, publicKey: key,
+            request: plan.request, expectedAudience: plan.audience, ticket: ticket)
+    }
+
+    func status(deliveryID: String, jweSHA256: String) async throws
+        -> TeamDeliverySubmissionStatus {
+        let request = try TeamDeliveryStatusRequest(deliveryID: deliveryID,
+                                                     expectedJWESHA256: jweSHA256)
+        let binding = try makeBinding(operation: .deliveryStatus, requestID: deliveryID)
+        let key = try publicKey()
+        let challenge = try await http.deliveryStatusChallenge(expected: binding,
+            publicKey: key, request: request, ticket: ticket)
+        let signature = try sign(request, challenge: challenge, binding: binding)
+        return try await http.deliveryStatus(challenge: challenge,
+            signature: signature, expected: binding, publicKey: key,
+            request: request, ticket: ticket)
+    }
+
+    func pending(after: TeamDeliveryListCursor?, limit: Int) async throws
+        -> TeamPendingDeliveryPage {
+        let request = try TeamDeliveryListRequest(limit: limit, after: after,
+            expectedAgreementKeyThumbprint: agreement.current().keyThumbprint)
+        let binding = try makeBinding(operation: .deliveryList,
+                                      requestID: UUID().uuidString.lowercased())
+        let key = try publicKey()
+        let challenge = try await http.deliveryListChallenge(expected: binding,
+            publicKey: key, request: request, ticket: ticket)
+        let signature = try sign(request, challenge: challenge, binding: binding)
+        return try await http.listPendingDeliveries(challenge: challenge,
+            signature: signature, expected: binding, publicKey: key,
+            request: request, ticket: ticket)
+    }
+
+    func fetch(_ pending: TeamPendingDelivery) async throws
+        -> TeamWorkspaceFetchedDelivery {
+        let request = try TeamDeliveryFetchRequest(deliveryID: pending.deliveryID)
+        let binding = try makeBinding(operation: .deliveryFetch,
+                                      requestID: pending.deliveryID)
+        let key = try publicKey()
+        let challenge = try await http.deliveryFetchChallenge(expected: binding,
+            publicKey: key, request: request, ticket: ticket)
+        let signature = try sign(request, challenge: challenge, binding: binding)
+        let result = try await http.fetchDelivery(challenge: challenge,
+            signature: signature, expected: binding, publicKey: key,
+            request: request, pending: pending, ticket: ticket)
+        return .init(pending: pending, result: result, binding: binding)
+    }
+
+    func acknowledge(_ receipt: PendingTeamReceipt) async throws
+        -> TeamWorkspaceACKReply {
+        try requireScope(teamID: receipt.teamId, enrollmentID: receipt.enrollmentId)
+        guard receipt.accountId == ticket.accountID,
+              receipt.deviceId == device.deviceID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let request = try TeamDeliveryACKRequest(receipt: receipt)
+        let binding = try makeBinding(operation: .deliveryACK,
+                                      requestID: receipt.deliveryId)
+        let key = try publicKey()
+        let challenge = try await http.deliveryACKChallenge(expected: binding,
+            publicKey: key, request: request, ticket: ticket)
+        let signature = try sign(request, challenge: challenge, binding: binding)
+        do {
+            return .acknowledged(try await http.acknowledgeDelivery(
+                challenge: challenge, signature: signature, expected: binding,
+                publicKey: key, request: request, ticket: ticket), binding)
+        } catch TeamAuthHTTPError.server(.terminal) {
+            return .terminal(binding)
+        }
+    }
+
+    func execute(accountID: String, teamID: String,
+                 action: TeamSafetyAction) async throws {
+        try requireScope(teamID: teamID, enrollmentID: enrollmentID)
+        guard accountID == ticket.accountID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        try requireAuthority()
+        try await compliance.execute(accountID: accountID, teamID: teamID,
+                                     action: action)
+        try requireAuthority()
+    }
+
+    func requestDeletion(binding: TeamAccountDeletionBinding,
+                         request: TeamAccountDeletionRequest) async throws
+        -> TeamAccountDeletionStatus {
+        try requireAuthority()
+        return try await compliance.requestDeletion(binding: binding, request: request)
+    }
+
+    private func requireScope(teamID: String, enrollmentID: String) throws {
+        guard teamID == self.teamID, enrollmentID == self.enrollmentID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        try requireAuthority()
+    }
+
+    private func requireAuthority() throws {
+        let now = clock()
+        _ = try ticket.usableToken(now: now)
+        try sessions.requireCurrentAccess(ticket, now: now)
+        try devices.requireCurrent(device)
+        try Task.checkCancellation()
+    }
+
+    private func publicKey() throws -> TeamDeviceEnrollmentWire.PublicKey {
+        try requireAuthority()
+        guard let key = device.publicKey else { throw TeamWorkspaceError.bindingMismatch }
+        return key
+    }
+
+    private func makeBinding(operation: TeamDeviceRequestWire.Operation,
+                             requestID: String) throws -> TeamDeviceRequestWire.Binding {
+        let key = try publicKey()
+        guard TeamAuthWire.identifier(requestID) else {
+            throw TeamWorkspaceError.invalidInput
+        }
+        return .init(audience: device.scope.audience,
+            authorityEpoch: device.scope.authorityEpoch,
+            accountID: ticket.accountID, sessionID: ticket.sessionID,
+            deviceID: device.deviceID, enrollmentID: enrollmentID,
+            keyThumbprint: key.thumbprint, operation: operation,
+            teamID: teamID, requestID: requestID,
+            accessExpiresAt: ticket.accessExpiresAt)
+    }
+
+    private func sign<Request: TeamDeviceRequestPayload>(
+        _ request: Request, challenge: TeamPreparedDeviceRequestChallenge,
+        binding: TeamDeviceRequestWire.Binding) throws -> Data {
+        try devices.signRequest(device, challenge: challenge, binding: binding,
+            request: request, checkAuthority: { [ticket, sessions, clock] in
+                let now = clock()
+                _ = try ticket.usableToken(now: now)
+                try sessions.requireCurrentAccess(ticket, now: now)
+                try Task.checkCancellation()
+            })
+    }
+}
 
 /// Adds exact-generation session checks around every injected remote operation.
 /// Access credentials remain volatile inside `TeamAccountAccessTicket` and are
@@ -2074,27 +3188,110 @@ struct TeamWorkspaceConnectedComposition: Sendable {
     }
 }
 
+/// Production builder shared by fresh onboarding and restart restoration. It
+/// enrolls the separate agreement key before exposing note delivery, then binds
+/// every connected coordinator to the same session/device generation.
+struct TeamWorkspaceProductionConnectedBuilder: TeamWorkspaceConnectedActionBuilding {
+    let configuration: TeamWorkspacePublicBuildConfiguration
+    let sessions: TeamAccountSessionStore
+    let devices: TeamDeviceCustody
+    let joins: TeamJoinStore
+    let owners: TeamOwnedTeamStore
+    let http: TeamAuthHTTPClient
+    let applicationSupportDirectory: URL
+    let terms: UserDefaultsTeamTermsStore
+    let blocks: UserDefaultsTeamBlockStore
+    let agreementRegistry: any TeamAgreementScopeRegistering
+    let agreementCleanup: any TeamAccountAgreementDeleting
+    let recoveryKeys: TeamRecoveryKeyStore
+    let deletionProgress: any TeamAccountDeletionProgressStoring
+    let deletionCredentials: any TeamAccountDeletionCredentialStoring
+
+    func makeConnected(session: TeamAccountSessionSnapshot,
+                       device: TeamDeviceSnapshot,
+                       membership: TeamMembership) async throws
+        -> any TeamWorkspaceConnectedActions {
+        guard let enrollmentID = device.enrollmentID,
+              membership.accountID == session.accountID,
+              membership.enrollmentID == enrollmentID else {
+            throw TeamWorkspaceError.bindingMismatch
+        }
+        let ticket = try TeamAccountAccessTicket(snapshot: session)
+        let agreement = try TeamAgreementKeyCustody(
+            origin: device.scope.audience, accountID: session.accountID,
+            authorityEpoch: configuration.authorityEpoch,
+            enrollmentID: enrollmentID, registry: agreementRegistry,
+            requireAccess: { [sessions, ticket] in
+                let now = Int64(Date().timeIntervalSince1970 * 1_000)
+                _ = try ticket.usableToken(now: now)
+                try sessions.requireCurrentAccess(ticket, now: now)
+            })
+        _ = try await TeamAgreementEnrollment(account: ticket,
+            authorityEpoch: configuration.authorityEpoch,
+            enrollmentID: enrollmentID, sessions: sessions,
+            devices: TeamAudienceDeviceDriver(custody: devices),
+            agreement: agreement, transport: http).enroll(teamID: membership.teamID)
+
+        let target = try DeliveryTarget(userId: session.accountID,
+            deviceId: device.deviceID, enrollmentId: enrollmentID)
+        let outbox = try TeamOutgoingStore(
+            applicationSupportDirectory: applicationSupportDirectory,
+            sender: target, teamId: membership.teamID)
+        let inbox = try TeamInboxStore(
+            applicationSupportDirectory: applicationSupportDirectory,
+            target: target, teamId: membership.teamID)
+        let binding = try TeamAccountDeletionBinding(
+            origin: device.scope.audience, providerID: session.scope.providerID,
+            authorityEpoch: configuration.authorityEpoch,
+            accountID: session.accountID,
+            custodyID: session.generation.uuidString)
+        let cleanup = TeamAccountLocalStoreCleanup(outbox: outbox, inbox: inbox,
+            agreements: agreementCleanup, recoveryKeys: recoveryKeys,
+            device: devices, joins: joins, owners: owners, terms: terms,
+            blocks: blocks, sessions: sessions)
+        let remote = try TeamWorkspaceHTTPRemoteTransport(ticket: ticket,
+            sessions: sessions, device: device, devices: devices,
+            agreement: agreement, teamID: membership.teamID,
+            enrollmentID: enrollmentID, http: http)
+        let connected = try TeamWorkspaceConnectedComposition(session: session,
+            sessions: sessions, teamID: membership.teamID,
+            enrollmentID: enrollmentID, terms: terms, outbox: outbox,
+            inbox: inbox, agreement: agreement, deletionBinding: binding,
+            deletionStatus: TeamStoreComplianceHTTPTransport(http: http),
+            deletionProgress: deletionProgress,
+            deletionCredentials: deletionCredentials, accountCleanup: cleanup,
+            remote: remote)
+        return try TeamWorkspaceConnectedActionHandler(connected: connected,
+            http: http,
+            termsTransport: TeamStoreComplianceHTTPTransport(http: http,
+                                                              ticket: ticket),
+            invitationOrigin: device.scope.audience, blocks: blocks)
+    }
+}
+
 /// Functional user-action owner for an already authenticated, registered and
 /// joined account. It drives the real protected stores and frozen HTTP contracts;
 /// pre-connection sign-in/create/join remains the responsibility of the explicit
 /// onboarding owner so no UI action can invent missing authority.
 actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
-    TeamWorkspacePresentationProviding {
+    TeamWorkspacePresentationProviding, TeamWorkspaceConnectedActions {
     private let connected: TeamWorkspaceConnectedComposition
     private let http: TeamAuthHTTPClient
     private let termsTransport: any TeamStoreTermsTransport
+    private let blocks: any TeamBlockStateStoring
     private let invitationOrigin: String
     private var latestInvitation: TeamInvitationShareItem?
-    private var blockedAccountIDs = Set<String>()
     private var working = false
 
     init(connected: TeamWorkspaceConnectedComposition, http: TeamAuthHTTPClient,
          termsTransport: any TeamStoreTermsTransport,
-         invitationOrigin: String) throws {
+         invitationOrigin: String,
+         blocks: any TeamBlockStateStoring = UserDefaultsTeamBlockStore()) throws {
         _ = try TeamWorkspaceInvitationRouter(expectedOrigin: invitationOrigin)
         self.connected = connected
         self.http = http
         self.termsTransport = termsTransport
+        self.blocks = blocks
         self.invitationOrigin = invitationOrigin
     }
 
@@ -2115,6 +3312,10 @@ actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
                 acceptedAt: receipt.acceptedAt, explicitConsent: true)
         case .sendNote(let body):
             _ = try await connected.sender().queueAndSubmit(body: body)
+        case .retryPendingNote:
+            _ = try await connected.sender().retryNext()
+        case .refreshPendingNoteStatus:
+            _ = try await connected.sender().refreshNextStatus()
         case .refreshInbox:
             _ = try await connected.receiver().refresh()
         case .reportNote(let noteID, let authorID, let reason):
@@ -2124,10 +3325,12 @@ actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
             try await connected.safety().execute(.reportUser(userID: userID, reason: reason))
         case .blockUser(let userID):
             try await connected.safety().execute(.blockUser(userID: userID))
-            blockedAccountIDs.insert(userID)
+            try blocks.setBlocked(true, userID: userID,
+                accountID: connected.accountID, teamID: connected.teamID)
         case .unblockUser(let userID):
             try await connected.safety().execute(.unblockUser(userID: userID))
-            blockedAccountIDs.remove(userID)
+            try blocks.setBlocked(false, userID: userID,
+                accountID: connected.accountID, teamID: connected.teamID)
         case .issueInvitation(let role):
             let issued = try await http.issueInvitation(teamID: connected.teamID,
                 enrollmentID: connected.enrollmentID, role: role,
@@ -2151,10 +3354,14 @@ actor TeamWorkspaceConnectedActionHandler: TeamWorkspaceUserActionHandling,
             teamID: connected.teamID, enrollmentID: connected.enrollmentID)
         let accountIDs = Set(audience.targets.map(\.accountID))
             .subtracting([connected.accountID]).sorted()
+        let blockedAccountIDs = try blocks.blockedAccountIDs(
+            accountID: connected.accountID, teamID: connected.teamID)
         let members = accountIDs.map {
             TeamWorkspacePresentedMember(id: $0,
                 isBlocked: blockedAccountIDs.contains($0))
         }
-        return .init(notes: notes, members: members, invitation: latestInvitation)
+        return .init(notes: notes, members: members, invitation: latestInvitation,
+            connection: .connected(accountID: connected.accountID,
+                                   teamID: connected.teamID))
     }
 }

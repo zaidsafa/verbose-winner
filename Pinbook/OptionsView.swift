@@ -204,6 +204,10 @@ private struct TeamWorkspaceView: View {
                     run(.signIn(.google))
                 }
                 .disabled(!actionsEnabled)
+                if let links = runtime.policyLinks {
+                    Link("Team Terms", destination: links.terms)
+                    Link("Privacy Policy", destination: links.privacy)
+                }
             }
 
             if !startup.recoveryResults.isEmpty {
@@ -253,6 +257,14 @@ private struct TeamWorkspaceView: View {
                 }
                 .disabled(!actionsEnabled || note.trimmingCharacters(
                     in: .whitespacesAndNewlines).isEmpty || !acceptsTerms)
+                Button("Retry pending note", systemImage: "arrow.clockwise.circle") {
+                    run(.retryPendingNote)
+                }
+                .disabled(!actionsEnabled)
+                Button("Check delivery status", systemImage: "checkmark.circle") {
+                    run(.refreshPendingNoteStatus)
+                }
+                .disabled(!actionsEnabled)
                 Text("Sending becomes available only after a verified team connection and one-time Terms acceptance. Failed deliveries stay in the protected outbox for manual retry.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -288,7 +300,7 @@ private struct TeamWorkspaceView: View {
             Section("Safety") {
                 Picker("Reason", selection: $safetyReason) {
                     ForEach(TeamReportReason.allCases, id: \.self) { reason in
-                        Text(reason.rawValue.capitalized).tag(reason)
+                        Text(reportReasonLabel(reason)).tag(reason)
                     }
                 }
                 if presentation.members.isEmpty {
@@ -351,11 +363,24 @@ private struct TeamWorkspaceView: View {
     }
 
     private var connectionStatus: String {
-        switch startup {
-        case .recovering: "Checking account access…"
-        case .disabled: "Not connected"
-        case .ready: "Account access"
-        case .failed: "Account access could not be confirmed. Close this screen before signing in again."
+        switch (startup, presentation.connection) {
+        case (.recovering, _): "Checking account access…"
+        case (.disabled, _): "Not connected"
+        case (.failed, _): "Account access could not be confirmed. Close this screen before signing in again."
+        case (.ready, .disconnected): "Not connected"
+        case (.ready, .invitationReady): "Invitation ready"
+        case (.ready, .accountReady): "Account ready: create a team or open an invitation"
+        case (.ready, .connected): "Connected"
+        }
+    }
+
+    private func reportReasonLabel(_ reason: TeamReportReason) -> LocalizedStringKey {
+        switch reason {
+        case .spam: "Spam"
+        case .harassment: "Harassment"
+        case .scam: "Scam"
+        case .illegal: "Illegal activity"
+        case .other: "Other"
         }
     }
 
@@ -406,11 +431,26 @@ private struct TeamWorkspaceView: View {
                 for action in actions { try await handler.perform(action) }
                 success()
                 await refreshPresentation()
-                actionMessage = "Recovery completed"
+                actionMessage = successMessage(for: actions.last)
             } catch {
                 actionMessage = "Setup could not continue. Close this screen and reopen the invitation."
             }
             isWorking = false
+        }
+    }
+
+    private func successMessage(for action: TeamWorkspaceUserAction?) -> String {
+        switch action {
+        case .signIn: "Signed in"
+        case .createTeam: "Team created"
+        case .issueInvitation, .openInvitation: "Invitation ready"
+        case .acceptTerms: "Terms accepted"
+        case .sendNote: "Note sent"
+        case .retryPendingNote, .refreshPendingNoteStatus: "Delivery updated"
+        case .refreshInbox: "Inbox refreshed"
+        case .reportNote, .reportUser, .blockUser, .unblockUser: "Safety action completed"
+        case .deleteAccount: "Account deletion started"
+        case nil: "Action completed"
         }
     }
 

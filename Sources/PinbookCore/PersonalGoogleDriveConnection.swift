@@ -9,10 +9,6 @@ enum PersonalGoogleDriveConnectionError: Error, Equatable, Sendable {
     func cancel()
 }
 
-#if canImport(UIKit) && canImport(AppAuth)
-extension PersonalGoogleDriveAuthorizer: PersonalGoogleDriveAuthorizing {}
-#endif
-
 /// Owns the authorization-to-Keychain transition. A newly issued refresh token
 /// is first persisted as revocation-pending, then atomically activated. Any
 /// cancellation or activation failure must revoke and remove that exact fenced

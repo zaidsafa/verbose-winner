@@ -189,6 +189,12 @@ private final class GoogleBackgroundObservation: @unchecked Sendable {
               url.path == configuration.redirectURL.path, url.fragment == nil else { return false }
         return value.driver.resume(url)
     }
+    /// App-level callback routing for the one currently owned authorization.
+    /// A callback cannot select or revive an older attempt.
+    public func handleRedirect(_ url: URL) -> Bool {
+        guard let attemptID = pending?.context.id else { return false }
+        return handleRedirect(url, attemptID: attemptID)
+    }
     private func cancel(id: UUID) {
         guard var value = pending, value.id == id, !value.cancelled else { return }
         value.cancelled = true; pending = value; value.deadline?.cancel(); value.driver.cancel()

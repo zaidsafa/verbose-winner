@@ -153,7 +153,7 @@ private final class PersonalDriveBackgroundObservation: @unchecked Sendable {
 /// AppAuth browser/callback owner for an explicit personal Drive connection.
 /// It returns a redacted grant; durable save/cleanup belongs to the connection
 /// coordinator and must complete before user-visible success.
-@MainActor final class PersonalGoogleDriveAuthorizer {
+@MainActor final class PersonalGoogleDriveAuthorizer: PersonalGoogleDriveAuthorizing {
     typealias DriverFactory = @MainActor (
         OIDAuthorizationRequest, UIViewController,
         @escaping @MainActor (Result<PersonalGoogleDriveGrant,

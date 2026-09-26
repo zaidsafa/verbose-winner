@@ -10,6 +10,10 @@ public enum TeamRecoveryKeyError: Error, Equatable {
 protocol TeamRecoveryKeychain: Sendable {
     func add(_ query: [String: Any]) -> OSStatus
     func copy(_ query: [String: Any]) -> (OSStatus, CFTypeRef?)
+    func delete(_ query: [String: Any]) -> OSStatus
+}
+extension TeamRecoveryKeychain {
+    func delete(_ query: [String: Any]) -> OSStatus { errSecUnimplemented }
 }
 
 private struct SystemTeamRecoveryKeychain: TeamRecoveryKeychain {
@@ -18,6 +22,9 @@ private struct SystemTeamRecoveryKeychain: TeamRecoveryKeychain {
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         return (status, result)
+    }
+    func delete(_ query: [String: Any]) -> OSStatus {
+        SecItemDelete(query as CFDictionary)
     }
 }
 
@@ -79,6 +86,14 @@ public struct TeamRecoveryKeyStore: Sendable {
               bytes.count == 32 else { throw TeamRecoveryKeyError.invalidStoredItem }
         defer { bytes.resetBytes(in: bytes.startIndex..<bytes.endIndex) }
         return SymmetricKey(data: bytes)
+    }
+
+    /// Account deletion only. Absence is success and no replacement key is made.
+    public func remove(accountId: String) throws {
+        let status = keychain.delete(try query(accountId: accountId))
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw TeamRecoveryKeyError.unavailable(status)
+        }
     }
 }
 

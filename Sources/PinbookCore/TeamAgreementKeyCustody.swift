@@ -18,12 +18,108 @@ struct TeamAgreementPublic: Sendable, CustomStringConvertible, CustomDebugString
 struct TeamAgreementScope: Equatable, Sendable {
     static let purpose = "pinbook-device-agreement-v1"
     let identifier: String
+    let origin: String
+    let accountID: String
+    let authorityEpoch: String
+    let enrollmentID: String
     init(origin: String, accountID: String, authorityEpoch: String, enrollmentID: String) throws {
         guard TeamDeviceEnrollmentWire.canonicalAudience(origin),
               TeamAuthWire.identifier(accountID), TeamAuthWire.identifier(authorityEpoch),
               TeamAuthWire.identifier(enrollmentID) else { throw TeamAgreementKeyError.invalidScope }
         let binding = [Self.purpose, origin, accountID, authorityEpoch, enrollmentID].joined(separator: "\n")
         identifier = Data(SHA256.hash(data: Data(binding.utf8))).map { String(format: "%02x", $0) }.joined()
+        self.origin = origin; self.accountID = accountID
+        self.authorityEpoch = authorityEpoch; self.enrollmentID = enrollmentID
+    }
+}
+
+protocol TeamAgreementScopeRegistering: Sendable {
+    func register(_ scope: TeamAgreementScope) throws
+    func identifiers(origin: String, accountID: String,
+                     authorityEpoch: String) throws -> [String]
+    func removeAll(origin: String, accountID: String,
+                   authorityEpoch: String) throws
+}
+
+final class UserDefaultsTeamAgreementScopeRegistry: TeamAgreementScopeRegistering,
+    @unchecked Sendable {
+    private let defaults: UserDefaults
+    private let lock = NSLock()
+
+    init(suiteName: String = "com.zaidsafa.pinbook.team-agreement-index.v1") throws {
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            throw TeamAgreementKeyError.unavailable
+        }
+        self.defaults = defaults
+    }
+
+    func register(_ scope: TeamAgreementScope) throws {
+        try lock.withLock {
+            let key = try indexKey(origin: scope.origin, accountID: scope.accountID,
+                                   authorityEpoch: scope.authorityEpoch)
+            var values = try load(key)
+            values.insert(scope.identifier)
+            guard values.count <= 32 else { throw TeamAgreementKeyError.unavailable }
+            defaults.set(values.sorted(), forKey: key)
+        }
+    }
+
+    func identifiers(origin: String, accountID: String,
+                     authorityEpoch: String) throws -> [String] {
+        try lock.withLock {
+            try load(indexKey(origin: origin, accountID: accountID,
+                              authorityEpoch: authorityEpoch)).sorted()
+        }
+    }
+
+    func removeAll(origin: String, accountID: String,
+                   authorityEpoch: String) throws {
+        try lock.withLock {
+            defaults.removeObject(forKey: try indexKey(origin: origin,
+                accountID: accountID, authorityEpoch: authorityEpoch))
+        }
+    }
+
+    private func load(_ key: String) throws -> Set<String> {
+        let values = defaults.stringArray(forKey: key) ?? []
+        guard values.count <= 32, Set(values).count == values.count,
+              values.allSatisfy({ $0.utf8.count == 64 && $0.utf8.allSatisfy {
+                  (48...57).contains($0) || (97...102).contains($0)
+              } }) else { throw TeamAgreementKeyError.invalidRecord }
+        return Set(values)
+    }
+
+    private func indexKey(origin: String, accountID: String,
+                          authorityEpoch: String) throws -> String {
+        _ = try TeamAgreementScope(origin: origin, accountID: accountID,
+            authorityEpoch: authorityEpoch, enrollmentID: "registry")
+        let digest = SHA256.hash(data: Data((origin + "\n" + accountID + "\n"
+            + authorityEpoch).utf8))
+        return "agreement-scopes." + digest.map { String(format: "%02x", $0) }.joined()
+    }
+}
+
+protocol TeamAccountAgreementDeleting: Sendable {
+    func removeAll(origin: String, accountID: String, authorityEpoch: String) throws
+}
+
+struct TeamEnumeratedAgreementCleanup: TeamAccountAgreementDeleting {
+    let registry: any TeamAgreementScopeRegistering
+    let storage: any TeamAgreementKeyStoring
+
+    init(registry: any TeamAgreementScopeRegistering,
+         storage: any TeamAgreementKeyStoring = KeychainTeamAgreementKeyStore()) {
+        self.registry = registry; self.storage = storage
+    }
+
+    func removeAll(origin: String, accountID: String,
+                   authorityEpoch: String) throws {
+        for identifier in try registry.identifiers(origin: origin,
+            accountID: accountID, authorityEpoch: authorityEpoch) {
+            try storage.remove(scope: identifier)
+        }
+        try registry.removeAll(origin: origin, accountID: accountID,
+                               authorityEpoch: authorityEpoch)
     }
 }
 
@@ -143,26 +239,33 @@ final class TeamAgreementKeyCustody: @unchecked Sendable {
     let scope: TeamAgreementScope
     private let storage: any TeamAgreementKeyStoring
     private let keys: any TeamAgreementKeyProviding
+    private let registry: (any TeamAgreementScopeRegistering)?
     private let requireAccess: @Sendable () throws -> Void
     init(origin: String, accountID: String, authorityEpoch: String, enrollmentID: String,
          storage: any TeamAgreementKeyStoring = KeychainTeamAgreementKeyStore(),
          keys: any TeamAgreementKeyProviding = SecureEnclaveTeamAgreementKeys(),
+         registry: (any TeamAgreementScopeRegistering)? = nil,
          requireAccess: @escaping @Sendable () throws -> Void) throws {
         scope = try .init(origin: origin, accountID: accountID,
             authorityEpoch: authorityEpoch, enrollmentID: enrollmentID)
-        self.storage = storage; self.keys = keys; self.requireAccess = requireAccess
+        self.storage = storage; self.keys = keys; self.registry = registry
+        self.requireAccess = requireAccess
     }
 
     func prepare() throws -> TeamAgreementPublic {
         try requireAccess()
         if let sealed = try storage.load(scope: scope.identifier) {
-            let result = try checked(sealed); try requireAccess(); return result
+            let result = try checked(sealed); try register(); try requireAccess(); return result
         }
         let candidate = try keys.generate()
         guard (1...4096).contains(candidate.sealed.count),
               try keys.publicKey(sealed: candidate.sealed).thumbprint == candidate.publicKey.thumbprint else {
             throw TeamAgreementKeyError.keyUnavailable
         }
+        try requireAccess()
+        // Index the scope before custody insertion. A crash can then leave only a
+        // harmless stale index entry, never an unenumerated agreement key.
+        try register()
         try requireAccess()
         do {
             if try storage.insert(scope: scope.identifier, sealed: candidate.sealed) {
@@ -185,9 +288,11 @@ final class TeamAgreementKeyCustody: @unchecked Sendable {
         guard let sealed = try storage.load(scope: scope.identifier) else {
             throw TeamAgreementKeyError.keyUnavailable
         }
-        let result = try checked(sealed); try requireAccess(); return result
+        let result = try checked(sealed); try register(); try requireAccess(); return result
     }
     func deleteIdentity() throws { try storage.remove(scope: scope.identifier) }
+
+    private func register() throws { try registry?.register(scope) }
 
     /// Returns a fresh derived key owned by the caller, who must clear it after use.
     func derive(peer: TeamAgreementPublic, algorithm: String, partyU: Data,

@@ -42,6 +42,16 @@
 				<string>$(PINBOOK_PERSONAL_GOOGLE_DRIVE_REDIRECT_SCHEME)</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER).team-google</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(PINBOOK_TEAM_GOOGLE_CALLBACK_URL_SCHEME)</string>
+			</array>
+		</dict>
 	</array>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.finance</string>
@@ -57,6 +67,8 @@
 	<string>$(PINBOOK_TEAM_GOOGLE_NATIVE_CLIENT_ID)</string>
 	<key>PinbookTeamGoogleServerClientID</key>
 	<string>$(PINBOOK_TEAM_GOOGLE_SERVER_CLIENT_ID)</string>
+	<key>PinbookTeamGoogleRedirectScheme</key>
+	<string>$(PINBOOK_TEAM_GOOGLE_REDIRECT_SCHEME)</string>
 	<key>PinbookTeamAuthorityEpoch</key>
 	<string>$(PINBOOK_TEAM_AUTHORITY_EPOCH)</string>
 	<key>PinbookTeamTermsURL</key>
