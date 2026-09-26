@@ -48,6 +48,19 @@ Updated: 2026-09-27 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Recovery privacy checkpoint: received-note recovery now uses a full-screen
+  inactive-scene privacy cover and marks its complete UI as privacy-sensitive.
+  Imported keys remain unsaved by default. An explicit unchecked choice can save
+  the key to device-only custody only after successful archive authentication,
+  never replacing a different existing key. Exact repeats and ambiguous matching
+  Keychain insertion are reconciled safely. Focused tests **2/2**, complete serial
+  Swift **424/424 in 39 suites**, localization **416 keys across 16 locales**,
+  strict String Catalog JSON, `git diff --check`, and the unsigned universal
+  Release Simulator build pass. Physical app-switcher and lock-screen acceptance,
+  full archive coverage, cross-platform recovery and all external gates remain
+  open. No provider, server, signing, device, archive or TestFlight state changed.
+  Exact source checkpoint: `a1ad0dac4715eb43934b43bccfdab5b9138e1dcd`.
+
 - Localized Team guidance checkpoint: workspace success and error status now uses
   actual localizable keys, and typed failures give clear next actions for Terms,
   busy work, unavailable setup, deletion, connection, sign-in, missing items,
@@ -946,8 +959,10 @@ Updated: 2026-09-27 (Asia/Shanghai)
 - Keychain protection remains non-synchronizing WhenUnlockedThisDeviceOnly.
   Passcode/secure-screen policy and physical acceptance remain open; changing to
   WhenPasscodeSetThisDeviceOnly would delete items when the passcode is removed.
-  Native Files/cloud durability and imported-key retention are not established by
-  local temporary-file read-back tests. Full sender/revision/media recovery is open.
+  Native Files/cloud durability and imported-key retention were not established by
+  this historical local temporary-file read-back checkpoint. The 2026-09-27
+  checkpoint above supersedes imported-key retention and source privacy shielding,
+  while physical acceptance and full sender/revision/media recovery remain open.
 - The personal import/widget checkpoint is committed locally at
   `f6e6e26c1e3280f1202b7d2b5b74ab9d4907bf7c`: 50 core passes, 85 app/UI passes
   plus one hardware skip, unsigned iPhone Release build passed; no upload/push.
@@ -961,12 +976,14 @@ Updated: 2026-09-27 (Asia/Shanghai)
   92 app/UI passes (80 app + 12 UI), one hardware-protection skip and zero failures.
   Unsigned iPhone Release compile and exact compiled 272-key localization checks
   passed. Chinese preview screenshot was visually inspected. No source push/upload.
-- Next safe implementation: bounded native auth transport and session custody,
+- Historical next implementation list: bounded native auth transport and session custody,
   imported-key retention UX, secure-screen policy, authenticated
   Apple+Google integration against the Android-owned admission contract, and
   user-facing inbox/retry lifecycle. Finish automatic personal cloud concurrency/
   bounded I/O and live widget App Group/privacy integration. Do not silently drop
   sender/media/full recovery, staging or hardware acceptance from the final gate.
+  The 2026-09-27 checkpoint above supersedes the imported-key retention and
+  source privacy-shield items only.
 - Android has now supplied the six-route native account contract at `15751a7` in its
   `docs/TEAM_AUTH_HTTP_V1.md` (read-only checked SHA256
   `1f0791df923112808df25524a2106541008f26e273ac63690fb83ded64647235`;

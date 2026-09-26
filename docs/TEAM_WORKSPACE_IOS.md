@@ -2,6 +2,20 @@
 
 Updated: 2026-09-27 (Asia/Shanghai)
 
+## 2026-09-27 recovery privacy and imported-key retention
+
+- Recovery content is privacy-sensitive and receives an opaque inactive-scene
+  cover before the user returns to the app.
+- Imported keys are never saved by default. A separate unchecked toggle grants
+  explicit consent for device-only retention after archive authentication.
+- A different existing key is never replaced. Exact repeats and ambiguous
+  matching Keychain insertion are reconciled by exact read-back.
+- A retention failure cancels the prepared preview and prevents restoration.
+- Complete serial Swift **424/424 in 39 suites**, localization **416 keys across
+  16 locales**, and unsigned arm64+x86_64 Release Simulator build pass. Physical
+  privacy acceptance, full archive recovery and cross-platform acceptance remain
+  open.
+
 ## 2026-09-27 connected recovery integration
 
 - A connected Team workspace now receives one exact recovery context containing
@@ -41,9 +55,8 @@ Updated: 2026-09-27 (Asia/Shanghai)
   uncertain results, full outbox and protected-store failure.
 - Guidance never includes identifiers, endpoints, credentials or raw provider and
   server errors.
-- Localization is complete at **408 keys across 16 locales**. The unchanged core
-  retains its **422-test** pass and the unsigned arm64+x86_64 Release Simulator
-  build passes.
+- Localization was complete at **408 keys across 16 locales** at this checkpoint.
+  The later recovery privacy checkpoint supersedes the aggregate count.
 
 ## Implemented locally
 

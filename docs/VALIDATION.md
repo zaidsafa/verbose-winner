@@ -1,5 +1,24 @@
 # Validation plan
 
+## 2026-09-27 recovery privacy and imported-key retention
+
+- The received-note recovery screen now covers its content whenever the scene is
+  inactive and marks the complete recovery surface as privacy-sensitive.
+- Imported recovery keys remain ephemeral by default. A separate unchecked
+  toggle permits device-only retention only after the selected archive
+  authenticates successfully.
+- Retention never replaces a different existing key. Exact repeated retention is
+  idempotent, and an ambiguous Keychain insertion is accepted only when read-back
+  proves the stored key is exactly the imported key.
+- Focused retention tests: **2 tests PASS**. Complete serial Swift package:
+  **424 tests in 39 suites PASS**.
+- Localization validation: **416 keys complete across English plus 15 translated
+  locales**. The String Catalog also passes strict JSON parsing.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-recovery-derived`.
+- `git diff --check`: pass. No provider, server, signing, physical device,
+  archive, TestFlight or production state changed.
+
 ## 2026-09-27 localized Team action guidance
 
 - Team workspace success and failure status now uses localizable keys instead of

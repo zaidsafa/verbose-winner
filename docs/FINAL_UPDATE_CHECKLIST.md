@@ -13,11 +13,14 @@ the exact iOS/Android source commits, artifacts, versions, signing identities,
 staging migration and the physical Android-to-iPhone matrix.
 
 Current 2026-09-27 local candidate evidence: the complete serial Swift suite
-passes **422 tests in 39 suites**, **408 localization keys** pass across English
+passes **424 tests in 39 suites**, **416 localization keys** pass across English
 plus 15 translated locales, and the unsigned universal Release Simulator build
 passes with all nine Team production values empty. The opt-in Team Google callback
 scheme now matches the approved redirect scheme, and agreement-key cleanup is
-registered before identity insertion. This is source/build evidence only. It does
+registered before identity insertion. Imported recovery-key retention is
+default-off, consent-gated, post-authentication and non-replacing; the recovery
+screen also receives an inactive-scene privacy cover. This is source/build
+evidence only. It does
 not close the signed-device, provider, server, cross-platform, archive, TestFlight,
 or production gates below.
 
@@ -95,8 +98,9 @@ checkboxes deliberately remain open until checked against the exact next candida
       Android -> iOS -> Android full recovery without restoring remote authority.
       The received-text recovery flow is now reachable from the exact connected
       Team workspace and rechecks account deletion before preview, restore and
-      export. Full archive coverage, imported-key retention, secure-screen policy,
-      physical acceptance and cross-platform recovery remain open.
+      export. Imported-key retention and inactive-scene privacy shielding are now
+      source-complete with explicit consent and non-replacement tests. Full archive
+      coverage, physical privacy acceptance and cross-platform recovery remain open.
 - [ ] Isolated Infrastructure admission/staging, privacy metadata and accurate
       retention/deletion wording, provider purge/restore tests. No direct shared
       infrastructure access or deployment outside its owning task.
@@ -297,8 +301,9 @@ checkboxes deliberately remain open until checked against the exact next candida
   test host. Background teardown rejects late operations and preserves an uncertain
   restore warning until a fresh authoritative preview. Key setup/copy now requires
   explicit consent, file read-back and separate-copy confirmation before custody.
-  Connected navigation and deletion-gated operations are now integrated. Final
-  provider/physical acceptance, imported-key retention, secure-screen policy and
+  Connected navigation and deletion-gated operations are now integrated. Imported
+  retention is default-off, post-authentication and non-replacing, with an
+  inactive-scene privacy shield. Final provider/physical privacy acceptance and
   full archive coverage remain open; this is not complete team recovery.
 - See `VALIDATION.md` for exact tested checkpoints. This is not a complete user
   recovery flow or a physical-device acceptance claim.

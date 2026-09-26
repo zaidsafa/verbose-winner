@@ -69,6 +69,7 @@ copy personal data into company memory unless the owner explicitly requests it.
 | Connected recovery candidate | `b731cd8880e9b6004af0e761af4538df1b480edd` |
 | Durable note draft candidate | `a6e3b3c7b62f8e335d8f5db560b199a80aeb485a` |
 | Localized Team guidance candidate | `2d930f3bd893c7bc75a143e9e1048561056431cf` |
+| Recovery privacy candidate | `a1ad0dac4715eb43934b43bccfdab5b9138e1dcd` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
 | Platform | iPhone, iOS 26.1+, Swift 6 |
 | Bundle | `com.zaidsafa.pinbook.ios` |
@@ -84,11 +85,11 @@ the final acceptance gates.
 
 ### Validated local candidate
 
-The source candidate is committed at `c3bbbe0`. It is not a TestFlight release.
+The current source candidate is committed at `a1ad0da`. It is not a TestFlight release.
 Its exact 2026-09-27 evidence:
 
-- 422 Swift tests in 39 suites passed in a serial run;
-- 408 localization keys passed across English plus 15 translated locales;
+- 424 Swift tests in 39 suites passed in a serial run;
+- 416 localization keys passed across English plus 15 translated locales;
 - unsigned Release Simulator build passed for arm64 and x86_64;
 - bundle, version, and build remained `com.zaidsafa.pinbook.ios`, `0.1.0`, and `3`;
 - all nine Team production configuration values remained empty;
@@ -103,6 +104,13 @@ the Google callback URL type to the approved redirect scheme and registers an
 agreement scope before Keychain insertion so cleanup can enumerate every inserted
 identity. These facts must not be described as released until every remaining
 external acceptance gate is complete.
+
+The recovery privacy slice adds an inactive-scene privacy cover and marks the
+complete received-note recovery screen as privacy-sensitive. Imported keys remain
+ephemeral by default. Explicit retention can occur only after an authenticated
+archive preview, never replaces a different existing key, and reconciles an
+ambiguous insertion only after exact Keychain read-back. This is source and
+simulator evidence, not physical app-switcher or lock-screen acceptance.
 
 The resumed 2026-09-27 recovery slice connects the existing encrypted
 received-note Files flow to the normal Team workspace only after an exact
@@ -320,6 +328,7 @@ When responsibility moves, update this table in the same commit.
 | 2026-09-27 | Register agreement cleanup scope before Keychain insertion | A failure must not leave a valid but unenumerated agreement identity |
 | 2026-09-27 | Expose received-note recovery only through the exact connected runtime context | Keeps the UI simple while preventing stale or disconnected access to protected Team stores |
 | 2026-09-27 | Expose one explicit durable new-note draft without inventing a revision wire format | Gives users real save, restore, discard and exact-draft send while preserving cross-platform compatibility |
+| 2026-09-27 | Keep imported recovery-key retention default-off and post-authentication | Prevents silent custody, refuses replacement, and preserves ephemeral restore by default |
 
 ## Recovery points
 
@@ -346,6 +355,7 @@ When responsibility moves, update this table in the same commit.
 | Connected received-note recovery | `b731cd8` | Normal connected navigation plus deletion-gated preview, restore and export; full recovery acceptance remains open |
 | Connected durable note draft | `a6e3b3c` | Restore, save, discard and exact-draft send for a new text note; correction and review wire work remains open |
 | Localized Team action guidance | `2d930f3` | Localized safe next steps replace verbatim English and raw-error ambiguity |
+| Recovery privacy and imported-key retention | `a1ad0da` | Inactive-scene shield plus consent-gated authenticated non-replacing device custody; physical privacy acceptance remains open |
 
 ## Dated history
 
@@ -414,6 +424,13 @@ When responsibility moves, update this table in the same commit.
   candidate.
 - Committed and remotely verified localized Team action guidance at
   `2d930f3bd893c7bc75a143e9e1048561056431cf`.
+- Added an inactive-scene recovery privacy shield and explicit default-off
+  imported-key retention after successful archive authentication.
+- Passed 424 Swift tests in 39 suites, 416 localization keys across 16 locales,
+  strict String Catalog JSON parsing and an unsigned universal Release Simulator
+  build. No provider, server, signing, device, archive or TestFlight state changed.
+- Committed and remotely verified the recovery privacy source at
+  `a1ad0dac4715eb43934b43bccfdab5b9138e1dcd`.
 
 ## Open gates and exact next actions
 

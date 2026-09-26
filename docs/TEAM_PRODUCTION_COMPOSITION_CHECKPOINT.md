@@ -24,6 +24,8 @@ Implemented:
 - protected new-note draft restore, explicit save and exact-draft send or discard;
 - exact connected-account navigation to encrypted received-note Files recovery,
   with the deletion gate rechecked before import preview, restore and export;
+- default-off imported-key retention after authenticated preview, exact
+  non-replacement custody and inactive-scene recovery privacy shielding;
 - opt-in Associated Domains entitlement plus deterministic AASA generation.
 
 No live origin, provider credential, secret or fallback domain is committed.
@@ -38,12 +40,12 @@ version/build number, provider console, server, device or store state is changed
 
 Validation at this checkpoint:
 
-- complete Swift package: 422 tests in 39 suites pass;
-- 408 localization keys are complete across English plus 15 translations, with
+- complete Swift package: 424 tests in 39 suites pass;
+- 416 localization keys are complete across English plus 15 translations, with
   compiled app/widget localization plists valid;
 - plist/project/entitlement lint and `git diff --check` pass;
 - unsigned Release Simulator build passes for arm64 and x86_64 at
-  `/private/tmp/pinbook-goal-derived`, retaining bundle
+  `/private/tmp/pinbook-recovery-derived`, retaining bundle
   `com.zaidsafa.pinbook.ios`, version `0.1.0`, build `3`;
 - all nine Team production settings remain empty in the produced app;
 - a synthetic opt-in configuration resolves the callback URL scheme exactly to
