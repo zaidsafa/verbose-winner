@@ -65,6 +65,7 @@ copy personal data into company memory unless the owner explicitly requests it.
 | Repository | `https://github.com/zaidsafa/verbose-winner.git` |
 | Branch | `codex/team-delivery-foundation` |
 | Remote source before this candidate | `4f4d1f6e6fc96a2a6ca3f0ab0333b8024b70a6e2` |
+| Validated candidate source | `c3bbbe0287d915c143a53ee113228e967468c70e` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
 | Platform | iPhone, iOS 26.1+, Swift 6 |
 | Bundle | `com.zaidsafa.pinbook.ios` |
@@ -80,8 +81,8 @@ the final acceptance gates.
 
 ### Validated local candidate
 
-The working tree contains an uncommitted candidate based on `4f4d1f6`. It is not
-remote source and is not a TestFlight release. Its exact 2026-09-27 evidence:
+The source candidate is committed at `c3bbbe0`. It is not a TestFlight release.
+Its exact 2026-09-27 evidence:
 
 - 420 Swift tests in 39 suites passed in a serial run;
 - 392 localization keys passed across English plus 15 translated locales;
@@ -97,8 +98,8 @@ account-scoped cleanup, agreement-scope enumeration, recovery-key deletion,
 persisted block state, policy links, and action-specific status copy. It also maps
 the Google callback URL type to the approved redirect scheme and registers an
 agreement scope before Keychain insertion so cleanup can enumerate every inserted
-identity. These facts must not be described as remote or released until committed,
-pushed, and verified.
+identity. These facts must not be described as released until every remaining
+external acceptance gate is complete.
 
 The untracked `tmp/` directory is user-owned scratch state. Do not stage it.
 
@@ -313,7 +314,7 @@ When responsibility moves, update this table in the same commit.
 | Live personal Drive upload evidence | `c0c5df5` | Owner-observed upload path, not full remote read-back or cross-platform acceptance |
 | Restart-safe Team delivery checkpoint | `32d2b9d` | Durable deletion barrier and release acceptance framing |
 | Current remote production composition | `0637a20` | Default-off strict Team composition and current branch base |
-| Validated Team runtime candidate | pending candidate commit, based on `4f4d1f6` | Commit and push only after the exact validation and documentation checkpoint remains clean |
+| Validated Team runtime candidate | `c3bbbe0` | Default-off source candidate; no provider, device, server, archive, or TestFlight acceptance is implied |
 
 ## Dated history
 
@@ -358,27 +359,27 @@ When responsibility moves, update this table in the same commit.
 - Completed the resumed candidate audit, corrected the opt-in Team Google callback
   mapping, and made agreement-key insertion fail before an unenumerated identity
   can be stored.
+- Committed the validated application source at `c3bbbe0` as a precise recovery
+  point before the documentation follow-up.
 - Passed 420 Swift tests in 39 suites, 392 localization keys across 16 locales,
   the generated AASA check, and an unsigned universal Release Simulator build.
 - No build number, provider, device, infrastructure, or TestFlight state changed.
 
 ## Open gates and exact next actions
 
-1. Commit and push the validated candidate while preserving the user-owned
-   untracked `tmp/` directory.
-2. Have TC Infrastructure admit and deploy the exact Team service and migration
+1. Have TC Infrastructure admit and deploy the exact Team service and migration
    028 workers with recovery evidence.
-3. Supply the complete ignored Team build configuration, publish and verify AASA,
+2. Supply the complete ignored Team build configuration, publish and verify AASA,
    enable the required Apple App ID capabilities and profiles, and finish Apple
    and Google provider setup.
-4. Run signed isolated iPhone QA plus Android physical acceptance with synthetic
+3. Run signed isolated iPhone QA plus Android physical acceptance with synthetic
    records for sign-in, invitation, device registration, encrypted send, receive,
    archive-before-ACK, exact retry, block/report, deletion, and restart recovery.
-5. Complete personal Drive remote read-back, disconnect/revocation, non-owner
+4. Complete personal Drive remote read-back, disconnect/revocation, non-owner
    consent, and Android to iOS to Android recovery acceptance.
-6. Close every item in `docs/FINAL_UPDATE_CHECKLIST.md` before calling the next
+5. Close every item in `docs/FINAL_UPDATE_CHECKLIST.md` before calling the next
    build final.
-7. Only after the complete candidate is accepted, request fresh authorization for
+6. Only after the complete candidate is accepted, request fresh authorization for
    archive, upload, TestFlight group changes, external review, or public release.
 
 ## Durable references
