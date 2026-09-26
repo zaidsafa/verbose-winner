@@ -70,6 +70,7 @@ copy personal data into company memory unless the owner explicitly requests it.
 | Durable note draft candidate | `a6e3b3c7b62f8e335d8f5db560b199a80aeb485a` |
 | Localized Team guidance candidate | `2d930f3bd893c7bc75a143e9e1048561056431cf` |
 | Recovery privacy candidate | `a1ad0dac4715eb43934b43bccfdab5b9138e1dcd` |
+| Recovery readiness candidate | `9db3d6cded7af7c08163de90795f86742932dc46` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
 | Platform | iPhone, iOS 26.1+, Swift 6 |
 | Bundle | `com.zaidsafa.pinbook.ios` |
@@ -85,11 +86,11 @@ the final acceptance gates.
 
 ### Validated local candidate
 
-The current source candidate is committed at `a1ad0da`. It is not a TestFlight release.
+The current source candidate is committed at `9db3d6c`. It is not a TestFlight release.
 Its exact 2026-09-27 evidence:
 
 - 424 Swift tests in 39 suites passed in a serial run;
-- 416 localization keys passed across English plus 15 translated locales;
+- 423 localization keys passed across English plus 15 translated locales;
 - unsigned Release Simulator build passed for arm64 and x86_64;
 - bundle, version, and build remained `com.zaidsafa.pinbook.ios`, `0.1.0`, and `3`;
 - all nine Team production configuration values remained empty;
@@ -111,6 +112,11 @@ ephemeral by default. Explicit retention can occur only after an authenticated
 archive preview, never replaces a different existing key, and reconciles an
 ambiguous insertion only after exact Keychain read-back. This is source and
 simulator evidence, not physical app-switcher or lock-screen acceptance.
+
+The recovery screen also reads device-only key custody and presents one compact
+checking, saved, missing or unavailable status. It keeps separate key/archive
+guidance visible, explains that a separately saved key can still import, and never
+treats an unavailable protected read as proof that a key is missing or replaced.
 
 The resumed 2026-09-27 recovery slice connects the existing encrypted
 received-note Files flow to the normal Team workspace only after an exact
@@ -329,6 +335,7 @@ When responsibility moves, update this table in the same commit.
 | 2026-09-27 | Expose received-note recovery only through the exact connected runtime context | Keeps the UI simple while preventing stale or disconnected access to protected Team stores |
 | 2026-09-27 | Expose one explicit durable new-note draft without inventing a revision wire format | Gives users real save, restore, discard and exact-draft send while preserving cross-platform compatibility |
 | 2026-09-27 | Keep imported recovery-key retention default-off and post-authentication | Prevents silent custody, refuses replacement, and preserves ephemeral restore by default |
+| 2026-09-27 | Show compact recovery-key readiness without exposing key material | Gives clear lost-key guidance while preserving the distinction between missing and unavailable custody |
 
 ## Recovery points
 
@@ -356,6 +363,7 @@ When responsibility moves, update this table in the same commit.
 | Connected durable note draft | `a6e3b3c` | Restore, save, discard and exact-draft send for a new text note; correction and review wire work remains open |
 | Localized Team action guidance | `2d930f3` | Localized safe next steps replace verbatim English and raw-error ambiguity |
 | Recovery privacy and imported-key retention | `a1ad0da` | Inactive-scene shield plus consent-gated authenticated non-replacing device custody; physical privacy acceptance remains open |
+| Recovery-key readiness guidance | `9db3d6c` | Saved, missing and unavailable device-custody guidance without exposing key material |
 
 ## Dated history
 
@@ -431,6 +439,13 @@ When responsibility moves, update this table in the same commit.
   build. No provider, server, signing, device, archive or TestFlight state changed.
 - Committed and remotely verified the recovery privacy source at
   `a1ad0dac4715eb43934b43bccfdab5b9138e1dcd`.
+- Added compact saved, missing and unavailable recovery-key readiness plus clear
+  separate-copy and lost-key guidance to the connected recovery screen.
+- Passed 424 Swift tests in 39 suites, 423 localization keys across 16 locales,
+  strict String Catalog JSON parsing and the universal unsigned Release Simulator
+  build. No provider, server, signing, device, archive or TestFlight state changed.
+- Committed and remotely verified the recovery-readiness source at
+  `9db3d6cded7af7c08163de90795f86742932dc46`.
 
 ## Open gates and exact next actions
 

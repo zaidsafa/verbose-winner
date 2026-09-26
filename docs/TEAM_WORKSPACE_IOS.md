@@ -2,6 +2,17 @@
 
 Updated: 2026-09-27 (Asia/Shanghai)
 
+## 2026-09-27 recovery-key readiness guidance
+
+- The recovery screen reads the device-only key store and displays a single
+  checking, saved, missing or unavailable status.
+- Saved guidance keeps the archive and separate key-copy requirement visible.
+  Missing guidance explains that a separately saved key can still import and that
+  Pinbook cannot decrypt the archive without it.
+- Unavailable custody is never treated as missing, deleted or replaced.
+- Complete serial Swift **424/424 in 39 suites**, localization **423 keys across
+  16 locales**, and unsigned arm64+x86_64 Release Simulator build pass.
+
 ## 2026-09-27 recovery privacy and imported-key retention
 
 - Recovery content is privacy-sensitive and receives an opaque inactive-scene

@@ -26,6 +26,8 @@ Implemented:
   with the deletion gate rechecked before import preview, restore and export;
 - default-off imported-key retention after authenticated preview, exact
   non-replacement custody and inactive-scene recovery privacy shielding;
+- compact device-only recovery-key readiness and lost-key guidance without
+  treating an unavailable protected read as a missing key;
 - opt-in Associated Domains entitlement plus deterministic AASA generation.
 
 No live origin, provider credential, secret or fallback domain is committed.
@@ -41,7 +43,7 @@ version/build number, provider console, server, device or store state is changed
 Validation at this checkpoint:
 
 - complete Swift package: 424 tests in 39 suites pass;
-- 416 localization keys are complete across English plus 15 translations, with
+- 423 localization keys are complete across English plus 15 translations, with
   compiled app/widget localization plists valid;
 - plist/project/entitlement lint and `git diff --check` pass;
 - unsigned Release Simulator build passes for arm64 and x86_64 at

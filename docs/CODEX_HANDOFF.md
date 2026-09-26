@@ -48,6 +48,18 @@ Updated: 2026-09-27 (Asia/Shanghai)
 
 ## Active local implementation after release hold
 
+- Recovery readiness checkpoint: the connected recovery screen now shows one
+  compact device-only key status for checking, saved, missing or unavailable.
+  Guidance explains the separate key and archive requirement, permits import with
+  a separately saved key, states that Pinbook cannot decrypt without it, and does
+  not claim deletion or replacement on an unavailable read. Complete serial Swift
+  **424/424 in 39 suites**, localization **423 keys across 16 locales**, strict
+  String Catalog JSON, `git diff --check`, and the unsigned universal Release
+  Simulator build pass. Physical custody/privacy and full recovery acceptance
+  remain open. No provider, server, signing, device, archive or TestFlight state
+  changed. Exact source checkpoint:
+  `9db3d6cded7af7c08163de90795f86742932dc46`.
+
 - Recovery privacy checkpoint: received-note recovery now uses a full-screen
   inactive-scene privacy cover and marks its complete UI as privacy-sensitive.
   Imported keys remain unsaved by default. An explicit unchecked choice can save

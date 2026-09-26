@@ -1,5 +1,22 @@
 # Validation plan
 
+## 2026-09-27 recovery-key readiness guidance
+
+- The connected received-note recovery screen now reads device-only key custody
+  and shows one compact checking, saved, missing or unavailable status.
+- Saved status reminds the user to keep the key and encrypted archive in separate
+  safe locations. Missing status explains that a separately saved key can still
+  import the archive and that Pinbook cannot decrypt without it.
+- Locked or unavailable custody gives a safe retry instruction and never claims
+  that the key was removed or replaced.
+- Complete serial Swift package: **424 tests in 39 suites PASS**.
+- Localization validation: **423 keys complete across English plus 15 translated
+  locales**. The String Catalog also passes strict JSON parsing.
+- Unsigned Release iOS Simulator app: **BUILD SUCCEEDED** for arm64 and x86_64 at
+  `/private/tmp/pinbook-recovery-derived`.
+- `git diff --check`: pass. No provider, server, signing, physical device,
+  archive, TestFlight or production state changed.
+
 ## 2026-09-27 recovery privacy and imported-key retention
 
 - The received-note recovery screen now covers its content whenever the scene is

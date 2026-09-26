@@ -13,7 +13,7 @@ the exact iOS/Android source commits, artifacts, versions, signing identities,
 staging migration and the physical Android-to-iPhone matrix.
 
 Current 2026-09-27 local candidate evidence: the complete serial Swift suite
-passes **424 tests in 39 suites**, **416 localization keys** pass across English
+passes **424 tests in 39 suites**, **423 localization keys** pass across English
 plus 15 translated locales, and the unsigned universal Release Simulator build
 passes with all nine Team production values empty. The opt-in Team Google callback
 scheme now matches the approved redirect scheme, and agreement-key cleanup is
@@ -94,13 +94,15 @@ checkboxes deliberately remain open until checked against the exact next candida
 - [ ] Supported media with complete verification before ACK; explicit caps and
       interrupted-download/upload recovery. Current local foundation is text only.
 - [ ] Recovery-key custody/consent, secure Files export/import and cleanup, preview,
-      lost-key/backup-health explanations, sender/revision/media coverage, and
+      sender/revision/media coverage, and
       Android -> iOS -> Android full recovery without restoring remote authority.
       The received-text recovery flow is now reachable from the exact connected
       Team workspace and rechecks account deletion before preview, restore and
       export. Imported-key retention and inactive-scene privacy shielding are now
-      source-complete with explicit consent and non-replacement tests. Full archive
-      coverage, physical privacy acceptance and cross-platform recovery remain open.
+      source-complete with explicit consent and non-replacement tests. Saved,
+      missing and unavailable key readiness plus lost-key guidance are also
+      source-complete. Full archive coverage, physical privacy/custody acceptance
+      and cross-platform recovery remain open.
 - [ ] Isolated Infrastructure admission/staging, privacy metadata and accurate
       retention/deletion wording, provider purge/restore tests. No direct shared
       infrastructure access or deployment outside its owning task.
