@@ -57,7 +57,8 @@ Updated: 2026-09-27 (Asia/Shanghai)
   frozen. Complete serial Swift **422/422 in 39 suites**, localization **397 keys
   across 16 locales**, strict String Catalog JSON, `git diff --check`, and the
   unsigned arm64+x86_64 Release Simulator build pass. No provider, server,
-  signing, device, archive or TestFlight state changed.
+  signing, device, archive or TestFlight state changed. Exact source checkpoint:
+  `a6e3b3c7b62f8e335d8f5db560b199a80aeb485a`.
 
 - Connected recovery checkpoint: the normal Team workspace now exposes the
   existing encrypted received-note Files recovery flow only when the runtime

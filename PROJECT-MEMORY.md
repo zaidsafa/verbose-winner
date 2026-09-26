@@ -67,6 +67,7 @@ copy personal data into company memory unless the owner explicitly requests it.
 | Remote source before this candidate | `1107fc3b40c08be72142f307c4b4d87bab8bc52c` |
 | Base Team runtime candidate | `c3bbbe0287d915c143a53ee113228e967468c70e` |
 | Connected recovery candidate | `b731cd8880e9b6004af0e761af4538df1b480edd` |
+| Durable note draft candidate | `a6e3b3c7b62f8e335d8f5db560b199a80aeb485a` |
 | Product | Native SwiftUI periodic-expense ledger and recovery companion |
 | Platform | iPhone, iOS 26.1+, Swift 6 |
 | Bundle | `com.zaidsafa.pinbook.ios` |
@@ -336,6 +337,7 @@ When responsibility moves, update this table in the same commit.
 | Current remote production composition | `0637a20` | Default-off strict Team composition and current branch base |
 | Validated Team runtime candidate | `c3bbbe0` | Default-off source candidate; no provider, device, server, archive, or TestFlight acceptance is implied |
 | Connected received-note recovery | `b731cd8` | Normal connected navigation plus deletion-gated preview, restore and export; full recovery acceptance remains open |
+| Connected durable note draft | `a6e3b3c` | Restore, save, discard and exact-draft send for a new text note; correction and review wire work remains open |
 
 ## Dated history
 
@@ -396,6 +398,8 @@ When responsibility moves, update this table in the same commit.
 - Passed 422 Swift tests in 39 suites, 397 localization keys across 16 locales,
   strict String Catalog JSON parsing and the universal unsigned Release Simulator
   build. No provider, server, signing, device, archive or TestFlight state changed.
+- Committed and remotely verified the connected durable note draft source and
+  evidence at `a6e3b3c7b62f8e335d8f5db560b199a80aeb485a`.
 
 ## Open gates and exact next actions
 
