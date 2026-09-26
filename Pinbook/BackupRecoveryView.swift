@@ -630,6 +630,10 @@ private func backupActivitySummary(_ activity: BackupActivityItem) -> String {
 
 /// Linked only from an exact connected Team workspace context. Disabled or
 /// disconnected runtimes cannot open a store or create recovery-key custody.
+private enum TeamRecoveryKeyHealth {
+    case checking, available, missing, unavailable
+}
+
 struct TeamReceivedArchiveRecoveryView: View {
     @Environment(\.pinbookSkin) private var skin
     @Environment(\.scenePhase) private var scenePhase
@@ -646,7 +650,9 @@ struct TeamReceivedArchiveRecoveryView: View {
     @State private var restored = false
     @State private var showingKeySetup = false
     @State private var operationTask: Task<Void, Never>?
+    @State private var keyHealthTask: Task<Void, Never>?
     @State private var retainImportedKey = false
+    @State private var keyHealth: TeamRecoveryKeyHealth = .checking
 
     private var isWorking: Bool { presentation.isWorking }
 
@@ -695,6 +701,26 @@ struct TeamReceivedArchiveRecoveryView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     Text("Imported keys are used only for this restore and are not saved.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                switch keyHealth {
+                case .checking:
+                    Label("Checking saved recovery key", systemImage: "hourglass")
+                case .available:
+                    Label("Recovery key saved on this device", systemImage: "checkmark.shield.fill")
+                        .foregroundStyle(.green)
+                    Text("Keep a separate copy of the key and encrypted archive in safe locations.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                case .missing:
+                    Label("No recovery key saved on this device", systemImage: "exclamationmark.shield")
+                    Text("You can still import with a separately saved key. Without the key, Pinbook cannot decrypt the archive.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                case .unavailable:
+                    Label("Recovery key status unavailable", systemImage: "lock.fill")
+                    Text("Unlock this device and try again. Pinbook did not replace the saved key.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -750,6 +776,9 @@ struct TeamReceivedArchiveRecoveryView: View {
         .sheet(isPresented: $showingKeySetup) {
             TeamRecoveryKeySetupView(accountId: accountId, store: keyStore)
         }
+        .onChange(of: showingKeySetup) { _, showing in
+            if !showing, scenePhase == .active { startKeyHealthRefresh() }
+        }
         .alert("Backup operation failed", isPresented: Binding(
             get: { operationError != nil }, set: { if !$0 { operationError = nil } }
         )) { Button("OK") { operationError = nil } } message: {
@@ -760,9 +789,17 @@ struct TeamReceivedArchiveRecoveryView: View {
         } message: {
             Text("Existing notes were preserved. No team access or delivery receipts were restored.")
         }
-        .onAppear { if scenePhase == .active { presentation.activate() } }
+        .onAppear {
+            if scenePhase == .active {
+                presentation.activate()
+                startKeyHealthRefresh()
+            }
+        }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { presentation.activate() }
+            if phase == .active {
+                presentation.activate()
+                startKeyHealthRefresh()
+            }
             else { clearSensitiveState() }
         }
         .onDisappear { clearSensitiveState() }
@@ -771,6 +808,8 @@ struct TeamReceivedArchiveRecoveryView: View {
     @MainActor private func clearSensitiveState() {
         presentation.invalidate()
         operationTask?.cancel()
+        keyHealthTask?.cancel()
+        keyHealthTask = nil
         keyText = ""
         let previousID = preview?.id
         preview = nil
@@ -781,7 +820,24 @@ struct TeamReceivedArchiveRecoveryView: View {
         operationError = nil
         restored = false
         retainImportedKey = false
+        keyHealth = .checking
         if let previousID { Task { await session.cancelPreview(previewID: previousID) } }
+    }
+
+    @MainActor private func startKeyHealthRefresh() {
+        keyHealthTask?.cancel()
+        keyHealthTask = Task { await refreshKeyHealth() }
+    }
+
+    @MainActor private func refreshKeyHealth() async {
+        do {
+            let key = try await savedKey()
+            guard !Task.isCancelled, scenePhase == .active else { return }
+            keyHealth = key == nil ? .missing : .available
+        } catch is CancellationError { }
+        catch {
+            if !Task.isCancelled, scenePhase == .active { keyHealth = .unavailable }
+        }
     }
 
     private func savedKey() async throws -> SymmetricKey? {
@@ -801,10 +857,20 @@ struct TeamReceivedArchiveRecoveryView: View {
         do {
             let key = try await savedKey()
             guard presentation.accepts(ticket) else { return }
-            guard let key else { operationError = "No recovery key is saved on this device. Enter your separately saved key to import."; return }
+            guard let key else {
+                keyHealth = .missing
+                operationError = "No recovery key is saved on this device. Enter your separately saved key to import."
+                return
+            }
+            keyHealth = .available
             keyText = try TeamRecoveryKeyText.encode(key)
         } catch is CancellationError { }
-        catch { if presentation.accepts(ticket) { operationError = "The saved recovery key is unavailable. It has not been replaced." } }
+        catch {
+            if presentation.accepts(ticket) {
+                keyHealth = .unavailable
+                operationError = "The saved recovery key is unavailable. It has not been replaced."
+            }
+        }
     }
 
     @MainActor private func exportArchive() async {
@@ -813,7 +879,12 @@ struct TeamReceivedArchiveRecoveryView: View {
         do {
             let key = try await savedKey()
             guard presentation.accepts(ticket) else { return }
-            guard let key else { operationError = "No recovery key is saved on this device. Enter your separately saved key to import."; return }
+            guard let key else {
+                keyHealth = .missing
+                operationError = "No recovery key is saved on this device. Enter your separately saved key to import."
+                return
+            }
+            keyHealth = .available
             let compact = try await session.export(exportedAt: .nowMilliseconds, recoveryKey: key)
             guard presentation.accepts(ticket) else { return }
             exportDocument = TeamEncryptedArchiveDocument(data: Data(compact.utf8))
@@ -849,6 +920,7 @@ struct TeamReceivedArchiveRecoveryView: View {
                     }
                     return
                 }
+                keyHealth = .available
             }
             guard !Task.isCancelled, presentation.acceptPreview(ticket) else {
                 await session.cancelPreview(previewID: candidate.id)
